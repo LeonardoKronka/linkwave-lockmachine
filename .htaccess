@@ -1,0 +1,40 @@
+# LinkWave · LockMachine — configuração do Apache (cPanel)
+Options -Indexes
+DirectoryIndex index.html index.php
+
+# Para obrigar HTTPS, prefira o botão "Force HTTPS Redirect" em cPanel > Domains.
+# Se não existir, tire o # das 4 linhas abaixo DEPOIS que https:// já estiver funcionando.
+# <IfModule mod_rewrite.c>
+#   RewriteEngine On
+#   RewriteCond %{HTTPS} !=on
+#   RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+# </IfModule>
+
+# Tipos de arquivo usados pelo app e pelo download do APK
+AddType application/manifest+json .webmanifest
+AddType application/vnd.android.package-archive .apk
+AddType font/woff2 .woff2
+
+# Arquivos de desenvolvimento nunca são servidos
+<FilesMatch "\.(sql|md|ino|ps1|sh|log)$">
+  Require all denied
+</FilesMatch>
+
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "same-origin"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  <FilesMatch "^(sw\.js|manifest\.webmanifest)$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+</IfModule>
+
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType font/woff2 "access plus 1 year"
+  ExpiresByType image/png "access plus 1 month"
+  ExpiresByType image/svg+xml "access plus 1 month"
+  ExpiresByType text/css "access plus 1 hour"
+  ExpiresByType application/javascript "access plus 1 hour"
+  ExpiresByType text/html "access plus 0 seconds"
+</IfModule>

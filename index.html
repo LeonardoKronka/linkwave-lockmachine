@@ -1,0 +1,551 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>LinkWave — Conectamos pessoas, dados e máquinas</title>
+  <meta name="description" content="LinkWave é a equipe de Desenvolvimento de Sistemas do SENAI Mococa por trás do LockMachine, protótipo de controle de acesso a máquinas com RFID e IoT.">
+  <meta name="theme-color" content="#2F45FF">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="assets/fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <style>
+    /* Tela de carregamento: cobre a página desde o primeiro quadro */
+    .wipe{display:none}
+    html.js .wipe{display:block;position:fixed;inset:0;z-index:120;pointer-events:none}
+    .wipe__panel{position:absolute;inset:0;transform:translateY(100%)}
+    html.js.is-loading .wipe__panel{transform:none}
+    .wipe__panel--yellow{background:#FFD23F}.wipe__panel--red{background:#FF3D2E}.wipe__panel--cobalt{background:#2F45FF}
+    .wipe__panel:last-child{display:grid;place-items:center}
+  </style>
+  <link rel="stylesheet" href="assets/fonts/fonts.css">
+  <link rel="stylesheet" href="assets/css/styles.css">
+  <script>(function(d){d.classList.add('js','is-loading');setTimeout(function(){if(d.classList.contains('is-loading')){d.classList.add('boot-timeout');d.classList.remove('is-loading')}},9000)})(document.documentElement);</script>
+</head>
+<body class="page-home">
+  <div class="wipe" aria-hidden="true">
+    <span class="wipe__panel wipe__panel--yellow"></span>
+    <span class="wipe__panel wipe__panel--red"></span>
+    <span class="wipe__panel wipe__panel--cobalt">
+      <svg class="wipe__mark" viewBox="0 0 40 40">
+        <rect x="1.5" y="1.5" width="37" height="37" rx="11" fill="#2F45FF" stroke="#11131F" stroke-width="3"/>
+        <path d="M9 22c3.2-7 7.8-7 11 0s7.8 7 11 0" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round"/>
+        <circle cx="9" cy="22" r="3.4" fill="#FFD23F" stroke="#11131F" stroke-width="2"/>
+        <circle cx="31" cy="22" r="3.4" fill="#FFD23F" stroke="#11131F" stroke-width="2"/>
+      </svg>
+      <span class="wipe__bar"><span></span></span>
+    </span>
+  </div>
+
+  <a class="skip" href="#conteudo">Pular para o conteúdo</a>
+
+  <!-- Ícones -->
+  <svg class="sprite" aria-hidden="true" focusable="false">
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h15M13 5.5 19.5 12 13 18.5"/></symbol>
+    <symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="M12 20V5M5.5 11 12 4.5 18.5 11"/></symbol>
+    <symbol id="i-browser" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="15" rx="3"/><path d="M3 9.5h18M6.5 7h.01M9.5 7h.01"/></symbol>
+    <symbol id="i-server" viewBox="0 0 24 24"><rect x="3.5" y="4" width="17" height="7" rx="2.5"/><rect x="3.5" y="13" width="17" height="7" rx="2.5"/><path d="M7.5 7.5h.01M7.5 16.5h.01M12 7.5h5M12 16.5h5"/></symbol>
+    <symbol id="i-db" viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="7.5" ry="3"/><path d="M4.5 6v12c0 1.66 3.36 3 7.5 3s7.5-1.34 7.5-3V6"/><path d="M4.5 12c0 1.66 3.36 3 7.5 3s7.5-1.34 7.5-3"/></symbol>
+    <symbol id="i-chip" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2.5"/><rect x="9.5" y="9.5" width="5" height="5" rx="1"/><path d="M9.5 2.5V6M14.5 2.5V6M9.5 18v3.5M14.5 18v3.5M2.5 9.5H6M2.5 14.5H6M18 9.5h3.5M18 14.5h3.5"/></symbol>
+    <symbol id="i-rfid" viewBox="0 0 24 24"><rect x="2.5" y="6.5" width="11" height="14" rx="2.5"/><path d="M6 10.5h4"/><path d="M16.5 9.5a4 4 0 0 1 0 5"/><path d="M19.5 7a8 8 0 0 1 0 10"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M4.5 12.5 9.5 17.5 19.5 6.5"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4.5" y="10.5" width="15" height="10.5" rx="2.5"/><path d="M8 10.5v-3a4 4 0 0 1 8 0v3M12 14.5V17"/></symbol>
+    <symbol id="i-code" viewBox="0 0 24 24"><path d="M8.5 7 3.5 12l5 5M15.5 7l5 5-5 5"/></symbol>
+    <symbol id="i-flip" viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14.6-4.5M4 13a8 8 0 0 0 14.6 4.5"/><path d="M5 2.5v4h4M19 21.5v-4h-4"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 2.5v19M3.8 7.25l16.4 9.5M3.8 16.75l16.4-9.5"/></symbol>
+  </svg>
+
+  <!-- Navegação -->
+  <header class="nav" data-nav>
+    <div class="nav__bar">
+      <a class="brand" href="index.html" aria-label="LinkWave, página inicial">
+        <svg class="brand__mark" viewBox="0 0 40 40" aria-hidden="true">
+          <rect x="1.5" y="1.5" width="37" height="37" rx="11" fill="#2F45FF" stroke="#11131F" stroke-width="3"/>
+          <path d="M9 22c3.2-7 7.8-7 11 0s7.8 7 11 0" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round"/>
+          <circle cx="9" cy="22" r="3.4" fill="#FFD23F" stroke="#11131F" stroke-width="2"/>
+          <circle cx="31" cy="22" r="3.4" fill="#FFD23F" stroke="#11131F" stroke-width="2"/>
+        </svg>
+        <span class="brand__name">LinkWave</span>
+      </a>
+      <nav class="nav__links" aria-label="Seções">
+        <a href="#sobre">Sobre</a>
+        <a href="#servicos">O que fazemos</a>
+        <a href="#processo">Processo</a>
+        <a href="#equipe">Equipe</a>
+      </nav>
+      <a class="btn btn--red btn--sm nav__cta" href="lockmachine.html" data-wipe>
+        LockMachine <svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg>
+      </a>
+      <button class="nav__toggle" type="button" aria-expanded="false" aria-controls="menu" aria-label="Abrir menu">
+        <span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <div class="menu" id="menu" data-menu hidden>
+    <nav class="menu__links" aria-label="Menu">
+      <a href="#sobre">Sobre</a>
+      <a href="#servicos">O que fazemos</a>
+      <a href="#projeto">Projeto</a>
+      <a href="#processo">Processo</a>
+      <a href="#equipe">Equipe</a>
+      <a href="lockmachine.html" data-wipe>LockMachine</a>
+    </nav>
+    <p class="menu__foot">SENAI · Mococa — SP · TCC 2026</p>
+  </div>
+
+
+  <div id="smooth-wrapper">
+    <div id="smooth-content">
+      <main id="conteudo">
+
+        <!-- HERO -->
+        <section class="plate s-cobalt hero hero--home" id="topo">
+          <div class="wrap hero__top">
+            <h1 class="h-xl hero__title" data-hero-title>
+              Conectamos <span class="nowrap"><span class="hl">pessoas</span>,</span> dados e máquinas.
+            </h1>
+            <div class="hero__aside" data-hero-aside>
+              <p class="hero__lede">Somos a LinkWave, equipe do curso Técnico em Desenvolvimento de Sistemas do SENAI Mococa. Juntamos interface web, banco de dados e Internet das Coisas em projetos que saem da tela, como o LockMachine.</p>
+              <div class="btn-row">
+                <a class="btn btn--red" href="lockmachine.html" data-wipe>Conhecer o LockMachine <svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+                <a class="btn" href="#equipe">Ver a equipe</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="wave" data-wave>
+            <svg class="wave__svg" aria-hidden="true">
+              <path class="wave__under"/>
+              <path class="wave__line"/>
+              <circle class="wave__pulse" r="9"/>
+            </svg>
+            <ul class="wave__nodes" aria-label="Camadas que a LinkWave integra">
+              <li class="node" data-x="0.11">
+                <span class="node__icon"><svg aria-hidden="true"><use href="#i-browser"/></svg></span>
+                <span class="node__label"><span class="long">Interface web</span><span class="short">Web</span></span>
+              </li>
+              <li class="node" data-x="0.37">
+                <span class="node__icon"><svg aria-hidden="true"><use href="#i-server"/></svg></span>
+                <span class="node__label"><span class="long">API em PHP</span><span class="short">API</span></span>
+              </li>
+              <li class="node" data-x="0.63">
+                <span class="node__icon"><svg aria-hidden="true"><use href="#i-db"/></svg></span>
+                <span class="node__label"><span class="long">Banco MySQL</span><span class="short">Banco</span></span>
+              </li>
+              <li class="node" data-x="0.89">
+                <span class="node__icon"><svg aria-hidden="true"><use href="#i-rfid"/></svg></span>
+                <span class="node__label"><span class="long">ESP32 + RFID</span><span class="short">IoT</span></span>
+              </li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- FAIXA -->
+        <div class="marquee" aria-hidden="true" data-marquee>
+          <div class="marquee__track">
+            <span>Interface web</span><svg class="marquee__star"><use href="#i-star"/></svg>
+            <span>Banco de dados</span><svg class="marquee__star"><use href="#i-star"/></svg>
+            <span>Internet das Coisas</span><svg class="marquee__star"><use href="#i-star"/></svg>
+            <span>RFID</span><svg class="marquee__star"><use href="#i-star"/></svg>
+            <span>PHP + MySQL</span><svg class="marquee__star"><use href="#i-star"/></svg>
+            <span>ESP32</span><svg class="marquee__star"><use href="#i-star"/></svg>
+          </div>
+        </div>
+
+        <!-- SOBRE -->
+        <section class="plate s-paper about" id="sobre">
+          <div class="wrap">
+            <h2 class="about__statement" data-scrub-text>A LinkWave é a identidade da nossa equipe: o lugar onde mostramos quem somos, o que sabemos fazer e os projetos que construímos durante o curso.</h2>
+
+            <div class="about__split">
+              <article class="ltag ltag--cobalt" data-tag-card>
+                <span class="grommet" aria-hidden="true"></span>
+                <h3 class="ltag__name">LinkWave</h3>
+                <p class="ltag__role">A equipe</p>
+                <p>Marca institucional e portfólio: integrantes, competências e projetos acadêmicos.</p>
+              </article>
+
+              <svg class="about__link" viewBox="0 0 160 80" aria-hidden="true" data-about-link>
+                <path class="about__link-under" d="M8 40c24-34 48-34 72 0s48 34 72 0"/>
+                <path class="about__link-line" d="M8 40c24-34 48-34 72 0s48 34 72 0"/>
+              </svg>
+
+              <article class="ltag ltag--red" data-tag-card>
+                <span class="grommet" aria-hidden="true"></span>
+                <h3 class="ltag__name">LockMachine</h3>
+                <p class="ltag__role">O produto</p>
+                <p>Solução desenvolvida no TCC para controle administrativo de acesso a máquinas com RFID.</p>
+              </article>
+            </div>
+            <p class="about__note">Identidades visuais parentes, nomes e objetivos distintos. Empresa, equipe e produto não são a mesma coisa.</p>
+          </div>
+        </section>
+
+        <!-- O QUE FAZEMOS -->
+        <section class="plate s-ground services" id="servicos">
+          <div class="wrap services__grid">
+            <div class="services__head">
+              <h2 class="h-lg" data-split>O que fazemos</h2>
+              <p class="lede">Quatro frentes que aprendemos no curso e que juntamos em um mesmo sistema, da tela até a leitora de cartões.</p>
+            </div>
+
+            <div class="rows" data-rows>
+              <article class="row is-open" style="--tone: var(--yellow)">
+                <h3 class="row__h">
+                  <button class="row__head" type="button" aria-expanded="true" aria-controls="row-web">
+                    <span class="row__icon"><svg aria-hidden="true"><use href="#i-browser"/></svg></span>
+                    <span class="row__title">Interfaces web</span>
+                    <span class="row__plus" aria-hidden="true"></span>
+                  </button>
+                </h3>
+                <div class="row__body" id="row-web">
+                  <div class="row__inner">
+                    <p>Páginas institucionais, telas de login e dashboards que funcionam de 360 px a 1440 px sem rolagem horizontal. O JavaScript usa a Fetch API para atualizar tabelas e indicadores sem recarregar a página.</p>
+                    <ul class="chips"><li>HTML5</li><li>CSS3</li><li>JavaScript</li><li>Fetch API</li></ul>
+                  </div>
+                </div>
+              </article>
+
+              <article class="row" style="--tone: var(--cobalt); --tone-fg: #fff">
+                <h3 class="row__h">
+                  <button class="row__head" type="button" aria-expanded="false" aria-controls="row-api">
+                    <span class="row__icon"><svg aria-hidden="true"><use href="#i-server"/></svg></span>
+                    <span class="row__title">APIs e regras</span>
+                    <span class="row__plus" aria-hidden="true"></span>
+                  </button>
+                </h3>
+                <div class="row__body" id="row-api">
+                  <div class="row__inner">
+                    <p>Back-end em PHP com PDO e consultas preparadas, senhas com password_hash, sessão com cookie HttpOnly e respostas JSON com códigos HTTP claros. A validação acontece no servidor, não só no navegador.</p>
+                    <ul class="chips"><li>PHP</li><li>PDO</li><li>JSON</li><li>Sessões</li></ul>
+                  </div>
+                </div>
+              </article>
+
+              <article class="row" style="--tone: var(--green)">
+                <h3 class="row__h">
+                  <button class="row__head" type="button" aria-expanded="false" aria-controls="row-db">
+                    <span class="row__icon"><svg aria-hidden="true"><use href="#i-db"/></svg></span>
+                    <span class="row__title">Banco de dados</span>
+                    <span class="row__plus" aria-hidden="true"></span>
+                  </button>
+                </h3>
+                <div class="row__body" id="row-db">
+                  <div class="row__inner">
+                    <p>Modelagem relacional em MySQL com chaves estrangeiras, restrições UNIQUE e desativação lógica para preservar o histórico. A estrutura vive em scripts SQL versionados, para qualquer integrante recriar o ambiente.</p>
+                    <ul class="chips"><li>MySQL</li><li>schema.sql</li><li>seed.sql</li><li>Workbench</li></ul>
+                  </div>
+                </div>
+              </article>
+
+              <article class="row" style="--tone: var(--red)">
+                <h3 class="row__h">
+                  <button class="row__head" type="button" aria-expanded="false" aria-controls="row-iot">
+                    <span class="row__icon"><svg aria-hidden="true"><use href="#i-chip"/></svg></span>
+                    <span class="row__title">IoT e hardware</span>
+                    <span class="row__plus" aria-hidden="true"></span>
+                  </button>
+                </h3>
+                <div class="row__body" id="row-iot">
+                  <div class="row__inner">
+                    <p>ESP32 com leitor RFID MFRC522 em 13,56 MHz, LEDs, buzzer e um relé de bancada que sempre começa desenergizado. O dispositivo só identifica: quem decide é o servidor.</p>
+                    <ul class="chips"><li>ESP32</li><li>MFRC522</li><li>Wi-Fi</li><li>SPI</li></ul>
+                  </div>
+                </div>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <!-- PROJETO EM DESTAQUE -->
+        <section class="plate s-ink spotlight" id="projeto">
+          <div class="wrap spotlight__grid">
+            <div class="spotlight__visual" aria-hidden="true">
+              <svg class="padlock" viewBox="0 0 200 230" data-padlock>
+                <path class="padlock__shackle-under" d="M58 112V70a42 42 0 0 1 84 0v42"/>
+                <path class="padlock__shackle" d="M58 112V70a42 42 0 0 1 84 0v42"/>
+                <rect class="padlock__body" x="26" y="104" width="148" height="116" rx="26"/>
+                <circle class="padlock__key" cx="100" cy="152" r="13"/>
+                <rect class="padlock__key" x="94" y="156" width="12" height="32" rx="6"/>
+              </svg>
+              <div class="bigtag" data-bigtag>
+                <span class="bigtag__ring"></span>
+                <span class="grommet grommet--lg"></span>
+                <span class="bigtag__band">Bloqueio por regra</span>
+                <strong class="bigtag__name">Lock<br>Machine</strong>
+                <span class="bigtag__line">Acesso a máquinas com RFID</span>
+                <span class="bigtag__foot">
+                  <span>MVP em desenvolvimento</span>
+                  <span class="bigtag__code">P-01</span>
+                </span>
+              </div>
+            </div>
+
+            <div class="spotlight__copy">
+              <h2 class="h-lg" data-split>O cartão identifica. A regra decide.</h2>
+              <p class="lede">O LockMachine é o nosso TCC. Ele associa o cartão RFID do operador aos treinamentos registrados no banco e confere se continuam válidos antes de autorizar o uso da máquina. Liberada ou bloqueada, toda tentativa vira registro com o motivo.</p>
+              <ol class="mini-steps">
+                <li><span class="mini-steps__n">1</span>O operador aproxima o cartão da leitora.</li>
+                <li><span class="mini-steps__n">2</span>O servidor confere cadastro, máquina e validade das capacitações.</li>
+                <li><span class="mini-steps__n">3</span>O acesso é liberado ou bloqueado e fica no histórico.</li>
+              </ol>
+              <div class="btn-row">
+                <a class="btn btn--red" href="lockmachine.html" data-wipe>Explorar o LockMachine <svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+                <a class="btn btn--yellow" href="lockmachine.html#simulador" data-wipe>Testar o simulador</a>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- PROCESSO -->
+        <section class="plate s-ground process" id="processo" data-process>
+          <div class="wrap process__head">
+            <h2 class="h-lg" data-split>Como trabalhamos</h2>
+            <p class="lede">Desenvolvimento incremental com Scrum adaptado à escola. O Product Owner cuida do backlog e dos critérios de aceitação, o Scrum Master acompanha o andamento e cada integrante assume entregas pequenas e revisáveis.</p>
+          </div>
+          <div class="process__viewport">
+            <ol class="process__track" data-process-track>
+              <li class="step" style="--tone: var(--yellow)">
+                <span class="step__n">1</span>
+                <h3 class="h-md">Problema e usuários</h3>
+                <p>Começamos pelo problema real: quem libera as máquinas, quem opera e o que cada perfil pode fazer no sistema.</p>
+              </li>
+              <li class="step" style="--tone: var(--paper)">
+                <span class="step__n">2</span>
+                <h3 class="h-md">Requisitos mensuráveis</h3>
+                <p>Doze requisitos funcionais e sete não funcionais, cada um com um critério de aceitação que dá para verificar.</p>
+              </li>
+              <li class="step" style="--tone: var(--green)">
+                <span class="step__n">3</span>
+                <h3 class="h-md">Modelo de dados</h3>
+                <p>Sete tabelas relacionais, chaves estrangeiras e UNIQUE para e-mail, matrícula, código da máquina e UID.</p>
+              </li>
+              <li class="step" style="--tone: var(--cobalt); --tone-fg: #fff">
+                <span class="step__n">4</span>
+                <h3 class="h-md">Back-end e rotas</h3>
+                <p>API em PHP sem framework, PDO com consultas preparadas, sessão nas rotas privadas e respostas JSON padronizadas.</p>
+              </li>
+              <li class="step" style="--tone: var(--red)">
+                <span class="step__n">5</span>
+                <h3 class="h-md">Integração</h3>
+                <p>Telas, API, banco e leitora RFID ligados pela rota de validação, uma entrega pequena por vez.</p>
+              </li>
+              <li class="step" style="--tone: var(--yellow)">
+                <span class="step__n">6</span>
+                <h3 class="h-md">Testes e evidências</h3>
+                <p>Casos de teste escritos antes da execução. Nada vira “aprovado” sem uma evidência datada.</p>
+              </li>
+            </ol>
+          </div>
+          <div class="wrap process__meter" aria-hidden="true"><span data-process-meter></span></div>
+        </section>
+
+        <!-- EQUIPE -->
+        <section class="plate s-yellow team" id="equipe">
+          <div class="wrap team__head">
+            <h2 class="h-lg" data-split>Quem faz a LinkWave</h2>
+            <p class="lede">Cinco integrantes, cinco frentes. Toque em um crachá para ver as entregas de cada um.</p>
+          </div>
+
+          <div class="badges" data-badges>
+            <article class="badge" style="--tone: var(--cobalt); --tone-fg: #fff">
+              <span class="badge__strap" aria-hidden="true"></span>
+              <button class="badge__card" type="button" aria-pressed="false">
+                <span class="badge__face badge__front">
+                  <span class="badge__slot" aria-hidden="true"></span>
+                  <span class="badge__org">LinkWave · Credencial</span>
+                  <span class="badge__avatar" aria-hidden="true">LK</span>
+                  <span class="badge__name">Leonardo Kronka Rodrigues</span>
+                  <span class="badge__role">Product Owner · Full-stack</span>
+                  <span class="badge__foot"><span>LW-01</span><svg class="ico" aria-hidden="true"><use href="#i-flip"/></svg></span>
+                </span>
+                <span class="badge__face badge__back">
+                  <span class="badge__slot" aria-hidden="true"></span>
+                  <span class="badge__org">Entregas principais</span>
+                  <span class="badge__list">Backlog, arquitetura, dashboard, integração, revisão e apresentação.</span>
+                  <span class="badge__foot"><span>LW-01</span><svg class="ico" aria-hidden="true"><use href="#i-flip"/></svg></span>
+                </span>
+              </button>
+            </article>
+
+            <article class="badge" style="--tone: var(--red)">
+              <span class="badge__strap" aria-hidden="true"></span>
+              <button class="badge__card" type="button" aria-pressed="false">
+                <span class="badge__face badge__front">
+                  <span class="badge__slot" aria-hidden="true"></span>
+                  <span class="badge__org">LinkWave · Credencial</span>
+                  <span class="badge__avatar" aria-hidden="true">CH</span>
+                  <span class="badge__name">Cauê Henrique de Oliveira</span>
+                  <span class="badge__role">Scrum Master · Back-end</span>
+                  <span class="badge__foot"><span>LW-02</span><svg class="ico" aria-hidden="true"><use href="#i-flip"/></svg></span>
+                </span>
+                <span class="badge__face badge__back">
+                  <span class="badge__slot" aria-hidden="true"></span>
+                  <span class="badge__org">Entregas principais</span>
+                  <span class="badge__list">Acompanhamento das tarefas, conexão PDO, APIs, autenticação e validação.</span>
+                  <span class="badge__foot"><span>LW-02</span><svg class="ico" aria-hidden="true"><use href="#i-flip"/></svg></span>
+                </span>
+              </button>
+            </article>
+
+            <article class="badge" style="--tone: var(--green)">
+              <span class="badge__strap" aria-hidden="true"></span>
+              <button class="badge__card" type="button" aria-pressed="false">
+                <span class="badge__face badge__front">
+                  <span class="badge__slot" aria-hidden="true"></span>
+                  <span class="badge__org">LinkWave · Credencial</span>
+                  <span class="badge__avatar" aria-hidden="true">EC</span>
+                  <span class="badge__name">Evelyn Caporali Escanavaque</span>
+                  <span class="badge__role">Front-end</span>
+                  <span class="badge__foot"><span>LW-03</span><svg class="ico" aria-hidden="true"><use href="#i-flip"/></svg></span>
+                </span>
+                <span class="badge__face badge__back">
+                  <span class="badge__slot" aria-hidden="true"></span>
+                  <span class="badge__org">Entregas principais</span>
+                  <span class="badge__list">Interfaces, responsividade, formulários e estados de carregamento e erro.</span>
+                  <span class="badge__foot"><span>LW-03</span><svg class="ico" aria-hidden="true"><use href="#i-flip"/></svg></span>
+                </span>
+              </button>
+            </article>
+
+            <article class="badge" style="--tone: var(--ink); --tone-fg: #fff">
+              <span class="badge__strap" aria-hidden="true"></span>
+              <button class="badge__card" type="button" aria-pressed="false">
+                <span class="badge__face badge__front">
+                  <span class="badge__slot" aria-hidden="true"></span>
+                  <span class="badge__org">LinkWave · Credencial</span>
+                  <span class="badge__avatar" aria-hidden="true">JV</span>
+                  <span class="badge__name">João Victor Monteiro Gamero</span>
+                  <span class="badge__role">Banco de dados</span>
+                  <span class="badge__foot"><span>LW-04</span><svg class="ico" aria-hidden="true"><use href="#i-flip"/></svg></span>
+                </span>
+                <span class="badge__face badge__back">
+                  <span class="badge__slot" aria-hidden="true"></span>
+                  <span class="badge__org">Entregas principais</span>
+                  <span class="badge__list">Modelo relacional, scripts SQL, dados de teste, consultas e backup.</span>
+                  <span class="badge__foot"><span>LW-04</span><svg class="ico" aria-hidden="true"><use href="#i-flip"/></svg></span>
+                </span>
+              </button>
+            </article>
+
+            <article class="badge" style="--tone: var(--yellow)">
+              <span class="badge__strap" aria-hidden="true"></span>
+              <button class="badge__card" type="button" aria-pressed="false">
+                <span class="badge__face badge__front">
+                  <span class="badge__slot" aria-hidden="true"></span>
+                  <span class="badge__org">LinkWave · Credencial</span>
+                  <span class="badge__avatar" aria-hidden="true">GM</span>
+                  <span class="badge__name">Gabriel Miranda</span>
+                  <span class="badge__role">Documentação</span>
+                  <span class="badge__foot"><span>LW-05</span><svg class="ico" aria-hidden="true"><use href="#i-flip"/></svg></span>
+                </span>
+                <span class="badge__face badge__back">
+                  <span class="badge__slot" aria-hidden="true"></span>
+                  <span class="badge__org">Entregas principais</span>
+                  <span class="badge__list">Padronização, referências, diagramas, imagens, testes e revisão textual.</span>
+                  <span class="badge__foot"><span>LW-05</span><svg class="ico" aria-hidden="true"><use href="#i-flip"/></svg></span>
+                </span>
+              </button>
+            </article>
+          </div>
+
+          <div class="wrap">
+            <div class="advisors">
+              <h3 class="advisors__h">Orientação</h3>
+              <ul class="advisors__list">
+                <li>Prof. Leonardo Oliveira Casellato</li>
+                <li>Prof. Ricardo Akira Harada</li>
+                <li>Prof. Wellinton Cardoso Teodoro</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- TECNOLOGIAS -->
+        <section class="plate s-cobalt stack" id="tecnologias">
+          <div class="wrap stack__head">
+            <h2 class="h-lg" data-split>Caixa de ferramentas</h2>
+            <p class="lede">As tecnologias por trás do LockMachine e do nosso dia a dia no curso. <span data-board-hint>Arraste as peças pelo painel.</span></p>
+          </div>
+          <div class="wrap">
+            <ul class="board" data-board aria-label="Tecnologias usadas pela equipe">
+              <li class="sticker" style="--bg: var(--yellow)">HTML5</li>
+              <li class="sticker sticker--round" style="--bg: var(--paper)">CSS3</li>
+              <li class="sticker" style="--bg: var(--red)">JavaScript</li>
+              <li class="sticker sticker--tall" style="--bg: var(--green)">PHP</li>
+              <li class="sticker" style="--bg: var(--paper)">PDO</li>
+              <li class="sticker sticker--round" style="--bg: var(--yellow)">MySQL</li>
+              <li class="sticker" style="--bg: var(--ink); --fg: #fff">Git &amp; GitHub</li>
+              <li class="sticker" style="--bg: var(--paper)">VS Code</li>
+              <li class="sticker sticker--chip" style="--bg: var(--green)">ESP32</li>
+              <li class="sticker" style="--bg: var(--red)">MFRC522</li>
+              <li class="sticker sticker--round" style="--bg: var(--paper)">RFID</li>
+              <li class="sticker" style="--bg: var(--yellow)">Fetch API</li>
+            </ul>
+          </div>
+        </section>
+      </main>
+
+      <!-- RODAPÉ -->
+      <footer class="plate s-ink footer">
+        <div class="wrap">
+          <div class="footer__cta">
+            <h2 class="h-lg" data-split>Da tela ao chão de fábrica.</h2>
+            <div class="btn-row">
+              <a class="btn btn--yellow" href="lockmachine.html#simulador" data-wipe>Testar o simulador <svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+              <a class="btn" href="lockmachine.html" data-wipe>Ver o LockMachine</a>
+            </div>
+          </div>
+
+          <div class="footer__cols">
+            <div>
+              <h3 class="footer__h">LinkWave</h3>
+              <p>Trabalho de Conclusão de Curso do Técnico em Desenvolvimento de Sistemas. SENAI, Mococa — SP, 2026.</p>
+            </div>
+            <div>
+              <h3 class="footer__h">Equipe</h3>
+              <ul class="footer__list">
+                <li>Leonardo Kronka Rodrigues</li>
+                <li>Cauê Henrique de Oliveira</li>
+                <li>Evelyn Caporali Escanavaque</li>
+                <li>João Victor Monteiro Gamero</li>
+                <li>Gabriel Miranda</li>
+              </ul>
+            </div>
+            <nav aria-label="Rodapé">
+              <h3 class="footer__h">Navegar</h3>
+              <ul class="footer__list">
+                <li><a href="#sobre">Sobre</a></li>
+                <li><a href="#servicos">O que fazemos</a></li>
+                <li><a href="#processo">Processo</a></li>
+                <li><a href="#equipe">Equipe</a></li>
+                <li><a href="lockmachine.html" data-wipe>LockMachine</a></li>
+                <li><a href="app/">Entrar no app</a></li>
+              </ul>
+            </nav>
+          </div>
+
+          <div class="footer__word" aria-hidden="true" data-footer-word>LinkWave</div>
+
+          <div class="footer__base">
+            <span>© 2026 LinkWave · Projeto acadêmico</span>
+            <button class="totop" type="button" data-totop>Voltar ao topo <svg class="ico" aria-hidden="true"><use href="#i-arrow-up"/></svg></button>
+          </div>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <script src="assets/vendor/gsap/gsap.min.js" defer></script>
+  <script src="assets/vendor/gsap/ScrollTrigger.min.js" defer></script>
+  <script src="assets/vendor/gsap/ScrollSmoother.min.js" defer></script>
+  <script src="assets/vendor/gsap/ScrollToPlugin.min.js" defer></script>
+  <script src="assets/vendor/gsap/SplitText.min.js" defer></script>
+  <script src="assets/vendor/gsap/Draggable.min.js" defer></script>
+  <script src="assets/vendor/gsap/InertiaPlugin.min.js" defer></script>
+  <script src="assets/vendor/gsap/DrawSVGPlugin.min.js" defer></script>
+  <script src="assets/js/main.js" defer></script>
+  <script src="assets/js/home.js" defer></script>
+</body>
+</html>

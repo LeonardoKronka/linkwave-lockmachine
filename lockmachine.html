@@ -1,0 +1,819 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>LockMachine — Controle de acesso a máquinas com RFID · LinkWave</title>
+  <meta name="description" content="LockMachine: protótipo educacional da LinkWave que confere, pelo cartão RFID, se as capacitações do operador estão válidas antes de autorizar o uso de uma máquina e registra cada tentativa.">
+  <meta name="theme-color" content="#FF3D2E">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="assets/fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <style>
+    /* Tela de carregamento: cobre a página desde o primeiro quadro */
+    .wipe{display:none}
+    html.js .wipe{display:block;position:fixed;inset:0;z-index:120;pointer-events:none}
+    .wipe__panel{position:absolute;inset:0;transform:translateY(100%)}
+    html.js.is-loading .wipe__panel{transform:none}
+    .wipe__panel--yellow{background:#FFD23F}.wipe__panel--red{background:#FF3D2E}.wipe__panel--cobalt{background:#2F45FF}
+    .wipe__panel:last-child{display:grid;place-items:center}
+  </style>
+  <link rel="stylesheet" href="assets/fonts/fonts.css">
+  <link rel="stylesheet" href="assets/css/styles.css">
+  <script>(function(d){d.classList.add('js','is-loading');setTimeout(function(){if(d.classList.contains('is-loading')){d.classList.add('boot-timeout');d.classList.remove('is-loading')}},9000)})(document.documentElement);</script>
+</head>
+<body class="page-lm">
+  <div class="wipe" aria-hidden="true">
+    <span class="wipe__panel wipe__panel--yellow"></span>
+    <span class="wipe__panel wipe__panel--cobalt"></span>
+    <span class="wipe__panel wipe__panel--red">
+      <svg class="wipe__mark" viewBox="0 0 40 40">
+        <rect x="1.5" y="1.5" width="37" height="37" rx="11" fill="#2F45FF" stroke="#11131F" stroke-width="3"/>
+        <path d="M9 22c3.2-7 7.8-7 11 0s7.8 7 11 0" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round"/>
+        <circle cx="9" cy="22" r="3.4" fill="#FFD23F" stroke="#11131F" stroke-width="2"/>
+        <circle cx="31" cy="22" r="3.4" fill="#FFD23F" stroke="#11131F" stroke-width="2"/>
+      </svg>
+      <span class="wipe__bar"><span></span></span>
+    </span>
+  </div>
+
+  <a class="skip" href="#conteudo">Pular para o conteúdo</a>
+
+  <!-- Ícones -->
+  <svg class="sprite" aria-hidden="true" focusable="false">
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h15M13 5.5 19.5 12 13 18.5"/></symbol>
+    <symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="M12 20V5M5.5 11 12 4.5 18.5 11"/></symbol>
+    <symbol id="i-arrow-down" viewBox="0 0 24 24"><path d="M12 4v15M5.5 13 12 19.5 18.5 13"/></symbol>
+    <symbol id="i-browser" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="15" rx="3"/><path d="M3 9.5h18M6.5 7h.01M9.5 7h.01"/></symbol>
+    <symbol id="i-server" viewBox="0 0 24 24"><rect x="3.5" y="4" width="17" height="7" rx="2.5"/><rect x="3.5" y="13" width="17" height="7" rx="2.5"/><path d="M7.5 7.5h.01M7.5 16.5h.01M12 7.5h5M12 16.5h5"/></symbol>
+    <symbol id="i-db" viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="7.5" ry="3"/><path d="M4.5 6v12c0 1.66 3.36 3 7.5 3s7.5-1.34 7.5-3V6"/><path d="M4.5 12c0 1.66 3.36 3 7.5 3s7.5-1.34 7.5-3"/></symbol>
+    <symbol id="i-chip" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2.5"/><rect x="9.5" y="9.5" width="5" height="5" rx="1"/><path d="M9.5 2.5V6M14.5 2.5V6M9.5 18v3.5M14.5 18v3.5M2.5 9.5H6M2.5 14.5H6M18 9.5h3.5M18 14.5h3.5"/></symbol>
+    <symbol id="i-rfid" viewBox="0 0 24 24"><rect x="2.5" y="6.5" width="11" height="14" rx="2.5"/><path d="M6 10.5h4"/><path d="M16.5 9.5a4 4 0 0 1 0 5"/><path d="M19.5 7a8 8 0 0 1 0 10"/></symbol>
+    <symbol id="i-waves" viewBox="0 0 24 24"><path d="M8.5 8.5a5 5 0 0 0 0 7M15.5 8.5a5 5 0 0 1 0 7M5.5 5.5a9.2 9.2 0 0 0 0 13M18.5 5.5a9.2 9.2 0 0 1 0 13M12 12h.01"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M4.5 12.5 9.5 17.5 19.5 6.5"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+    <symbol id="i-minus" viewBox="0 0 24 24"><path d="M6 12h12"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4.5" y="10.5" width="15" height="10.5" rx="2.5"/><path d="M8 10.5v-3a4 4 0 0 1 8 0v3M12 14.5V17"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3.5 2.8 19.5h18.4z"/><path d="M12 10v4.5M12 17h.01"/></symbol>
+    <symbol id="i-files" viewBox="0 0 24 24"><path d="M8 3.5h7l4 4V17a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V5.5a2 2 0 0 1 2-2z"/><path d="M15 3.5v4h4M9.5 12h6M9.5 15h4"/></symbol>
+    <symbol id="i-grip" viewBox="0 0 24 24"><path d="M9 6h.01M15 6h.01M9 12h.01M15 12h.01M9 18h.01M15 18h.01"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 2.5v19M3.8 7.25l16.4 9.5M3.8 16.75l16.4-9.5"/></symbol>
+  </svg>
+
+  <!-- Navegação -->
+  <header class="nav" data-nav>
+    <div class="nav__bar">
+      <a class="brand" href="index.html" aria-label="LinkWave, página inicial" data-wipe>
+        <svg class="brand__mark" viewBox="0 0 40 40" aria-hidden="true">
+          <rect x="1.5" y="1.5" width="37" height="37" rx="11" fill="#2F45FF" stroke="#11131F" stroke-width="3"/>
+          <path d="M9 22c3.2-7 7.8-7 11 0s7.8 7 11 0" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round"/>
+          <circle cx="9" cy="22" r="3.4" fill="#FFD23F" stroke="#11131F" stroke-width="2"/>
+          <circle cx="31" cy="22" r="3.4" fill="#FFD23F" stroke="#11131F" stroke-width="2"/>
+        </svg>
+        <span class="brand__name">LinkWave</span>
+        <span class="brand__product">LockMachine</span>
+      </a>
+      <nav class="nav__links" aria-label="Seções">
+        <a href="#problema">Problema</a>
+        <a href="#como-funciona">Como funciona</a>
+        <a href="#simulador">Simulador</a>
+        <a href="#app">App</a>
+        <a href="#status">Status</a>
+      </nav>
+      <a class="btn btn--ink btn--sm nav__cta" href="app/">Entrar <svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+      <button class="nav__toggle" type="button" aria-expanded="false" aria-controls="menu" aria-label="Abrir menu">
+        <span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <div class="menu menu--red" id="menu" data-menu hidden>
+    <nav class="menu__links" aria-label="Menu">
+      <a href="#problema">Problema</a>
+      <a href="#como-funciona">Como funciona</a>
+      <a href="#simulador">Simulador</a>
+      <a href="#arquitetura">Arquitetura</a>
+      <a href="#falhas">Falhas</a>
+      <a href="#app">Baixar o app</a>
+      <a href="#status">Status</a>
+      <a href="app/">Entrar no app</a>
+      <a href="index.html" data-wipe>LinkWave</a>
+    </nav>
+    <p class="menu__foot">Protótipo acadêmico · MVP em desenvolvimento</p>
+  </div>
+
+
+  <div id="smooth-wrapper">
+    <div id="smooth-content">
+      <main id="conteudo">
+
+        <!-- HERO -->
+        <section class="plate s-red hero hero--lm" id="topo">
+          <div class="wrap hero-lm">
+            <div class="hero-lm__copy">
+              <h1 class="h-xl hero__title" data-hero-title>Sem capacitação <span class="nowrap"><span class="hl hl--paper">válida</span>,</span> sem acesso.</h1>
+              <p class="hero__lede" data-hero-aside>O LockMachine é um protótipo educacional que associa o cartão RFID do operador às capacitações registradas no banco de dados e confere se continuam válidas antes de autorizar o uso da máquina. Liberado ou bloqueado, todo resultado fica registrado com o motivo.</p>
+              <div class="btn-row" data-hero-aside>
+                <a class="btn btn--ink" href="#simulador">Testar o simulador <svg class="ico" aria-hidden="true"><use href="#i-arrow-down"/></svg></a>
+                <a class="btn" href="#app">Baixar o app</a>
+              </div>
+              <p class="status-pill" data-hero-aside><span class="status-pill__dot" aria-hidden="true"></span>MVP em desenvolvimento: interfaces prontas; banco, API e hardware em integração.</p>
+            </div>
+
+            <div class="hero-lm__device" aria-hidden="true" data-hero-device>
+              <div class="reader">
+                <div class="reader__top">
+                  <span class="reader__brand">LockMachine</span>
+                  <span class="reader__leds"><i class="led led--y"></i><i class="led led--g"></i><i class="led led--r"></i></span>
+                </div>
+                <div class="reader__screen">
+                  <span class="reader__msg" data-msg>Aproxime o cartão</span>
+                  <span class="reader__sub" data-sub>P-01 · Prensa hidráulica</span>
+                </div>
+                <div class="reader__pad">
+                  <span class="reader__ripple"></span>
+                  <svg class="reader__waves"><use href="#i-waves"/></svg>
+                </div>
+                <div class="reader__foot"><span>MFRC522</span><span>ESP32</span></div>
+              </div>
+
+              <div class="relay"><span class="relay__dot"></span><span class="relay__label">Saída de bancada</span><span class="relay__state" data-relay>Desenergizada</span></div>
+
+              <div class="idcard idcard--float" style="--tone: var(--green)" data-card-a>
+                <span class="idcard__band"><span>LockMachine</span><svg class="ico"><use href="#i-waves"/></svg></span>
+                <span class="idcard__body">
+                  <span class="idcard__avatar">AR</span>
+                  <span class="idcard__info"><strong class="idcard__name">Ana Ribeiro</strong><span class="idcard__meta">OP-1042</span><span class="idcard__uid">04A1B2C3D4</span></span>
+                </span>
+              </div>
+              <div class="idcard idcard--float" style="--tone: var(--yellow)" data-card-b>
+                <span class="idcard__band"><span>LockMachine</span><svg class="ico"><use href="#i-waves"/></svg></span>
+                <span class="idcard__body">
+                  <span class="idcard__avatar">BT</span>
+                  <span class="idcard__info"><strong class="idcard__name">Bruno Teixeira</strong><span class="idcard__meta">OP-1077</span><span class="idcard__uid">04B7E1A290</span></span>
+                </span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- FAIXA -->
+        <div class="hazard-band" aria-hidden="true" data-marquee>
+          <div class="marquee__track">
+            <span>Cartão identifica</span><svg class="marquee__star"><use href="#i-star"/></svg>
+            <span>Servidor decide</span><svg class="marquee__star"><use href="#i-star"/></svg>
+            <span>Toda tentativa vira registro</span><svg class="marquee__star"><use href="#i-star"/></svg>
+            <span>Na dúvida, bloqueia</span><svg class="marquee__star"><use href="#i-star"/></svg>
+          </div>
+        </div>
+
+        <!-- PROBLEMA -->
+        <section class="plate s-paper problem" id="problema" data-problem>
+          <div class="wrap problem__head">
+            <h2 class="h-lg" data-split>Informação espalhada atrasa a decisão.</h2>
+            <p class="lede">Quando cadastro, cartão, treinamento e validade ficam em planilhas, papéis e conferências manuais, liberar uma máquina fica lento, difícil de auditar e sujeito a inconsistências.</p>
+          </div>
+
+          <div class="wrap">
+            <div class="record" data-record>
+              <div class="record__head">
+                <span class="record__title"><svg class="ico" aria-hidden="true"><use href="#i-lock"/></svg>Registro de acesso no LockMachine</span>
+                <span class="record__id">acesso_id 184</span>
+              </div>
+              <div class="record__grid">
+                <div class="frag" style="--tone: var(--yellow)">
+                  <span class="frag__field">Cadastro do operador</span>
+                  <span class="frag__swap"><span class="frag__src">na planilha do RH</span><span class="frag__val">Ana Ribeiro · OP-1042</span></span>
+                </div>
+                <div class="frag" style="--tone: var(--ground)">
+                  <span class="frag__field">Cartão de identificação</span>
+                  <span class="frag__swap"><span class="frag__src">numa gaveta da portaria</span><span class="frag__val mono">UID 04A1B2C3D4</span></span>
+                </div>
+                <div class="frag" style="--tone: var(--green)">
+                  <span class="frag__field">Treinamento concluído</span>
+                  <span class="frag__swap"><span class="frag__src">no certificado impresso</span><span class="frag__val">Operação de prensa</span></span>
+                </div>
+                <div class="frag" style="--tone: var(--paper)">
+                  <span class="frag__field">Data de validade</span>
+                  <span class="frag__swap"><span class="frag__src">anotada à mão</span><span class="frag__val">Válida, conferida no servidor</span></span>
+                </div>
+                <div class="frag" style="--tone: var(--cobalt); --tone-fg: #fff">
+                  <span class="frag__field">Máquina solicitada</span>
+                  <span class="frag__swap"><span class="frag__src">num pedido verbal</span><span class="frag__val">P-01 · Prensa hidráulica</span></span>
+                </div>
+                <div class="frag" style="--tone: var(--red)">
+                  <span class="frag__field">Resultado da tentativa</span>
+                  <span class="frag__swap"><span class="frag__src">sem registro</span><span class="frag__val">Liberado · motivo AUTORIZADO</span></span>
+                </div>
+              </div>
+            </div>
+            <p class="problem__after">Com o LockMachine, esses seis dados ficam em uma única aplicação, e o supervisor ganha um histórico para acompanhar.</p>
+          </div>
+        </section>
+
+        <!-- COMO FUNCIONA -->
+        <section class="plate s-ground how" id="como-funciona">
+          <div class="wrap">
+            <div class="how__head">
+              <h2 class="h-lg" data-split>Como funciona</h2>
+              <p class="lede">O cartão só identifica. A decisão fica no servidor, que nunca autoriza apenas pelo número do cartão.</p>
+            </div>
+            <div class="how__wrap" data-how>
+              <svg class="how__cable" aria-hidden="true" preserveAspectRatio="none"><path class="how__cable-under"/><path class="how__cable-line"/></svg>
+              <ol class="how__steps">
+                <li class="how__step" style="--tone: var(--yellow)">
+                  <span class="how__badge"><span class="how__n">1</span><svg aria-hidden="true"><use href="#i-rfid"/></svg></span>
+                  <h3 class="h-md">Aproxime o cartão</h3>
+                  <p>O leitor MFRC522 lê o UID do cartão em 13,56 MHz e o ESP32 envia o pedido de validação pela rede Wi-Fi.</p>
+                </li>
+                <li class="how__step" style="--tone: var(--cobalt); --tone-fg: #fff">
+                  <span class="how__badge"><span class="how__n">2</span><svg aria-hidden="true"><use href="#i-server"/></svg></span>
+                  <h3 class="h-md">O servidor confere</h3>
+                  <p>A API em PHP verifica se o cartão está cadastrado, se operador e máquina estão ativos e se cada capacitação exigida continua dentro da validade.</p>
+                </li>
+                <li class="how__step" style="--tone: var(--green)">
+                  <span class="how__badge"><span class="how__n">3</span><svg aria-hidden="true"><use href="#i-db"/></svg></span>
+                  <h3 class="h-md">Libera ou bloqueia, e registra</h3>
+                  <p>A resposta volta em JSON para a leitora e entra no histórico com operador, máquina, horário, resultado e o motivo da decisão.</p>
+                </li>
+              </ol>
+            </div>
+          </div>
+        </section>
+
+        <!-- SIMULADOR -->
+        <section class="plate s-ink sim" id="simulador" data-sim>
+          <div class="wrap">
+            <div class="sim__head">
+              <h2 class="h-lg" data-split>Teste a regra de acesso</h2>
+              <p class="lede">Escolha um operador e uma máquina e arraste o crachá até a leitora, ou use o botão. O servidor simulado confere as regras na mesma ordem descrita no projeto.</p>
+            </div>
+
+            <div class="sim__grid">
+              <div class="sim__setup">
+                <fieldset class="field">
+                  <legend class="field__legend">Operador</legend>
+                  <div class="opts">
+                    <label class="opt">
+                      <input type="radio" name="op" value="ana" checked>
+                      <span class="opt__body">
+                        <span class="opt__avatar" style="--tone: var(--green)">AR</span>
+                        <span class="opt__text"><strong>Ana Ribeiro</strong><small>Capacitações de prensa em dia</small></span>
+                      </span>
+                    </label>
+                    <label class="opt">
+                      <input type="radio" name="op" value="bruno">
+                      <span class="opt__body">
+                        <span class="opt__avatar" style="--tone: var(--yellow)">BT</span>
+                        <span class="opt__text"><strong>Bruno Teixeira</strong><small>NR-12 vencida há 2 meses</small></span>
+                      </span>
+                    </label>
+                    <label class="opt">
+                      <input type="radio" name="op" value="carla">
+                      <span class="opt__body">
+                        <span class="opt__avatar" style="--tone: var(--steel)">CM</span>
+                        <span class="opt__text"><strong>Carla Mendes</strong><small>Cadastro desativado</small></span>
+                      </span>
+                    </label>
+                    <label class="opt">
+                      <input type="radio" name="op" value="desconhecido">
+                      <span class="opt__body">
+                        <span class="opt__avatar opt__avatar--unknown" style="--tone: var(--paper)"><svg aria-hidden="true"><use href="#i-alert"/></svg></span>
+                        <span class="opt__text"><strong>Cartão sem cadastro</strong><small>UID não associado</small></span>
+                      </span>
+                    </label>
+                  </div>
+                </fieldset>
+
+                <fieldset class="field">
+                  <legend class="field__legend">Máquina</legend>
+                  <div class="opts opts--machines">
+                    <label class="opt opt--machine">
+                      <input type="radio" name="mq" value="P-01" checked>
+                      <span class="opt__body"><span class="opt__code">P-01</span><span class="opt__text"><strong>Prensa hidráulica</strong><small>Ativa</small></span></span>
+                    </label>
+                    <label class="opt opt--machine">
+                      <input type="radio" name="mq" value="F-03">
+                      <span class="opt__body"><span class="opt__code">F-03</span><span class="opt__text"><strong>Fresadora</strong><small>Ativa</small></span></span>
+                    </label>
+                    <label class="opt opt--machine">
+                      <input type="radio" name="mq" value="T-02">
+                      <span class="opt__body"><span class="opt__code">T-02</span><span class="opt__text"><strong>Torno CNC</strong><small>Em manutenção</small></span></span>
+                    </label>
+                  </div>
+                </fieldset>
+
+                <label class="switch">
+                  <input type="checkbox" role="switch" checked data-online>
+                  <span class="switch__track" aria-hidden="true"><span class="switch__thumb"></span></span>
+                  <span class="switch__label">Servidor <strong data-online-label>online</strong></span>
+                </label>
+              </div>
+
+              <div class="sim__stage" data-stage>
+                <div class="sim__dock" data-dock>
+                  <div class="idcard idcard--sim" style="--tone: var(--green)" data-sim-card>
+                    <span class="idcard__band"><span>LockMachine</span><svg class="ico" aria-hidden="true"><use href="#i-waves"/></svg></span>
+                    <span class="idcard__body">
+                      <span class="idcard__avatar" data-card-avatar>AR</span>
+                      <span class="idcard__info"><strong class="idcard__name" data-card-name>Ana Ribeiro</strong><span class="idcard__meta" data-card-meta>OP-1042</span><span class="idcard__uid" data-card-uid>04A1B2C3D4</span></span>
+                    </span>
+                    <span class="idcard__grip" aria-hidden="true"><svg><use href="#i-grip"/></svg></span>
+                  </div>
+                </div>
+
+                <div class="reader reader--sim" data-reader>
+                  <div class="reader__top">
+                    <span class="reader__brand">LockMachine</span>
+                    <span class="reader__leds"><i class="led led--y"></i><i class="led led--g"></i><i class="led led--r"></i></span>
+                  </div>
+                  <div class="reader__screen">
+                    <span class="reader__msg" data-msg>Aproxime o cartão</span>
+                    <span class="reader__sub" data-sub>P-01 · Prensa hidráulica</span>
+                  </div>
+                  <div class="reader__pad" data-pad>
+                    <span class="reader__ripple"></span>
+                    <svg class="reader__waves" aria-hidden="true"><use href="#i-waves"/></svg>
+                  </div>
+                  <div class="reader__foot"><span>MFRC522</span><span>ESP32</span></div>
+                </div>
+
+                <button class="btn btn--yellow sim__tap" type="button" data-tap>Aproximar cartão <svg class="ico" aria-hidden="true"><use href="#i-waves"/></svg></button>
+                <div class="relay"><span class="relay__dot"></span><span class="relay__label">Saída de bancada</span><span class="relay__state" data-relay>Desenergizada</span></div>
+              </div>
+
+              <div class="sim__out">
+                <ol class="checks" data-checks>
+                  <li class="check" data-check="servidor" data-state="idle"><span class="check__dot" aria-hidden="true"></span><span class="check__text"><strong>Servidor respondeu</strong><small data-detail>Rota POST /api/acessos/validar.php</small></span></li>
+                  <li class="check" data-check="cartao" data-state="idle"><span class="check__dot" aria-hidden="true"></span><span class="check__text"><strong>Cartão cadastrado</strong><small data-detail>UID associado a um operador</small></span></li>
+                  <li class="check" data-check="operador" data-state="idle"><span class="check__dot" aria-hidden="true"></span><span class="check__text"><strong>Operador ativo</strong><small data-detail>Cadastro não desativado</small></span></li>
+                  <li class="check" data-check="maquina" data-state="idle"><span class="check__dot" aria-hidden="true"></span><span class="check__text"><strong>Máquina disponível</strong><small data-detail>Status ativa</small></span></li>
+                  <li class="check" data-check="exigidas" data-state="idle"><span class="check__dot" aria-hidden="true"></span><span class="check__text"><strong>Capacitações exigidas</strong><small data-detail>Todas registradas para o operador</small></span></li>
+                  <li class="check" data-check="validade" data-state="idle"><span class="check__dot" aria-hidden="true"></span><span class="check__text"><strong>Dentro da validade</strong><small data-detail>Nenhuma capacitação vencida</small></span></li>
+                </ol>
+
+                <div class="verdict" data-verdict data-result="idle" aria-live="polite">
+                  <span class="verdict__stamp" data-stamp>Aguardando</span>
+                  <span class="verdict__reason" data-reason>Aproxime um cartão para validar.</span>
+                </div>
+
+                <div class="json">
+                  <div class="json__bar"><span class="json__route">POST /api/acessos/validar.php</span><span class="json__http" data-http>—</span></div>
+                  <pre class="json__body" data-json>{
+  "rfid_uid": "04A1B2C3D4",
+  "maquina_codigo": "P-01"
+}</pre>
+                </div>
+              </div>
+            </div>
+
+            <div class="log">
+              <div class="log__head">
+                <h3 class="h-md">Histórico de acessos</h3>
+                <ul class="log__stats">
+                  <li><strong data-stat="total">0</strong> tentativas</li>
+                  <li class="is-ok"><strong data-stat="ok">0</strong> liberadas</li>
+                  <li class="is-no"><strong data-stat="no">0</strong> bloqueadas</li>
+                </ul>
+              </div>
+              <div class="log__scroll">
+                <table class="log__table">
+                  <thead><tr><th scope="col">Horário</th><th scope="col">Operador</th><th scope="col">UID</th><th scope="col">Máquina</th><th scope="col">Resultado</th><th scope="col">Motivo</th></tr></thead>
+                  <tbody data-log>
+                    <tr class="log__empty"><td colspan="6">Nenhuma tentativa ainda. Toda validação, liberada ou bloqueada, aparece aqui.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <p class="sim__note"><svg class="ico" aria-hidden="true"><use href="#i-alert"/></svg>Simulação feita no navegador, com operadores e máquinas fictícios. Não está conectada ao banco, à API nem ao hardware do projeto.</p>
+          </div>
+        </section>
+
+        <!-- AVISO -->
+        <section class="plate s-yellow notice" aria-labelledby="aviso-h">
+          <div class="wrap notice__grid">
+            <span class="notice__icon" aria-hidden="true"><svg><use href="#i-alert"/></svg></span>
+            <div>
+              <h2 class="h-md notice__h" id="aviso-h">“Liberar”, aqui, é aprovar uma regra de cadastro.</h2>
+              <p>O LockMachine é um protótipo acadêmico. A relação com a NR-12 se limita ao apoio administrativo: identificar o operador, conferir registros de capacitação e gerar histórico. Ele não certifica que uma operação é segura e não substitui análise de risco, proteções físicas, dispositivos certificados, intertravamentos, treinamento efetivo, supervisão ou qualquer outra medida exigida para instalações industriais.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- APP -->
+        <section class="plate s-paper getapp" id="app" data-getapp>
+          <div class="wrap getapp__grid">
+            <div class="phones" aria-hidden="true">
+              <div class="phone phone--back" data-phone-back>
+                <div class="phone__screen">
+                  <div class="ph-top"><span class="ph-mark"></span>LockMachine</div>
+                  <p class="ph-title">Painel</p>
+                  <div class="ph-kpis">
+                    <span class="ph-kpi"><b>12</b>tentativas</span>
+                    <span class="ph-kpi ph-kpi--ok"><b>9</b>liberadas</span>
+                    <span class="ph-kpi ph-kpi--no"><b>3</b>bloqueadas</span>
+                  </div>
+                  <div class="ph-chart"><i style="--h:45%"></i><i style="--h:70%"></i><i style="--h:35%"></i><i style="--h:85%"></i><i style="--h:60%"></i><i style="--h:25%"></i><i style="--h:75%"></i></div>
+                  <div class="ph-row"><span class="ph-dot ph-dot--ok"></span>Ana · P-01<em>Liberado</em></div>
+                  <div class="ph-row"><span class="ph-dot ph-dot--no"></span>Bruno · P-01<em class="is-no">Vencido</em></div>
+                </div>
+              </div>
+              <div class="phone phone--front" data-phone-front>
+                <div class="phone__screen">
+                  <div class="ph-top"><span class="ph-mark"></span>LockMachine</div>
+                  <p class="ph-title">Olá, Ana</p>
+                  <div class="ph-badge">
+                    <span class="ph-badge__band">Crachá</span>
+                    <span class="ph-badge__body"><span class="ph-avatar">AR</span><span><b>Ana Ribeiro</b><small>OP-1042 · Usinagem</small></span></span>
+                  </div>
+                  <div class="ph-kpis ph-kpis--2">
+                    <span class="ph-kpi ph-kpi--ok"><b>3</b>válidas</span>
+                    <span class="ph-kpi"><b>2</b>de 4 máquinas</span>
+                  </div>
+                  <div class="ph-row"><span class="ph-dot ph-dot--ok"></span>P-01 Prensa<em>Liberada</em></div>
+                  <div class="ph-row"><span class="ph-dot ph-dot--no"></span>F-03 Fresadora<em class="is-no">Falta curso</em></div>
+                  <div class="ph-tabs"><i class="is-on"></i><i></i><i></i><i></i><i></i></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="getapp__copy">
+              <h2 class="h-lg" data-split>O LockMachine no seu celular</h2>
+              <p class="lede">A gestão virou aplicativo. Tudo usa o mesmo banco do site: o que o administrador cadastra aparece na hora para o funcionário, e o mesmo login vale no Android e no navegador.</p>
+              <div class="getapp__roles">
+                <div class="role">
+                  <h3 class="role__h"><span class="role__chip role__chip--ink">Administrador</span></h3>
+                  <p>Cadastra funcionários, cartões, máquinas e treinamentos, acompanha o painel com dados reais e consulta todo o histórico de acessos.</p>
+                </div>
+                <div class="role">
+                  <h3 class="role__h"><span class="role__chip role__chip--red">Funcionário</span></h3>
+                  <p>Entra com a matrícula, vê as próprias capacitações e quando vencem, as máquinas em que está liberado e as leituras do seu cartão.</p>
+                </div>
+              </div>
+              <div class="btn-row">
+                <a class="btn btn--red" href="downloads/lockmachine.apk" download data-apk>
+                  <svg class="ico" aria-hidden="true"><use href="#i-arrow-down"/></svg><span data-apk-label>Baixar APK para Android</span>
+                </a>
+                <a class="btn" href="app/">Abrir versão web</a>
+              </div>
+              <p class="getapp__note" data-apk-note>No Android, autorize a instalação quando o celular perguntar. No iPhone ou no computador, use a versão web e adicione à tela de início.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- ARQUITETURA -->
+        <section class="plate s-cobalt arch" id="arquitetura">
+          <div class="wrap">
+            <div class="arch__head">
+              <h2 class="h-lg" data-split>Arquitetura em camadas</h2>
+              <p class="lede">O navegador executa a interface e chama a API. O back-end aplica as regras e consulta o MySQL. A leitora tem uma rota própria para pedir validação, e a resposta volta em JSON e entra no histórico.</p>
+            </div>
+
+            <div class="arch__diagram" data-arch>
+              <svg class="arch__wires" aria-hidden="true"></svg>
+              <div class="arch__node" data-node="browser" style="--tone: var(--paper)">
+                <span class="arch__icon"><svg aria-hidden="true"><use href="#i-browser"/></svg></span>
+                <h3 class="arch__name">Navegador</h3>
+                <p>HTML, CSS e JavaScript com Fetch API. Administradores e supervisores.</p>
+              </div>
+              <div class="arch__node" data-node="api" style="--tone: var(--yellow)">
+                <span class="arch__icon"><svg aria-hidden="true"><use href="#i-server"/></svg></span>
+                <h3 class="arch__name">API PHP</h3>
+                <p>Sessão, regras de negócio e respostas JSON. Conexão com PDO.</p>
+              </div>
+              <div class="arch__node" data-node="db" style="--tone: var(--green)">
+                <span class="arch__icon"><svg aria-hidden="true"><use href="#i-db"/></svg></span>
+                <h3 class="arch__name">MySQL</h3>
+                <p>Cadastros, vínculos e histórico de acessos.</p>
+              </div>
+              <div class="arch__node" data-node="device" style="--tone: var(--red)">
+                <span class="arch__icon"><svg aria-hidden="true"><use href="#i-chip"/></svg></span>
+                <h3 class="arch__name">ESP32 + MFRC522</h3>
+                <p>Lê o cartão, chama a rota de validação e aciona a saída de bancada.</p>
+              </div>
+              <span class="arch__packet" aria-hidden="true"></span>
+              <p class="arch__caption" aria-hidden="true"><span data-arch-caption>POST /api/acessos/validar.php</span></p>
+            </div>
+
+            <div class="arch__cols">
+              <div class="api">
+                <h3 class="h-md api__h">Contrato inicial da API</h3>
+                <ul class="api__list">
+                  <li><span class="method">POST</span><code>/auth/login.php</code><span class="api__what">Validar credenciais e criar sessão</span><span class="api__who">Público</span></li>
+                  <li><span class="method">POST</span><code>/auth/logout.php</code><span class="api__what">Encerrar e invalidar a sessão</span><span class="api__who">Autenticado</span></li>
+                  <li><span class="method method--get">GET</span><code>/api/dashboard/resumo.php</code><span class="api__what">Indicadores e registros recentes</span><span class="api__who">Admin. e supervisor</span></li>
+                  <li><span class="method method--both">GET·POST</span><code>/api/operadores/index.php</code><span class="api__what">Listar ou cadastrar operadores</span><span class="api__who">Admin. e supervisor</span></li>
+                  <li><span class="method method--both">GET·POST</span><code>/api/maquinas/index.php</code><span class="api__what">Listar ou cadastrar máquinas</span><span class="api__who">Admin. e supervisor</span></li>
+                  <li><span class="method method--both">GET·POST</span><code>/api/treinamentos/index.php</code><span class="api__what">Listar ou cadastrar treinamentos</span><span class="api__who">Admin. e supervisor</span></li>
+                  <li class="is-key"><span class="method">POST</span><code>/api/acessos/validar.php</code><span class="api__what">Validar UID e máquina e registrar a decisão</span><span class="api__who">Dispositivo autorizado</span></li>
+                  <li><span class="method method--get">GET</span><code>/api/acessos/index.php</code><span class="api__what">Consultar o histórico com filtros</span><span class="api__who">Admin. e supervisor</span></li>
+                </ul>
+              </div>
+
+              <div class="tables">
+                <h3 class="h-md api__h">Sete tabelas relacionais</h3>
+                <ul class="tables__list">
+                  <li><code>usuarios</code><span>Contas administrativas e perfis de acesso.</span></li>
+                  <li><code>operadores</code><span>Funcionários, matrícula, setor e UID RFID.</span></li>
+                  <li><code>maquinas</code><span>Equipamentos, códigos, localização e status.</span></li>
+                  <li><code>treinamentos</code><span>Capacitações e períodos de validade.</span></li>
+                  <li><code>operador_treinamento</code><span>Conclusão e validade por operador.</span></li>
+                  <li><code>maquina_treinamento</code><span>Capacitações exigidas por máquina.</span></li>
+                  <li><code>acessos</code><span>Solicitações, resultados, motivos e horários.</span></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- HARDWARE -->
+        <section class="plate s-paper hw" id="hardware">
+          <div class="wrap">
+            <div class="hw__head">
+              <h2 class="h-lg" data-split>Bancada de referência</h2>
+              <p class="lede">Configuração proposta para o protótipo. A lista será confirmada com os componentes disponíveis e nenhum item é apresentado como instalado antes da montagem e do registro fotográfico.</p>
+            </div>
+            <ul class="bom" data-bom>
+              <li class="part" style="--tone: var(--red)">
+                <span class="part__icon"><svg aria-hidden="true"><use href="#i-chip"/></svg></span>
+                <h3 class="part__name">ESP32 DevKit</h3>
+                <p class="part__does">Lê o cartão, comunica-se por Wi-Fi e controla as saídas.</p>
+                <p class="part__note">GPIO, SPI e Wi-Fi. Modelo exato a confirmar.</p>
+              </li>
+              <li class="part" style="--tone: var(--yellow)">
+                <span class="part__icon"><svg aria-hidden="true"><use href="#i-waves"/></svg></span>
+                <h3 class="part__name">Leitor MFRC522</h3>
+                <p class="part__does">Obtém o UID do cartão ou tag em 13,56 MHz.</p>
+                <p class="part__note">Comunicação SPI. Componente voltado à demonstração.</p>
+              </li>
+              <li class="part" style="--tone: var(--green)">
+                <span class="part__icon"><svg aria-hidden="true"><use href="#i-rfid"/></svg></span>
+                <h3 class="part__name">Cartões ou tags</h3>
+                <p class="part__does">Representam a identificação do operador.</p>
+                <p class="part__note">UID vinculado ao cadastro. Não guarda a autorização.</p>
+              </li>
+              <li class="part" style="--tone: var(--cobalt); --tone-fg: #fff">
+                <span class="part__icon"><svg aria-hidden="true"><use href="#i-lock"/></svg></span>
+                <h3 class="part__name">Módulo relé de bancada</h3>
+                <p class="part__does">Representa a saída de liberar ou manter bloqueado.</p>
+                <p class="part__note">Sem ligação a máquina real. Saída padrão desenergizada.</p>
+              </li>
+              <li class="part" style="--tone: var(--paper)">
+                <span class="part__icon"><svg aria-hidden="true"><use href="#i-alert"/></svg></span>
+                <h3 class="part__name">LEDs e buzzer</h3>
+                <p class="part__does">Indicam leitura, autorização, bloqueio ou erro.</p>
+                <p class="part__note">Feedback local, sem substituir a resposta do sistema.</p>
+              </li>
+              <li class="part" style="--tone: var(--steel)">
+                <span class="part__icon"><svg aria-hidden="true"><use href="#i-grip"/></svg></span>
+                <h3 class="part__name">Fonte, protoboard e cabos</h3>
+                <p class="part__does">Alimentam e interligam o conjunto.</p>
+                <p class="part__note">Tensões e corrente verificadas antes da montagem.</p>
+              </li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- FALHAS -->
+        <section class="plate s-yellow fails" id="falhas">
+          <div class="wrap">
+            <div class="fails__head">
+              <h2 class="h-lg" data-split>Na dúvida, bloqueia.</h2>
+              <p class="lede">A ausência de uma confirmação válida nunca produz autorização. Ao ligar ou reiniciar, a saída de bancada começa desenergizada.</p>
+            </div>
+            <ul class="fails__list" data-fails>
+              <li class="fail">
+                <h3 class="fail__what">Rede indisponível</h3>
+                <p class="fail__how">Nega a solicitação e mantém a saída desenergizada.</p>
+                <p class="fail__log">Indicação local. Nova tentativa só depois de reconectar.</p>
+                <span class="stamp">Nega</span>
+              </li>
+              <li class="fail">
+                <h3 class="fail__what">API ou servidor fora do ar</h3>
+                <p class="fail__how">Nega por falta de uma decisão confiável.</p>
+                <p class="fail__log">Resposta 503 quando possível e log no servidor.</p>
+                <span class="stamp">Nega</span>
+              </li>
+              <li class="fail">
+                <h3 class="fail__what">Banco indisponível</h3>
+                <p class="fail__how">Não autoriza e não simula resultado positivo.</p>
+                <p class="fail__log">Erro genérico na API. Detalhe só no log técnico.</p>
+                <span class="stamp">Nega</span>
+              </li>
+              <li class="fail">
+                <h3 class="fail__what">Cartão desconhecido</h3>
+                <p class="fail__how">Bloqueia.</p>
+                <p class="fail__log">Registra o UID mascarado como identificador não cadastrado.</p>
+                <span class="stamp">Bloqueia</span>
+              </li>
+              <li class="fail">
+                <h3 class="fail__what">Leitura inválida ou repetida</h3>
+                <p class="fail__how">Ignora o pacote incompleto e aplica intervalo entre leituras.</p>
+                <p class="fail__log">Feedback local e contagem para diagnóstico.</p>
+                <span class="stamp">Ignora</span>
+              </li>
+              <li class="fail">
+                <h3 class="fail__what">Treinamento ausente ou vencido</h3>
+                <p class="fail__how">Bloqueia.</p>
+                <p class="fail__log">Motivo objetivo gravado no histórico.</p>
+                <span class="stamp">Bloqueia</span>
+              </li>
+              <li class="fail">
+                <h3 class="fail__what">Máquina em manutenção</h3>
+                <p class="fail__how">Bloqueia, mesmo com capacitações válidas.</p>
+                <p class="fail__log">Registra o estado da máquina no momento da tentativa.</p>
+                <span class="stamp">Bloqueia</span>
+              </li>
+              <li class="fail">
+                <h3 class="fail__what">Queda e retorno de energia</h3>
+                <p class="fail__how">Reinicia bloqueado.</p>
+                <p class="fail__log">Autoteste básico antes de aceitar uma nova leitura.</p>
+                <span class="stamp">Reinicia bloqueado</span>
+              </li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- COMPARATIVO -->
+        <section class="plate s-ground compare" id="comparativo">
+          <div class="wrap">
+            <div class="compare__head">
+              <h2 class="h-lg" data-split>Onde o LockMachine se encaixa</h2>
+              <p class="lede">Comparamos o protótipo com três soluções reais de grandes fabricantes de automação e segurança industrial. A ideia não é competir com elas, e sim entender o que já existe no mercado e onde fica o limite do nosso projeto.</p>
+            </div>
+
+            <div class="rivals" data-rivals>
+              <article class="rival" style="--tone: var(--yellow)">
+                <div class="rival__top"><h3 class="rival__name">Pilz IAM</h3><span class="rival__from">Pilz · Alemanha</span></div>
+                <p class="rival__who">Fabricante alemã de equipamentos de segurança para máquinas e automação.</p>
+                <dl class="rival__facts">
+                  <div><dt>O que é</dt><dd>Sistema de identificação e permissões: o operador usa uma chave, cartão ou adesivo RFID no leitor da Pilz (PITreader), e cada credencial libera um nível de acesso na máquina.</dd></div>
+                  <div><dt>Parece com o nosso</dt><dd>Identificar a pessoa antes de liberar a máquina.</dd></div>
+                  <div><dt>Diferença</dt><dd>Produto comercial ligado aos controladores de segurança da própria Pilz. Não tem como foco controlar a validade dos treinamentos.</dd></div>
+                </dl>
+              </article>
+              <article class="rival" style="--tone: var(--cobalt); --tone-fg: #fff">
+                <div class="rival__top"><h3 class="rival__name">FactoryTalk Security</h3><span class="rival__from">Rockwell Automation · EUA</span></div>
+                <p class="rival__who">Empresa americana dona da marca Allen-Bradley, de controladores (CLPs) e softwares industriais.</p>
+                <dl class="rival__facts">
+                  <div><dt>O que é</dt><dd>Software que centraliza logins e permissões: define quem pode abrir, alterar ou operar sistemas de automação, como programas de CLP e telas de operação.</dd></div>
+                  <div><dt>Parece com o nosso</dt><dd>Perfis de usuário, permissões e registro do que cada um fez.</dd></div>
+                  <div><dt>Diferença</dt><dd>Protege o acesso ao software da fábrica, não a leitura de um cartão na máquina nem a validade das capacitações.</dd></div>
+                </dl>
+              </article>
+              <article class="rival" style="--tone: var(--green)">
+                <div class="rival__top"><h3 class="rival__name">Fortress amGardpro</h3><span class="rival__from">Fortress Safety · Reino Unido</span></div>
+                <p class="rival__who">Fabricante britânica especializada em intertravamentos para proteções de máquinas.</p>
+                <dl class="rival__facts">
+                  <div><dt>O que é</dt><dd>Linha modular de travas, chaves e botoeiras montadas em portas e grades de proteção, que só deixam abrir quando a máquina está em condição segura.</dd></div>
+                  <div><dt>Parece com o nosso</dt><dd>Controlar quem entra na área da máquina.</dd></div>
+                  <div><dt>Diferença</dt><dd>É proteção física certificada, algo que o LockMachine não faz e não substitui.</dd></div>
+                </dl>
+              </article>
+            </div>
+
+            <div class="compare__scroll" tabindex="0" role="region" aria-label="Tabela comparativa, role para os lados no celular">
+              <table class="compare__table">
+                <thead>
+                  <tr>
+                    <th scope="col">Critério</th>
+                    <th scope="col">Pilz IAM<small>Chave ou cartão RFID industrial</small></th>
+                    <th scope="col">FactoryTalk Security<small>Logins e permissões da automação</small></th>
+                    <th scope="col">Fortress amGardpro<small>Travas físicas de proteção</small></th>
+                    <th scope="col" class="is-us">LockMachine<small>Nosso protótipo</small></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><th scope="row">Identificação de usuário</th><td>Sim</td><td>Sim</td><td>Conforme configuração</td><td class="is-us">Cartão RFID</td></tr>
+                  <tr><th scope="row">Perfis e permissões</th><td>Sim</td><td>Sim</td><td>Limitado ao arranjo físico</td><td class="is-us">Administrador e funcionário</td></tr>
+                  <tr><th scope="row">Validade de treinamento</th><td>Não evidenciado na fonte consultada</td><td>Não é o foco principal</td><td>Não é o foco principal</td><td class="is-us"><strong>Regra central</strong></td></tr>
+                  <tr><th scope="row">Histórico de tentativas</th><td>Depende da solução integrada</td><td>Auditoria no ecossistema</td><td>Não é o foco do produto</td><td class="is-us">Gravado no MySQL</td></tr>
+                  <tr><th scope="row">Intertravamento certificado</th><td>Integra ecossistema industrial</td><td>Não é o foco desta ferramenta</td><td>Sim, conforme configuração</td><td class="is-us"><strong>Não</strong></td></tr>
+                  <tr><th scope="row">Painel de gestão</th><td>Software do fabricante</td><td>Interface comercial</td><td>Não aplicável</td><td class="is-us">App para Android e web</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="compare__note">O diferencial do LockMachine é didático: deixar explícita a relação entre operador, capacitação, máquina e motivo da decisão. Ele não tem vantagem de certificação, robustez ou integração industrial sobre essas soluções e não deve ser divulgado como substituto delas. Fontes: páginas públicas da Pilz, da Rockwell Automation e da Fortress Safety, citadas nas referências do TCC.</p>
+          </div>
+        </section>
+
+        <!-- STATUS -->
+        <section class="plate s-ink status" id="status">
+          <div class="wrap">
+            <div class="status__head">
+              <h2 class="h-lg" data-split>Onde estamos</h2>
+              <p class="lede">Banco, API, login, cadastros, validação e app já funcionam juntos. Enquanto os casos de teste não forem executados e as evidências registradas, o nome certo continua sendo “MVP em desenvolvimento”.</p>
+            </div>
+
+            <div class="status__grid">
+              <div class="modules">
+                <h3 class="h-md modules__h">Módulos</h3>
+                <ul class="modules__list">
+                  <li><span class="modules__name">Site institucional</span><span class="tag tag--done">Implementado</span><span class="modules__next">Apresentação da equipe e do produto.</span></li>
+                  <li><span class="modules__name">Página e simulador</span><span class="tag tag--done">Implementado</span><span class="modules__next">Demonstração no navegador, com dados fictícios.</span></li>
+                  <li><span class="modules__name">Banco MySQL</span><span class="tag tag--done">Implementado</span><span class="modules__next">schema.sql e seed.sql versionados, oito tabelas.</span></li>
+                  <li><span class="modules__name">API em PHP</span><span class="tag tag--done">Implementado</span><span class="modules__next">Login com sessão, cadastros, validação e histórico.</span></li>
+                  <li><span class="modules__name">App do administrador</span><span class="tag tag--done">Implementado</span><span class="modules__next">Painel, funcionários, máquinas, treinamentos e leitoras.</span></li>
+                  <li><span class="modules__name">App do funcionário</span><span class="tag tag--done">Implementado</span><span class="modules__next">Capacitações, máquinas liberadas e histórico.</span></li>
+                  <li><span class="modules__name">APK Android</span><span class="tag tag--demo">Em preparação</span><span class="modules__next">Gerado a partir do app publicado no servidor.</span></li>
+                  <li><span class="modules__name">Leitora ESP32 + MFRC522</span><span class="tag tag--demo">Firmware escrito</span><span class="modules__next">Montar a bancada e testar com cartões reais.</span></li>
+                  <li><span class="modules__name">Testes e evidências</span><span class="tag tag--plan">Pendente</span><span class="modules__next">Executar os casos CT e TNF e registrar EV-XX.</span></li>
+                </ul>
+              </div>
+
+              <div class="road" data-road>
+                <h3 class="h-md modules__h">Próximas etapas</h3>
+                <ol class="road__list">
+                  <li class="road__stop"><span class="road__n">1</span><div><h4 class="road__name">Publicar no servidor</h4><p>Site, API e banco no cPanel da escola, com HTTPS.</p></div></li>
+                  <li class="road__stop"><span class="road__n">2</span><div><h4 class="road__name">Gerar o APK</h4><p>Empacotar o app publicado e liberar o download nesta página.</p></div></li>
+                  <li class="road__stop"><span class="road__n">3</span><div><h4 class="road__name">Montar a bancada</h4><p>ESP32, MFRC522, relé e LEDs com o firmware do projeto.</p></div></li>
+                  <li class="road__stop"><span class="road__n">4</span><div><h4 class="road__name">Executar os testes</h4><p>Casos funcionais e de falha com a massa de teste.</p></div></li>
+                  <li class="road__stop"><span class="road__n">5</span><div><h4 class="road__name">Registrar evidências</h4><p>Capturas, consultas e fotos identificadas como EV-XX.</p></div></li>
+                  <li class="road__stop"><span class="road__n">6</span><div><h4 class="road__name">Revisão e apresentação</h4><p>Documentação final e demonstração para a banca.</p></div></li>
+                </ol>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- CANVAS -->
+        <section class="plate s-paper canvas" id="canvas">
+          <div class="wrap">
+            <div class="canvas__head">
+              <h2 class="h-lg" data-split>Se virasse negócio</h2>
+              <p class="lede">O Canvas representa uma hipótese de aplicação futura. Como o TCC não fez validação comercial, segmentos, receitas e parcerias são possibilidades a testar, não resultados.</p>
+            </div>
+            <div class="bmc" data-bmc>
+              <div class="bmc__cell bmc__partners" style="--tone: var(--ground)"><h3>Parceiros-chave</h3><p>Integradores de automação, fornecedores de RFID, consultores de SST e instituições de ensino.</p></div>
+              <div class="bmc__cell bmc__activities" style="--tone: var(--paper)"><h3>Atividades-chave</h3><p>Cadastro e validação de capacitações, manutenção da aplicação, integração do protótipo, suporte e testes.</p></div>
+              <div class="bmc__cell bmc__resources" style="--tone: var(--paper)"><h3>Recursos-chave</h3><p>Aplicação web, API, banco, módulo RFID, equipe de desenvolvimento e domínio das regras.</p></div>
+              <div class="bmc__cell bmc__value" style="--tone: var(--red)"><h3>Proposta de valor</h3><p>Apoiar a conferência padronizada de capacitação e a rastreabilidade de acessos a máquinas.</p></div>
+              <div class="bmc__cell bmc__relations" style="--tone: var(--paper)"><h3>Relacionamento</h3><p>Implantação assistida, treinamento, suporte e revisão periódica das regras e dos registros.</p></div>
+              <div class="bmc__cell bmc__channels" style="--tone: var(--paper)"><h3>Canais</h3><p>Demonstração presencial, site, parcerias com escolas e integradores e contato institucional.</p></div>
+              <div class="bmc__cell bmc__segments" style="--tone: var(--yellow)"><h3>Segmentos</h3><p>Escolas técnicas, laboratórios didáticos e empresas que queiram avaliar um controle administrativo complementar.</p></div>
+              <div class="bmc__cell bmc__costs" style="--tone: var(--ground)"><h3>Estrutura de custos</h3><p>Desenvolvimento, hardware, hospedagem, manutenção, suporte e eventual adequação técnica.</p></div>
+              <div class="bmc__cell bmc__revenue" style="--tone: var(--green)"><h3>Fontes de receita</h3><p>Licença, implantação, manutenção ou projeto personalizado. Hipóteses ainda não validadas.</p></div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <!-- RODAPÉ -->
+      <footer class="plate s-ink footer">
+        <div class="wrap">
+          <div class="footer__cta">
+            <h2 class="h-lg" data-split>Feito pela LinkWave.</h2>
+            <div class="btn-row">
+              <a class="btn btn--yellow" href="index.html#equipe" data-wipe>Conhecer a equipe <svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+              <a class="btn" href="#simulador">Voltar ao simulador</a>
+            </div>
+          </div>
+
+          <div class="footer__cols">
+            <div>
+              <h3 class="footer__h">LockMachine</h3>
+              <p>Sistema inteligente de controle e monitoramento de máquinas com IoT. Trabalho de Conclusão de Curso do Técnico em Desenvolvimento de Sistemas, SENAI, Mococa — SP, 2026.</p>
+            </div>
+            <div>
+              <h3 class="footer__h">Orientação</h3>
+              <ul class="footer__list">
+                <li>Prof. Leonardo Oliveira Casellato</li>
+                <li>Prof. Ricardo Akira Harada</li>
+                <li>Prof. Wellinton Cardoso Teodoro</li>
+              </ul>
+            </div>
+            <nav aria-label="Rodapé">
+              <h3 class="footer__h">Navegar</h3>
+              <ul class="footer__list">
+                <li><a href="#problema">Problema</a></li>
+                <li><a href="#como-funciona">Como funciona</a></li>
+                <li><a href="#simulador">Simulador</a></li>
+                <li><a href="#arquitetura">Arquitetura</a></li>
+                <li><a href="index.html" data-wipe>LinkWave</a></li>
+              </ul>
+            </nav>
+          </div>
+
+          <div class="footer__word footer__word--red" aria-hidden="true" data-footer-word>LockMachine</div>
+
+          <div class="footer__base">
+            <span>© 2026 LinkWave · Projeto acadêmico</span>
+            <button class="totop" type="button" data-totop>Voltar ao topo <svg class="ico" aria-hidden="true"><use href="#i-arrow-up"/></svg></button>
+          </div>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <script src="assets/vendor/gsap/gsap.min.js" defer></script>
+  <script src="assets/vendor/gsap/ScrollTrigger.min.js" defer></script>
+  <script src="assets/vendor/gsap/ScrollSmoother.min.js" defer></script>
+  <script src="assets/vendor/gsap/ScrollToPlugin.min.js" defer></script>
+  <script src="assets/vendor/gsap/SplitText.min.js" defer></script>
+  <script src="assets/vendor/gsap/Draggable.min.js" defer></script>
+  <script src="assets/vendor/gsap/InertiaPlugin.min.js" defer></script>
+  <script src="assets/vendor/gsap/DrawSVGPlugin.min.js" defer></script>
+  <script src="assets/vendor/gsap/MotionPathPlugin.min.js" defer></script>
+  <script src="assets/js/main.js" defer></script>
+  <script src="assets/js/lockmachine.js" defer></script>
+</body>
+</html>

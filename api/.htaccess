@@ -1,0 +1,8 @@
+# API do LockMachine
+Options -Indexes
+DirectoryIndex index.php
+
+# Configurações e arquivos internos não podem ser baixados
+<FilesMatch "^(config\.php|config\.local\.php|config\.local\.exemplo\.php)$">
+  Require all denied
+</FilesMatch>

@@ -1,0 +1,19 @@
+# Senha do banco: cada ambiente (PC, cPanel) cria a sua
+api/config.local.php
+
+# Sessões do PHP criadas enquanto o app roda
+api/storage/sessoes/
+
+# Configuração do Claude Code com caminhos desta máquina
+.claude/
+
+# APK e chave de assinatura do PWABuilder (a chave NUNCA vai para o Git)
+downloads/*.apk
+*.keystore
+*.jks
+signing-key-info.txt
+
+# Arquivos do sistema
+Thumbs.db
+desktop.ini
+.DS_Store
