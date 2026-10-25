@@ -22,11 +22,13 @@ da equipe LinkWave (TCC do Técnico em Desenvolvimento de Sistemas, SENAI Mococa
 | `docs/DEPLOY_CPANEL.md` | Guia de publicação no cPanel, APK, Workbench e leitora |
 | `deploy/` | `linkwave-site.zip` pronto para o cPanel e `gerar-zip.ps1` para refazer o zip |
 
-## Situação em 20/10/2026
+## Situação em 25/10/2026
 
 Pronto e testado localmente (PHP 8.2 + MariaDB 10.11): site, simulador do site, banco, todas as rotas da API
 (login com troca obrigatória de senha, bloqueio após 5 tentativas, cadastros, capacitações, validação com os
 6 motivos, token da leitora, histórico com filtros, dashboard) e o app nas duas interfaces, em celular e desktop.
+Em 25/10: logo nova (Encaixe), abertura animada no site e no app, títulos em frase normal, transições entre
+páginas e entre site e app, limite por IP na API e cabeçalhos de segurança (CSP/HSTS) no `.htaccess`.
 
 Falta:
 1. **Publicar no cPanel do professor**: é o próximo passo. Siga `docs/DEPLOY_CPANEL.md` junto com o usuário,
@@ -43,12 +45,28 @@ Falta:
   Não invente números, clientes ou resultados. Dados de demonstração são rotulados como fictícios.
   O LockMachine não substitui NR-12, análise de risco, proteções físicas nem intertravamentos.
 - **Visual "chunky"**: bordas grossas de 3px em `#11131F`, cantos arredondados, sombra sólida para baixo
-  (`0 6px 0`), fonte Archivo (títulos em `font-stretch: 125%`, peso 900, maiúsculas) e Martian Mono só para código e dados.
+  (`0 6px 0`). Fonte Archivo: títulos em **frase normal** (peso 800, `font-stretch: 106%`, `letter-spacing: -.028em`);
+  maiúsculas só em rótulos pequenos, selos e pílulas. Martian Mono só para código e dados.
   Cores: cobalto `#2F45FF` (LinkWave), vermelho `#FF3D2E` (LockMachine), amarelo `#FFD23F`, verde `#22D07B`, fundo `#E9ECF2`.
+- **Marcas**: LinkWave = "Encaixe" (círculo dividido por uma onda em S: metade cobalto, metade amarela, contorno
+  e S em tinta), em `assets/img/favicon.svg` e no SVG `.mark` das páginas. LockMachine = cadeado no quadrado
+  vermelho (`.mark-lm` no app).
+- **Movimento**: `expo.out` para entradas e `power3.inOut`/`expo.inOut` para deslocamentos; nada de `bounce`.
+  `elastic`/`back` só em coisas físicas (cartão, carimbo, cadeado abrindo). Uma animação puxa a outra:
+  - Abertura (site e app): a marca é montada em CSS no primeiro quadro, o JS espera as animações CSS terminarem
+    (classe `is-built` desliga o CSS) e então a marca voa até o logo da tela enquanto um furo abre no véu.
+  - Entre páginas do site: o furo fecha no clique e `sessionStorage['lw:transicao']` faz a próxima página
+    continuar do logo montado. Site → app usa `data-wipe="app"` (só fecha o véu; o app monta o cadeado).
+  - No app, entradas esperam `quandoAberto()` para não tocar escondidas atrás da abertura.
+  - `gsap.matchMedia()` com objeto de condições só roda se alguma bater: inclua sempre a condição do celular.
+  - Evite `invalidateOnRefresh` em `fromTo` com `stagger` (o estado inicial se perde); prefira valores em `%`.
 - Sem etapa de build: nada de npm ou bundler. Tudo precisa abrir direto no navegador e rodar no cPanel.
 - API: toda escrita é `POST` (hospedagens compartilhadas bloqueiam PUT e DELETE) e exige o cabeçalho
   `X-Requested-With: LockMachine`. Use `?id=` e `&acao=` na URL. Mantenha compatível com PHP 7.4.
 - Caminhos sempre relativos (o site pode ficar em subpasta do domínio).
+- **Segurança**: o `.htaccess` manda uma CSP que só aceita arquivos do próprio domínio. Nada de `<script>` inline,
+  `onclick=` ou CDN; script novo vai em arquivo dentro de `assets/` ou `app/`. Rotas sensíveis usam
+  `limitar()`/`bloqueado_por_erros()` de `api/lib/bootstrap.php` (contadores em `api/storage/limites`).
 - `api/config.local.php` tem a senha do banco: nunca versionar (já está no `.gitignore`).
 
 ## Rodar localmente

@@ -4,6 +4,8 @@ require __DIR__ . '/../lib/bootstrap.php';
 
 exigir_metodo('POST');
 exigir_cabecalho_app();
+// Além das 5 tentativas por conta: no máximo 20 senhas erradas por IP a cada 15 min.
+bloqueado_por_erros('login', 20, 900);
 
 $in = entrada();
 $login = trim((string) ($in['login'] ?? ''));
@@ -34,6 +36,7 @@ if (!$u || !$senhaConfere || !(int) $u['ativo']) {
         $bloqueio = $falhas >= 5 ? date('Y-m-d H:i:s', time() + 300) : null;
         consulta('UPDATE usuarios SET falhas_login = ?, bloqueado_ate = ? WHERE id = ?', [$falhas >= 5 ? 0 : $falhas, $bloqueio, $u['id']]);
     }
+    registrar_erro('login', 900);
     falha(401, 'CREDENCIAIS_INVALIDAS', 'Login ou senha inválidos.');
 }
 

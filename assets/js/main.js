@@ -56,54 +56,143 @@
 
   const LW = (window.LW = { smoother, reduce, finePointer, ready, scrollTo: scrollToTarget });
 
-  /* ---------- Page wipe (intro + transitions) ---------- */
-  const wipe = document.querySelector('.wipe');
-  const panels = wipe ? gsap.utils.toArray('.wipe__panel', wipe) : [];
-  const mark = wipe ? wipe.querySelector('.wipe__mark') : null;
+  /* ---------- Opening: the mark breathes, opens a hole into the page and lands on the nav ---------- */
+  const loader = document.querySelector('[data-loader]');
+  const veil = loader ? loader.querySelector('[data-loader-veil]') : null;
+  const lMark = loader ? loader.querySelector('[data-loader-mark]') : null;
+  const lSpin = lMark ? lMark.querySelector('.mark__spin') : null;
+  const lChars = loader ? gsap.utils.toArray('[data-loader-word] span', loader) : [];
+  const lTag = loader ? loader.querySelector('[data-loader-tag]') : null;
+  const nav = document.querySelector('[data-nav]');
+  const navBar = nav ? nav.querySelector('.nav__bar') : null;
+  const navMark = nav ? nav.querySelector('.brand__mark') : null;
+  const BUILD_SECONDS = 2.3; // length of the CSS build in styles.css (last letter ends at 2.27 s)
+  const farRadius = () => Math.hypot(window.innerWidth, window.innerHeight) * 0.75 + 40;
 
-  // The loader is already covering the page (CSS in <head>); here it only leaves.
+  function fimAbertura() {
+    root.classList.remove('is-loading', 'is-continuing', 'is-built');
+    if (loader) loader.classList.remove('is-on');
+    if (navMark) navMark.style.opacity = '';
+    if (navBar) gsap.set(navBar, { clearProps: 'clipPath' });
+  }
+
+  // Waits for the CSS build, the fonts and the page (never more than 6 s).
+  // The build is awaited by its real animations: a slow first frame delays them.
+  function pronto(continuing) {
+    const minimo = continuing ? 0 : Math.max(0, BUILD_SECONDS * 1000 - performance.now());
+    const espera = (ms) => new Promise((r) => setTimeout(r, ms));
+    const fontes = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
+    const carregou = document.readyState === 'complete' ? Promise.resolve() : new Promise((r) => window.addEventListener('load', r, { once: true }));
+    const construcao = continuing || !loader.getAnimations ? Promise.resolve()
+      : Promise.all(loader.getAnimations({ subtree: true }).map((a) => a.finished.catch(() => {})));
+    return Promise.race([Promise.all([fontes, carregou, espera(minimo), construcao]), espera(6000)])
+      .then(() => root.classList.add('is-built'));
+  }
+
+  function unrollNav(tl, at) {
+    if (!navBar) return;
+    const sobra = Math.max(0, navBar.offsetWidth - 58);
+    tl.fromTo(navBar, { clipPath: `inset(0px ${sobra}px 0px 0px round 999px)` }, {
+      clipPath: 'inset(0px 0px -12px 0px round 999px)',
+      duration: 0.9,
+      ease: 'expo.out',
+      clearProps: 'clipPath',
+    }, at);
+    tl.from(navBar.querySelectorAll('.brand__name, .nav__links a, .nav__cta, .nav__toggle'), {
+      x: -14,
+      autoAlpha: 0,
+      duration: 0.6,
+      stagger: 0.04,
+      ease: 'power3.out',
+    }, at + 0.1);
+  }
+
   function intro() {
-    const timedOut = root.classList.contains('boot-timeout');
-    if (!wipe || reduce || timedOut) {
-      root.classList.remove('is-loading');
-      if (wipe) gsap.set(wipe, { autoAlpha: 0 });
+    const continuing = root.classList.contains('is-continuing');
+    if (!loader || root.classList.contains('boot-timeout')) {
+      fimAbertura();
       readyResolve();
       return;
     }
-    gsap.set(panels, { yPercent: 0 });
-    root.classList.remove('is-loading');
-    const bar = wipe.querySelector('.wipe__bar');
-    const fontsReady = document.fonts && document.fonts.ready
-      ? Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 1200))])
-      : Promise.resolve();
-    fontsReady.then(() => {
-      gsap.timeline({ onComplete: () => gsap.set(wipe, { autoAlpha: 0 }) })
-        .to(bar, { autoAlpha: 0, y: 10, duration: 0.2, ease: 'power2.in' })
-        .to(mark, { scale: 1.14, rotation: -8, duration: 0.18, ease: 'power2.out' }, 0)
-        .to(mark, { scale: 1, rotation: 0, duration: 0.3, ease: 'back.out(3)' })
-        .to(panels.slice().reverse(), { yPercent: -100, duration: 0.72, stagger: 0.08, ease: 'power4.inOut' }, '-=0.1')
-        .add(() => readyResolve(), '-=0.6');
+    if (reduce) {
+      gsap.to(loader, { autoAlpha: 0, duration: 0.3, onComplete: () => { fimAbertura(); gsap.set(loader, { clearProps: 'all' }); } });
+      readyResolve();
+      return;
+    }
+
+    // While the page is still arriving, the halves rock gently.
+    const breathe = continuing ? null : gsap.to(lSpin, {
+      rotation: 16,
+      svgOrigin: '32 32',
+      duration: 1.3,
+      ease: 'sine.inOut',
+      yoyo: true,
+      repeat: -1,
+      delay: Math.max(0, BUILD_SECONDS - performance.now() / 1000),
+    });
+
+    pronto(continuing).then(() => {
+      if (breathe) breathe.kill();
+      const r0 = lMark.getBoundingClientRect();
+      const r1 = navMark ? navMark.getBoundingClientRect() : { left: 24, top: 24, width: 40, height: 40 };
+      const dx = r1.left + r1.width / 2 - (r0.left + r0.width / 2);
+      const dy = r1.top + r1.height / 2 - (r0.top + r0.height / 2);
+      const s = r1.width / r0.width;
+      gsap.set(veil, { '--hx': `${r0.left + r0.width / 2}px`, '--hy': `${r0.top + r0.height / 2}px` });
+
+      const tl = gsap.timeline({ onComplete: fimAbertura });
+      tl.to(lSpin, { rotation: 0, svgOrigin: '32 32', duration: 0.35, ease: 'power2.out' }, 0)
+        .to(lChars, { yPercent: -115, duration: 0.42, stagger: 0.022, ease: 'power3.in' }, 0)
+        .to(lTag, { autoAlpha: 0, y: -8, duration: 0.3, ease: 'power2.in' }, 0)
+        // a small breath in before it leaves
+        .to(lMark, { scale: 0.88, duration: 0.24, ease: 'power2.out' }, 0.22)
+        .to(lMark, { x: dx, y: dy, scale: s, duration: 1.05, ease: 'expo.inOut' }, 0.44)
+        .to(lMark, { '--mk-line': '#11131F', duration: 0.35, ease: 'none' }, 1.05)
+        .to(veil, { '--hole': `${farRadius()}px`, duration: 1.2, ease: 'expo.inOut' }, 0.44)
+        .add(() => readyResolve(), 0.95)
+        .add(() => {
+          if (navMark) navMark.style.opacity = '1';
+          gsap.set(lMark, { autoAlpha: 0 });
+        }, 1.49);
+      unrollNav(tl, 1.45);
     });
   }
 
-  function leaveTo(href) {
-    if (reduce || !wipe) { window.location.href = href; return; }
-    gsap.set(wipe, { autoAlpha: 1 });
-    gsap.set(wipe.querySelector('.wipe__bar'), { autoAlpha: 1, y: 0 });
+  // Leaving for another page: the hole closes where you clicked and the mark rebuilds.
+  // Going to the app only the ink closes: the app builds its own padlock on it.
+  function leaveTo(href, x, y, toApp) {
+    if (reduce || !loader) { window.location.href = href; return; }
+    if (!toApp) {
+      try { sessionStorage.setItem('lw:transicao', '1'); } catch (e) { /* sem sessionStorage */ }
+    }
+    loader.classList.add('is-on');
+    gsap.set(loader, { clearProps: 'all' });
+    gsap.set(lMark, { x: 0, y: 0, scale: 0.6, autoAlpha: 0, '--mk-line': '#fff' });
+    gsap.set(lSpin, { rotation: -90, svgOrigin: '32 32' });
+    gsap.set(lChars, { yPercent: 115 });
+    gsap.set(lTag, { autoAlpha: 0, y: 8 });
+    gsap.set(veil, { '--hx': `${x}px`, '--hy': `${y}px`, '--hole': `${farRadius() * 1.6}px` });
+    if (toApp) {
+      gsap.to(veil, { '--hole': '0px', duration: 0.7, ease: 'power3.inOut', onComplete: () => { window.location.href = href; } });
+      return;
+    }
     gsap.timeline({ onComplete: () => { window.location.href = href; } })
-      .fromTo(panels, { yPercent: 100 }, { yPercent: 0, duration: 0.58, stagger: 0.08, ease: 'power4.inOut' })
-      .fromTo(mark, { scale: 0.5, autoAlpha: 0 }, { scale: 1, autoAlpha: 1, duration: 0.3, ease: 'back.out(2)' }, '-=0.22');
+      .to(veil, { '--hole': '0px', duration: 0.75, ease: 'power3.inOut' })
+      .to(lMark, { scale: 1, autoAlpha: 1, duration: 0.55, ease: 'expo.out' }, 0.5)
+      .to(lSpin, { rotation: 0, duration: 0.6, ease: 'expo.out' }, 0.5)
+      .to(lChars, { yPercent: 0, duration: 0.5, stagger: 0.025, ease: 'expo.out' }, 0.6)
+      .to(lTag, { autoAlpha: 1, y: 0, duration: 0.4 }, 0.75)
+      .to({}, { duration: 0.15 });
   }
 
   window.addEventListener('pageshow', (e) => {
-    if (e.persisted && wipe) {
-      gsap.set(panels, { yPercent: 100 });
-      gsap.set(wipe, { autoAlpha: 0 });
+    if (e.persisted && loader) {
+      loader.classList.remove('is-on');
+      gsap.set(veil, { '--hole': '0px' });
     }
   });
 
   /* ---------- Navigation ---------- */
-  const nav = document.querySelector('[data-nav]');
   const toggle = document.querySelector('.nav__toggle');
   const menu = document.querySelector('[data-menu]');
   const wrapper = document.getElementById('smooth-wrapper');
@@ -140,7 +229,7 @@
       focusFirst();
     } else {
       gsap.fromTo(menu, { clipPath: `circle(0px at ${cx}px ${cy}px)` }, { clipPath: `circle(${radius}px at ${cx}px ${cy}px)`, duration: 0.65, ease: 'power3.inOut' });
-      gsap.fromTo(links, { yPercent: 110, rotation: 4, autoAlpha: 0 }, { yPercent: 0, rotation: 0, autoAlpha: 1, duration: 0.6, stagger: 0.05, delay: 0.18, ease: 'back.out(1.6)', onComplete: focusFirst });
+      gsap.fromTo(links, { yPercent: 60, autoAlpha: 0 }, { yPercent: 0, autoAlpha: 1, duration: 0.7, stagger: 0.045, delay: 0.2, ease: 'expo.out', onComplete: focusFirst });
     }
   }
 
@@ -202,7 +291,10 @@
 
     if (a.hasAttribute('data-wipe') && !samePage) {
       e.preventDefault();
-      if (menuOpen) closeMenu(() => leaveTo(url.href)); else leaveTo(url.href);
+      const px = e.clientX || window.innerWidth / 2;
+      const py = e.clientY || window.innerHeight / 2;
+      const toApp = a.getAttribute('data-wipe') === 'app';
+      if (menuOpen) closeMenu(() => leaveTo(url.href, px, py, toApp)); else leaveTo(url.href, px, py, toApp);
     }
   });
 
@@ -223,35 +315,79 @@
       });
     }
 
-    // Highlight the section in view.
-    document.querySelectorAll('.nav__links a[href^="#"]').forEach((link) => {
-      const sec = document.querySelector(link.getAttribute('href'));
-      if (!sec) return;
-      ScrollTrigger.create({
-        trigger: sec,
-        start: 'top 45%',
-        end: 'bottom 45%',
-        onToggle: (self) => link.classList.toggle('is-active', self.isActive),
-      });
-    });
+    // Reading progress: a thin line along the bottom of the nav pill.
+    if (navBar) {
+      const barra = document.createElement('span');
+      barra.className = 'nav__progress';
+      barra.setAttribute('aria-hidden', 'true');
+      navBar.append(barra);
+      gsap.to(barra, { scaleX: 1, ease: 'none', scrollTrigger: { start: 0, end: 'max', scrub: 0.3 } });
+    }
 
-    // Headings: masked line rise.
+    // Section in view: a single yellow pill slides between the nav links.
+    const navLinks = document.querySelector('.nav__links');
+    if (navLinks) {
+      const pip = document.createElement('span');
+      pip.className = 'nav__pip';
+      pip.setAttribute('aria-hidden', 'true');
+      navLinks.prepend(pip);
+      let atual = null;
+      const mover = () => {
+        const ativo = navLinks.querySelector('a.is-active');
+        if (ativo === atual) return;
+        atual = ativo;
+        if (!ativo) {
+          gsap.to(pip, { autoAlpha: 0, scale: 0.8, duration: 0.3, ease: 'power2.out' });
+          return;
+        }
+        gsap.to(pip, {
+          x: ativo.offsetLeft,
+          width: ativo.offsetWidth,
+          autoAlpha: 1,
+          scale: 1,
+          duration: reduce ? 0 : 0.55,
+          ease: 'expo.out',
+        });
+      };
+      navLinks.querySelectorAll('a[href^="#"]').forEach((link) => {
+        const sec = document.querySelector(link.getAttribute('href'));
+        if (!sec) return;
+        ScrollTrigger.create({
+          trigger: sec,
+          start: 'top 45%',
+          end: 'bottom 45%',
+          onToggle: (self) => { link.classList.toggle('is-active', self.isActive); mover(); },
+        });
+      });
+    }
+
+    // Section heads: the title rises line by line, then its paragraph follows it.
     if (!reduce) {
       gsap.utils.toArray('[data-split]').forEach((el) => {
+        const lede = el.parentElement && el.parentElement.querySelector(':scope > .lede');
         SplitText.create(el, {
           type: 'lines',
           mask: 'lines',
           linesClass: 'ln',
           autoSplit: true,
           onSplit(self) {
-            return gsap.from(self.lines, {
-              yPercent: 108,
-              duration: 0.95,
-              stagger: 0.09,
-              ease: 'expo.out',
-              scrollTrigger: { trigger: el, start: 'top 88%', once: true },
-            });
+            const tl = gsap.timeline({ scrollTrigger: { trigger: el, start: 'top 88%', once: true } });
+            tl.from(self.lines, { yPercent: 108, duration: 1.05, stagger: 0.09, ease: 'expo.out' });
+            if (lede) tl.from(lede, { y: 18, autoAlpha: 0, duration: 0.9, ease: 'expo.out' }, 0.22);
+            return tl;
           },
+        });
+      });
+
+      // Plates rise slightly as they come in, so sections stack instead of popping.
+      gsap.utils.toArray('main > .plate').forEach((plate) => {
+        if (plate.matches('.hero') || plate.querySelector('[data-record], [data-process-track]') || plate.matches('[data-process]')) return;
+        gsap.from(plate, {
+          y: 56,
+          scale: 0.975,
+          transformOrigin: '50% 0%',
+          ease: 'none',
+          scrollTrigger: { trigger: plate, start: 'top bottom', end: 'top 62%', scrub: 0.6 },
         });
       });
     }
@@ -283,16 +419,16 @@
       });
     });
 
-    // Footer wordmark: letters rise in, bounce on hover.
+    // Footer wordmark: letters rise in one after another, lift on hover.
     const word = document.querySelector('[data-footer-word]');
     if (word) {
       const split = SplitText.create(word, { type: 'chars', charsClass: 'ch' });
       if (!reduce) {
         gsap.from(split.chars, {
           yPercent: 105,
-          duration: 0.9,
-          stagger: 0.045,
-          ease: 'back.out(1.5)',
+          duration: 1.1,
+          stagger: 0.05,
+          ease: 'expo.out',
           scrollTrigger: { trigger: word, start: 'top 96%', once: true },
         });
         if (finePointer) {
@@ -327,20 +463,15 @@
       gsap.set([title, ...aside], { autoAlpha: 1 });
       return;
     }
-    const split = SplitText.create(title, { type: 'words', wordsClass: 'w' });
     const hl = title.querySelector('.hl');
+    if (hl) gsap.set(hl, { '--hl': 0 });
+    const split = SplitText.create(title, { type: 'lines', mask: 'lines', linesClass: 'ln' });
     gsap.set(title, { autoAlpha: 1 });
     const tl = gsap.timeline();
-    tl.from(split.words, {
-      yPercent: 80,
-      rotation: (i) => (i % 2 ? 7 : -7),
-      autoAlpha: 0,
-      duration: 0.8,
-      stagger: 0.055,
-      ease: 'back.out(1.7)',
-    });
-    if (hl) tl.fromTo(hl, { scale: 0.4, rotation: -18 }, { scale: 1, rotation: -2.5, duration: 0.9, ease: 'elastic.out(1, 0.45)' }, 0.3);
-    if (aside.length) tl.from(aside, { y: 28, autoAlpha: 0, duration: 0.7, stagger: 0.1 }, 0.35);
+    tl.from(split.lines, { yPercent: 112, duration: 1.15, stagger: 0.1, ease: 'expo.out' });
+    // the marker sweeps in behind the highlighted word once its line has risen
+    if (hl) tl.to(hl, { '--hl': 1, duration: 0.85, ease: 'expo.inOut' }, 0.5);
+    if (aside.length) tl.from(aside, { y: 22, autoAlpha: 0, duration: 0.95, stagger: 0.09, ease: 'expo.out' }, 0.4);
   }
 
   document.addEventListener('DOMContentLoaded', () => {

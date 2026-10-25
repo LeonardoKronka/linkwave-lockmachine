@@ -22,7 +22,7 @@
       lastHit: 0,
     }));
 
-    const state = { amp: reduce ? 1 : 0, phase: 0.6, t: 0.02, speed: 1 };
+    const state = { amp: reduce ? 1 : 0, calm: 1, phase: 0.6, t: 0.02, speed: 1 };
     let W = 0;
     let H = 0;
 
@@ -38,7 +38,7 @@
 
     function yAt(x) {
       const mid = H * 0.46;
-      const A = Math.min(H * 0.24, 74) * state.amp;
+      const A = Math.min(H * 0.24, 74) * state.amp * state.calm;
       const k = (Math.PI * 2) / Math.max(W * 0.62, 340);
       return mid + Math.sin(x * k + state.phase) * A + Math.sin(x * k * 0.43 - state.phase * 0.7) * A * 0.32;
     }
@@ -63,7 +63,7 @@
         n.el.style.transform = `translate3d(${(x - n.w / 2).toFixed(1)}px, ${(y - n.ih / 2).toFixed(1)}px, 0)`;
         if (!reduce && Math.abs(px - x) < 14 && now - n.lastHit > 900) {
           n.lastHit = now;
-          gsap.fromTo(n.icon, { scaleX: 1.2, scaleY: 0.8 }, { scaleX: 1, scaleY: 1, duration: 0.8, ease: 'elastic.out(1, 0.35)', overwrite: true });
+          gsap.fromTo(n.icon, { scaleX: 1.2, scaleY: 0.8 }, { scaleX: 1, scaleY: 1, duration: 0.8, ease: 'elastic.out(1, 0.6)', overwrite: true });
         }
       }
     }
@@ -90,6 +90,21 @@
       onToggle: (self) => (self.isActive ? gsap.ticker.add(tick) : gsap.ticker.remove(tick)),
     });
 
+    // Leaving the hero, the wave settles and the headline drifts up: the scroll carries it out.
+    ScrollTrigger.create({
+      trigger: hero,
+      start: 'top top',
+      end: 'bottom top',
+      scrub: true,
+      onUpdate: (self) => { state.calm = 1 - self.progress * 0.7; },
+    });
+    gsap.to(hero.querySelector('.hero__top'), {
+      yPercent: -18,
+      autoAlpha: 0.35,
+      ease: 'none',
+      scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: true },
+    });
+
     // Pointer stirs the wave: closer to the line, bigger the swell.
     const ampTo = gsap.quickTo(state, 'amp', { duration: 0.9, ease: 'power3.out' });
     const speedTo = gsap.quickTo(state, 'speed', { duration: 0.6, ease: 'power2.out' });
@@ -109,8 +124,8 @@
     gsap.set(gsap.utils.toArray('.node__label', el), { autoAlpha: 0, y: -8 });
     ready.then(() => {
       gsap.timeline({ delay: 0.25 })
-        .to(state, { amp: 1, duration: 1.6, ease: 'elastic.out(1, 0.35)' })
-        .to(nodes.map((n) => n.icon), { scale: 1, duration: 0.7, stagger: 0.09, ease: 'back.out(2.4)' }, 0.15)
+        .to(state, { amp: 1, duration: 1.8, ease: 'expo.out' })
+        .to(nodes.map((n) => n.icon), { scale: 1, duration: 0.9, stagger: 0.09, ease: 'expo.out' }, 0.15)
         .to(gsap.utils.toArray('.node__label', el), { autoAlpha: 1, y: 0, duration: 0.4, stagger: 0.09 }, 0.45);
     });
   }
@@ -140,7 +155,7 @@
     gsap.killTweensOf(el, 'rotation');
     gsap.timeline()
       .to(el, { rotation: dir * amount, duration: 0.18, ease: 'power2.out' })
-      .to(el, { rotation: 0, duration: 1.5, ease: 'elastic.out(1, 0.22)' });
+      .to(el, { rotation: 0, duration: 1.3, ease: 'elastic.out(1, 0.5)' });
   }
 
   const tagCards = gsap.utils.toArray('[data-tag-card]');
@@ -151,7 +166,7 @@
         y: -60,
         autoAlpha: 0,
         duration: 1.6,
-        ease: 'elastic.out(1, 0.4)',
+        ease: 'expo.out',
         scrollTrigger: { trigger: card, start: 'top 88%', once: true },
       });
       if (finePointer) card.addEventListener('pointerenter', (e) => swing(card, e.movementX >= 0 ? 1 : -1, 4));
@@ -185,7 +200,7 @@
     if (open && !reduce) {
       gsap.fromTo(body.querySelectorAll('.chips li'),
         { y: 16, autoAlpha: 0, rotation: () => gsap.utils.random(-8, 8) },
-        { y: 0, autoAlpha: 1, rotation: 0, duration: 0.55, stagger: 0.05, delay: 0.18, ease: 'back.out(2.2)' });
+        { y: 0, autoAlpha: 1, rotation: 0, duration: 0.55, stagger: 0.05, delay: 0.18, ease: 'expo.out' });
     }
   }
   rows.forEach((row) => {
@@ -207,7 +222,7 @@
       autoAlpha: 0,
       duration: 0.9,
       stagger: 0.1,
-      ease: 'back.out(1.4)',
+      ease: 'expo.out',
       scrollTrigger: { trigger: '[data-rows]', start: 'top 82%', once: true },
     });
   }
@@ -218,14 +233,14 @@
     gsap.from(bigtag, {
       rotation: -28,
       duration: 2.4,
-      ease: 'elastic.out(1, 0.22)',
+      ease: 'elastic.out(1, 0.42)',
       scrollTrigger: { trigger: bigtag, start: 'top 80%', once: true },
     });
     gsap.from('[data-padlock]', {
       y: -50,
       rotation: -10,
       duration: 1,
-      ease: 'bounce.out',
+      ease: 'expo.out',
       scrollTrigger: { trigger: bigtag, start: 'top 80%', once: true },
     });
     // Scrolling fast makes the tag sway against the motion.
@@ -239,7 +254,7 @@
         if (Math.abs(lean) < 1.5) return;
         gsap.to(bigtag, { rotation: lean, duration: 0.4, ease: 'power2.out', overwrite: 'auto' });
         clearTimeout(settle);
-        settle = setTimeout(() => gsap.to(bigtag, { rotation: 0, duration: 1.8, ease: 'elastic.out(1, 0.2)', overwrite: 'auto' }), 140);
+        settle = setTimeout(() => gsap.to(bigtag, { rotation: 0, duration: 1.8, ease: 'elastic.out(1, 0.45)', overwrite: 'auto' }), 140);
       },
     });
     if (finePointer) bigtag.addEventListener('pointerenter', (e) => swing(bigtag, e.movementX >= 0 ? 1 : -1, 9));
@@ -305,7 +320,7 @@
           rotation: i % 2 ? 3 : -3,
           autoAlpha: 0,
           duration: 0.8,
-          ease: 'back.out(1.4)',
+          ease: 'expo.out',
           scrollTrigger: { trigger: step, start: 'top 88%', once: true },
         });
       });
@@ -320,7 +335,7 @@
     card.addEventListener('click', () => {
       flipped = !flipped;
       card.setAttribute('aria-pressed', String(flipped));
-      gsap.to(card, { rotationY: flipped ? 180 : 0, duration: reduce ? 0 : 0.85, ease: 'back.out(1.3)', overwrite: true });
+      gsap.to(card, { rotationY: flipped ? 180 : 0, duration: reduce ? 0 : 0.85, ease: 'expo.out', overwrite: true });
       if (!reduce) swing(badge, flipped ? 1 : -1, 7);
     });
     if (finePointer && !reduce) {
@@ -334,7 +349,7 @@
       autoAlpha: 0,
       duration: 1.6,
       stagger: 0.09,
-      ease: 'elastic.out(1, 0.42)',
+      ease: 'expo.out',
       scrollTrigger: { trigger: '[data-badges]', start: 'top 82%', once: true },
     });
     gsap.from('.advisors', {
@@ -412,7 +427,7 @@
           gsap.to(this.target, { scale: 1.08, rotation: '+=' + gsap.utils.random(-6, 6), duration: 0.2, overwrite: 'auto' });
         },
         onRelease() {
-          gsap.to(this.target, { scale: 1, duration: 0.6, ease: 'elastic.out(1, 0.4)' });
+          gsap.to(this.target, { scale: 1, duration: 0.6, ease: 'elastic.out(1, 0.6)' });
         },
       });
     } else {
@@ -422,7 +437,7 @@
           if (reduce || !s._home) return;
           gsap.timeline({ overwrite: true })
             .to(s, { y: s._home.y - 46, rotation: s._home.rotation + gsap.utils.random(-14, 14), duration: 0.24, ease: 'power2.out' })
-            .to(s, { y: s._home.y, rotation: s._home.rotation, duration: 0.7, ease: 'bounce.out' });
+            .to(s, { y: s._home.y, rotation: s._home.rotation, duration: 0.7, ease: 'expo.out' });
         });
       });
     }
@@ -445,7 +460,7 @@
         onEnter: () => {
           gsap.fromTo(stickers,
             { y: (i, s) => s._home.y - 320 - (i % 4) * 60, rotation: (i) => (i % 2 ? 40 : -40), autoAlpha: 0 },
-            { y: (i, s) => s._home.y, rotation: (i, s) => s._home.rotation, autoAlpha: 1, duration: 1.1, ease: 'bounce.out', stagger: { each: 0.06, from: 'random' } });
+            { y: (i, s) => s._home.y, rotation: (i, s) => s._home.rotation, autoAlpha: 1, duration: 1.2, ease: 'expo.out', stagger: { each: 0.06, from: 'random' } });
         },
       });
     }

@@ -93,7 +93,7 @@
         .to(card, { x: () => spot(card).x, y: () => spot(card).y, rotation: -2, scale: 0.96, duration: 0.18, ease: 'power2.in' })
         .call(() => { setLeds(parts, 'y'); setScreen(parts, 'Lendo cartão', 'UID ' + outcome.uid); })
         .add(ripple(parts))
-        .to(card, { scale: 1, duration: 0.3, ease: 'back.out(3)' }, '<')
+        .to(card, { scale: 1, duration: 0.3, ease: 'power3.out' }, '<')
         .call(() => setScreen(parts, 'Validando…', 'POST /api/acessos/validar.php'), null, '+=0.2')
         .call(() => {
           setLeds(parts, outcome.ok ? 'g' : 'r');
@@ -117,7 +117,7 @@
     ScrollTrigger.addEventListener('refresh', () => loop.invalidate());
 
     ready.then(() => {
-      gsap.from([parts.reader, relay], { y: 40, scale: 0.9, autoAlpha: 0, duration: 0.9, stagger: 0.12, ease: 'back.out(1.6)', delay: 0.2 });
+      gsap.from([parts.reader, relay], { y: 40, scale: 0.9, autoAlpha: 0, duration: 0.9, stagger: 0.12, ease: 'expo.out', delay: 0.2 });
       ScrollTrigger.create({
         trigger: dev,
         start: 'top bottom',
@@ -138,14 +138,18 @@
     const scatter = [[-0.34, -0.95, -13], [0.04, -1.35, 9], [0.36, -0.8, -6], [-0.27, 0.8, 10], [0.06, 1.25, -11], [0.33, 0.65, 14]];
     const mm = gsap.matchMedia();
 
-    mm.add({ desk: '(min-width: 861px)', rm: '(prefers-reduced-motion: reduce)' }, (ctx) => {
+    // matchMedia only runs when some condition matches, so phones need their own entry
+    mm.add({ desk: '(min-width: 861px)', mob: '(max-width: 860px)', rm: '(prefers-reduced-motion: reduce)' }, (ctx) => {
       const { desk, rm } = ctx.conditions;
       if (rm) {
         gsap.set(srcs, { autoAlpha: 0 });
         return;
       }
-      const amp = desk ? 1 : 0.42;
+      // Offsets are relative to each fragment (three columns on desktop, one on phones), so
+      // nothing has to be measured again on resize and the start state never goes stale.
+      const spread = desk ? 300 : 42;
       const yUnit = desk ? 110 : 44;
+      gsap.set(vals, { yPercent: 115, autoAlpha: 0 });
       const tl = gsap.timeline({
         defaults: { ease: 'power2.inOut' },
         scrollTrigger: {
@@ -155,18 +159,18 @@
           scrub: 0.9,
           pin: desk,
           anticipatePin: 1,
-          invalidateOnRefresh: true,
         },
       });
       tl.fromTo(frags,
-        { x: (i) => scatter[i][0] * record.clientWidth * amp, y: (i) => scatter[i][1] * yUnit, rotation: (i) => scatter[i][2] * (desk ? 1 : 0.7), scale: 0.94 },
-        { x: 0, y: 0, rotation: 0, scale: 1, duration: 1, stagger: 0.05 })
+        { xPercent: (i) => scatter[i][0] * spread, y: (i) => scatter[i][1] * yUnit, rotation: (i) => scatter[i][2] * (desk ? 1 : 0.7), scale: 0.94 },
+        { xPercent: 0, y: 0, rotation: 0, scale: 1, duration: 1, stagger: 0.05 })
         .fromTo(record,
           { backgroundColor: 'rgba(233, 236, 242, 0)', borderColor: 'rgba(17, 19, 31, 0)' },
           { backgroundColor: 'rgba(233, 236, 242, 1)', borderColor: 'rgba(17, 19, 31, 1)', duration: 0.35 }, '-=0.3')
         .fromTo(head, { autoAlpha: 0, y: 16 }, { autoAlpha: 1, y: 0, duration: 0.3 }, '<')
-        .to(srcs, { autoAlpha: 0, y: -8, duration: 0.25, stagger: 0.04 }, '-=0.05')
-        .fromTo(vals, { autoAlpha: 0, y: 8 }, { autoAlpha: 1, y: 0, duration: 0.25, stagger: 0.04 }, '<0.08');
+        // each value rolls in like a counter: the old note leaves upwards, clipped by .frag__swap
+        .to(srcs, { yPercent: -115, autoAlpha: 0, duration: 0.3, stagger: 0.04, ease: 'power2.in' }, '-=0.05')
+        .to(vals, { yPercent: 0, autoAlpha: 1, duration: 0.32, stagger: 0.04, ease: 'power3.out' }, '<0.14');
     });
   }
 
@@ -210,8 +214,8 @@
       });
       gsap.utils.toArray('.how__step', how).forEach((step) => {
         gsap.timeline({ scrollTrigger: { trigger: step, start: 'top 84%', once: true } })
-          .from(step.querySelector('.how__badge'), { scale: 0, rotation: -40, duration: 0.8, ease: 'back.out(2)' })
-          .from(step.querySelector('.how__n'), { scale: 0, duration: 0.5, ease: 'back.out(3)' }, '-=0.35')
+          .from(step.querySelector('.how__badge'), { scale: 0, rotation: -40, duration: 0.8, ease: 'expo.out' })
+          .from(step.querySelector('.how__n'), { scale: 0, duration: 0.5, ease: 'expo.out' }, '-=0.35')
           .from(step.querySelectorAll('h3, p'), { y: 20, autoAlpha: 0, stagger: 0.08, duration: 0.6 }, '-=0.5');
       });
     }
@@ -402,7 +406,7 @@
       const local = entry.online ? '' : '<span class="log__local">Registro local da leitora</span>';
       tr.innerHTML = `<td>${time}</td><td>${who}${local}</td><td class="mono">${mask(entry.op.uid)}</td><td class="mono">${entry.mq}</td><td><span class="res res--${entry.kind}">${label}</span></td><td class="mono">${entry.code}</td>`;
       logBody.prepend(tr);
-      if (!reduce) gsap.from(tr.children, { y: -14, autoAlpha: 0, duration: 0.45, stagger: 0.03, ease: 'back.out(2)' });
+      if (!reduce) gsap.from(tr.children, { y: -14, autoAlpha: 0, duration: 0.45, stagger: 0.03, ease: 'expo.out' });
       while (logBody.children.length > 6) logBody.lastElementChild.remove();
     }
 
@@ -509,14 +513,14 @@
         return gsap.timeline()
           .to(card, { y: '-=26', rotation: -7, scale: 1.05, duration: 0.18, ease: 'power2.out' })
           .to(card, { x: '+=' + dx, y: '+=' + (dy + 26), rotation: -2, scale: 0.96, duration: 0.5, ease: 'power3.inOut' })
-          .to(card, { scale: 1, rotation: 0, duration: 0.22, ease: 'back.out(3)' })
+          .to(card, { scale: 1, rotation: 0, duration: 0.22, ease: 'power3.out' })
           .then();
       }
       return gsap.to(card, { x: '+=' + dx, y: '+=' + dy, rotation: 0, scale: 1, duration: 0.25, ease: 'power3.out' }).then();
     }
     function toDock() {
       const vars = { x: 0, y: 0, rotation: 0, rotationY: 0, scale: 1 };
-      return reduce ? gsap.set(card, vars) : gsap.to(card, { ...vars, duration: 0.9, ease: 'elastic.out(1, 0.55)' });
+      return reduce ? gsap.set(card, vars) : gsap.to(card, { ...vars, duration: 0.9, ease: 'elastic.out(1, 0.7)' });
     }
 
     async function attempt(fromTap) {
@@ -562,7 +566,7 @@
       gsap.timeline()
         .to(card, { rotationY: 90, duration: 0.16, ease: 'power2.in' })
         .call(paintCard)
-        .to(card, { rotationY: 0, duration: 0.45, ease: 'back.out(2)' });
+        .to(card, { rotationY: 0, duration: 0.45, ease: 'expo.out' });
     }));
     sim.querySelectorAll('input[name="mq"]').forEach((input) => input.addEventListener('change', () => {
       resetResult();
@@ -584,7 +588,7 @@
         autoAlpha: 0,
         duration: 0.9,
         stagger: 0.12,
-        ease: 'back.out(1.4)',
+        ease: 'expo.out',
         scrollTrigger: { trigger: '.sim__grid', start: 'top 82%', once: true },
       });
       // A small nudge toward the reader says "drag me".
@@ -596,9 +600,9 @@
           if (busy) return;
           gsap.timeline({ delay: 1 })
             .to(card, { y: 22, rotation: 3, duration: 0.3, ease: 'power2.out' })
-            .to(card, { y: 0, rotation: 0, duration: 0.8, ease: 'elastic.out(1, 0.4)' })
+            .to(card, { y: 0, rotation: 0, duration: 0.8, ease: 'elastic.out(1, 0.6)' })
             .to(card, { y: 14, rotation: -2, duration: 0.25, ease: 'power2.out' })
-            .to(card, { y: 0, rotation: 0, duration: 0.8, ease: 'elastic.out(1, 0.4)' });
+            .to(card, { y: 0, rotation: 0, duration: 0.8, ease: 'elastic.out(1, 0.6)' });
         },
       });
     }
@@ -656,7 +660,7 @@
     if (reduce || !window.MotionPathPlugin) return;
 
     gsap.timeline({ scrollTrigger: { trigger: arch, start: 'top 78%', once: true } })
-      .from(nodes, { y: 50, rotation: (i) => (i % 2 ? 4 : -4), autoAlpha: 0, duration: 0.8, stagger: 0.12, ease: 'back.out(1.6)' })
+      .from(nodes, { y: 50, rotation: (i) => (i % 2 ? 4 : -4), autoAlpha: 0, duration: 0.8, stagger: 0.12, ease: 'expo.out' })
       .from(allPaths, {
         drawSVG: 0,
         duration: 0.9,
@@ -759,9 +763,9 @@
     const back = getapp.querySelector('[data-phone-back]');
     const front = getapp.querySelector('[data-phone-front]');
     gsap.timeline({ scrollTrigger: { trigger: getapp, start: 'top 75%', once: true } })
-      .from(back, { y: 120, rotation: -20, autoAlpha: 0, duration: 1, ease: 'back.out(1.4)' })
-      .from(front, { y: 160, rotation: 18, autoAlpha: 0, duration: 1, ease: 'back.out(1.4)' }, '-=0.75')
-      .from(getapp.querySelectorAll('.ph-chart i'), { scaleY: 0, duration: 0.5, stagger: 0.05, ease: 'back.out(2)' }, '-=0.5')
+      .from(back, { y: 120, rotation: -20, autoAlpha: 0, duration: 1, ease: 'expo.out' })
+      .from(front, { y: 160, rotation: 18, autoAlpha: 0, duration: 1, ease: 'expo.out' }, '-=0.75')
+      .from(getapp.querySelectorAll('.ph-chart i'), { scaleY: 0, duration: 0.5, stagger: 0.05, ease: 'expo.out' }, '-=0.5')
       .from(getapp.querySelectorAll('.role'), { x: 30, autoAlpha: 0, duration: 0.6, stagger: 0.12 }, '-=0.9');
     gsap.to(back, { yPercent: -10, ease: 'none', scrollTrigger: { trigger: getapp, start: 'top bottom', end: 'bottom top', scrub: 1 } });
     gsap.to(front, { yPercent: 8, ease: 'none', scrollTrigger: { trigger: getapp, start: 'top bottom', end: 'bottom top', scrub: 1 } });
@@ -774,7 +778,7 @@
     autoAlpha: 0,
     duration: 0.8,
     stagger: 0.12,
-    ease: 'back.out(1.5)',
+    ease: 'expo.out',
     scrollTrigger: { trigger: '[data-rivals]', start: 'top 82%', once: true },
   });
 
@@ -782,7 +786,7 @@
   ScrollTrigger.batch('[data-bom] .part', {
     start: 'top 90%',
     once: true,
-    onEnter: (batch) => gsap.from(batch, { x: (i) => (i % 2 ? 60 : -60), autoAlpha: 0, duration: 0.7, stagger: 0.08, ease: 'back.out(1.4)' }),
+    onEnter: (batch) => gsap.from(batch, { x: (i) => (i % 2 ? 60 : -60), autoAlpha: 0, duration: 0.7, stagger: 0.08, ease: 'expo.out' }),
   });
 
   /* ---------- Failures: stamped as they arrive ---------- */
@@ -828,7 +832,7 @@
     rotation: () => gsap.utils.random(-5, 5),
     autoAlpha: 0,
     duration: 0.8,
-    ease: 'back.out(1.6)',
+    ease: 'expo.out',
     stagger: { each: 0.06, from: 'center' },
     scrollTrigger: { trigger: '[data-bmc]', start: 'top 82%', once: true },
   });

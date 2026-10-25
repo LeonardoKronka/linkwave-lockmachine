@@ -169,7 +169,7 @@
     el.className = `toast toast--${tipo}`;
     el.innerHTML = icon(tipo === 'ok' ? 'check' : 'alert') + `<span>${esc(msg)}</span>`;
     $('.toasts').append(el);
-    if (anima()) gsap.from(el, { y: 20, autoAlpha: 0, duration: 0.3, ease: 'back.out(2)' });
+    if (anima()) gsap.from(el, { y: 22, scale: 0.96, autoAlpha: 0, duration: 0.5, ease: 'expo.out' });
     setTimeout(() => {
       if (anima()) gsap.to(el, { autoAlpha: 0, y: 10, duration: 0.25, onComplete: () => el.remove() });
       else el.remove();
@@ -295,22 +295,130 @@
 
   /* ================= Animação ================= */
 
+  // While the opening still covers the screen, entrances wait for the hole to open.
+  let abertoResolve;
+  state.abrindo = new Promise((r) => { abertoResolve = r; });
+  const quandoAberto = (fn) => (state.abrindo ? state.abrindo.then(fn) : fn());
+
+  // A screen arrives: the title rises out of a mask, then the rest follows in order.
   function entrar(main) {
     if (!anima()) return;
-    gsap.from($$('.page > *', main), { y: 16, autoAlpha: 0, duration: 0.38, stagger: 0.045, ease: 'power3.out', clearProps: 'transform,opacity,visibility' });
+    quandoAberto(() => {
+      const titulo = $('.page__title', main);
+      const blocos = $$('.page > *', main);
+      const cabeca = titulo ? blocos.find((b) => b.contains(titulo)) : null;
+      const resto = blocos.filter((b) => b !== cabeca);
+      const tl = gsap.timeline();
+      if (titulo) {
+        tl.fromTo(titulo, { yPercent: 60, clipPath: 'inset(0% 0% 100% 0%)' }, { yPercent: 0, clipPath: 'inset(0% 0% -25% 0%)', duration: 0.7, ease: 'expo.out', clearProps: 'transform,clipPath' }, 0);
+        const outros = cabeca ? $$('.page__sub, .page__actions, .back, .avatar', cabeca) : [];
+        if (outros.length) tl.from(outros, { y: 10, autoAlpha: 0, duration: 0.5, stagger: 0.05, ease: 'expo.out', clearProps: 'transform,opacity,visibility' }, 0.12);
+      }
+      if (resto.length) tl.from(resto, { y: 22, autoAlpha: 0, duration: 0.65, stagger: 0.055, ease: 'expo.out', clearProps: 'transform,opacity,visibility' }, titulo ? 0.1 : 0);
+    });
+  }
+  // The screen being replaced steps out quickly so the next one never just pops in.
+  function sairTela(main) {
+    const atual = main.firstElementChild;
+    if (!anima() || !atual || atual.classList.contains('skeleton')) return Promise.resolve();
+    return new Promise((r) => gsap.to(atual, { y: -10, autoAlpha: 0, duration: 0.16, ease: 'power2.in', onComplete: r }));
   }
   function listar(el) {
     if (!anima() || !el) return;
-    gsap.from($$('.row, .row--card', el), { x: -12, autoAlpha: 0, duration: 0.3, stagger: 0.025, ease: 'power2.out', clearProps: 'transform,opacity,visibility' });
+    quandoAberto(() => gsap.from($$('.row, .row--card', el), { y: 10, autoAlpha: 0, duration: 0.45, stagger: 0.03, ease: 'expo.out', clearProps: 'transform,opacity,visibility' }));
   }
   function contar(el) {
     if (!anima()) return;
     $$('[data-contar]', el).forEach((n) => {
       const alvo = Number(n.dataset.contar);
       const obj = { v: 0 };
-      gsap.to(obj, { v: alvo, duration: 0.8, ease: 'power2.out', onUpdate: () => { n.textContent = Math.round(obj.v); } });
+      n.textContent = '0';
+      quandoAberto(() => gsap.to(obj, { v: alvo, duration: 1, ease: 'expo.out', onUpdate: () => { n.textContent = Math.round(obj.v); } }));
     });
   }
+
+  /* ---------- Opening ---------- */
+
+  // Waits for the CSS build (its real animations, max 4 s) and hands every transform to GSAP.
+  function construcao(boot) {
+    const anims = boot.getAnimations ? boot.getAnimations({ subtree: true }).filter((a) => a.animationName !== 'boot-failsafe') : [];
+    const fim = anims.length ? Promise.all(anims.map((a) => a.finished.catch(() => {}))) : new Promise((r) => setTimeout(r, Math.max(0, 1900 - performance.now())));
+    return Promise.race([fim, new Promise((r) => setTimeout(r, 4000))]).then(() => boot.classList.add('is-built'));
+  }
+
+  // The padlock lands on the logo of the screen underneath while a hole opens around it.
+  async function abrirApp() {
+    const boot = $('#boot');
+    const liberar = () => { if (abertoResolve) abertoResolve(); state.abrindo = null; };
+    if (!boot) { liberar(); return; }
+    if (!anima()) { boot.remove(); liberar(); return; }
+    await construcao(boot);
+
+    const veil = $('[data-boot-veil]', boot);
+    const mark = $('[data-boot-mark]', boot);
+    const chars = $$('[data-boot-word] span', boot);
+    const tag = $('[data-boot-tag]', boot);
+    const alvo = $$('#app .brand__mark').find((el) => el.getClientRects().length && el.getBoundingClientRect().width > 0);
+    const r0 = mark.getBoundingClientRect();
+    const cx = r0.left + r0.width / 2;
+    const cy = r0.top + r0.height / 2;
+    const longe = Math.hypot(window.innerWidth, window.innerHeight) + 40;
+    gsap.set(veil, { '--hx': `${cx}px`, '--hy': `${cy}px` });
+    if (alvo) gsap.set(alvo, { autoAlpha: 0 });
+
+    const tl = gsap.timeline({ onComplete: () => boot.remove() });
+    tl.to(chars, { yPercent: -115, duration: 0.4, stagger: 0.018, ease: 'power3.in' }, 0)
+      .to(tag, { autoAlpha: 0, y: -6, duration: 0.3, ease: 'power2.in' }, 0)
+      .to(mark, { scale: 0.9, duration: 0.2, ease: 'power2.out' }, 0.18)
+      .to(veil, { '--hole': `${longe}px`, duration: 1, ease: 'expo.inOut' }, 0.38)
+      .add(liberar, 0.72);
+    if (alvo) {
+      const r1 = alvo.getBoundingClientRect();
+      tl.to(mark, { x: r1.left + r1.width / 2 - cx, y: r1.top + r1.height / 2 - cy, scale: r1.width / r0.width, duration: 0.9, ease: 'expo.inOut' }, 0.38)
+        .add(() => { gsap.set(alvo, { clearProps: 'opacity,visibility' }); gsap.set(mark, { autoAlpha: 0 }); }, 1.28);
+    } else {
+      tl.to(mark, { scale: 0.4, autoAlpha: 0, duration: 0.45, ease: 'power3.in' }, 0.38);
+    }
+  }
+
+  // Leaving for the site: the screen closes into ink where you tapped, the site continues from there.
+  function irParaSite(href, x, y) {
+    if (!anima()) { location.href = href; return; }
+    try { sessionStorage.setItem('lw:transicao', '1'); } catch (e) { /* sem sessionStorage */ }
+    const c = document.createElement('div');
+    c.className = 'cover';
+    document.body.append(c);
+    const raio = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+    gsap.fromTo(c, { clipPath: `circle(0px at ${x}px ${y}px)` }, { clipPath: `circle(${raio + 10}px at ${x}px ${y}px)`, duration: 0.6, ease: 'power3.inOut', onComplete: () => { location.href = href; } });
+  }
+  document.addEventListener('click', (e) => {
+    const a = e.target.closest('a[href]');
+    if (!a || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || a.target === '_blank') return;
+    const url = new URL(a.href, location.href);
+    if (url.origin !== location.origin || url.pathname.indexOf('/app/') !== -1 || !/\.html$/.test(url.pathname)) return;
+    e.preventDefault();
+    irParaSite(url.href, e.clientX || innerWidth / 2, e.clientY || innerHeight / 2);
+  });
+  window.addEventListener('pageshow', (e) => { if (e.persisted) $$('.cover').forEach((c) => c.remove()); });
+
+  // The yellow pill glides to the active item (side menu and tab bar).
+  function moverPip(lista, imediato) {
+    if (!window.gsap || !lista || !lista.getClientRects().length) return;
+    let pip = $(':scope > .pip', lista);
+    if (!pip) {
+      pip = document.createElement('span');
+      pip.className = 'pip';
+      pip.setAttribute('aria-hidden', 'true');
+      lista.prepend(pip);
+      lista.classList.add('has-pip');
+    }
+    const ativo = $(':scope > .is-active', lista);
+    if (!ativo) { gsap.to(pip, { autoAlpha: 0, duration: 0.2 }); return; }
+    const alvo = { x: ativo.offsetLeft, y: ativo.offsetTop, width: ativo.offsetWidth, height: ativo.offsetHeight, autoAlpha: 1 };
+    if (imediato || !anima() || !pip.dataset.pronto) { gsap.set(pip, alvo); pip.dataset.pronto = '1'; }
+    else gsap.to(pip, Object.assign(alvo, { duration: 0.55, ease: 'expo.out', overwrite: true }));
+  }
+  window.addEventListener('resize', () => { moverPip($('.side__nav'), true); moverPip($('.tabbar'), true); });
 
   /* ================= Navegação ================= */
 
@@ -338,11 +446,11 @@
     ],
   };
 
-  const MARCA = `<svg class="brand__mark" viewBox="0 0 48 48" aria-hidden="true">
-      <rect x="1.5" y="1.5" width="45" height="45" rx="13" fill="#FF3D2E" stroke="#11131F" stroke-width="3"/>
-      <path d="M17 22v-4.5a7 7 0 0 1 14 0V22" fill="none" stroke="#11131F" stroke-width="4" stroke-linecap="round"/>
-      <rect x="12" y="21" width="24" height="17" rx="5" fill="#fff" stroke="#11131F" stroke-width="3"/>
-      <circle cx="24" cy="28.5" r="2.6" fill="#11131F"/><path d="M24 30v3.5" stroke="#11131F" stroke-width="3" stroke-linecap="round"/>
+  const MARCA = `<svg class="mark-lm brand__mark" viewBox="0 0 48 48" aria-hidden="true">
+      <rect class="lm__tile" x="1.5" y="1.5" width="45" height="45" rx="13"/>
+      <path class="lm__shackle" d="M17 22v-4.5a7 7 0 0 1 14 0V22"/>
+      <rect class="lm__body" x="12" y="21" width="24" height="17" rx="5"/>
+      <g class="lm__key"><circle cx="24" cy="28.5" r="2.6"/><path d="M24 30v3.5"/></g>
     </svg>`;
 
   function montarShell() {
@@ -398,7 +506,7 @@
       if (e.target === s || e.target.closest('a')) fechar();
       if (e.target.closest('[data-sair]')) { fechar(); sair(); }
     });
-    if (anima()) gsap.from($('.sheet__panel', s), { yPercent: 100, duration: 0.35, ease: 'power3.out' });
+    if (anima()) { gsap.from(s, { backgroundColor: 'rgba(17, 19, 31, 0)', duration: 0.3 }); gsap.from($('.sheet__panel', s), { yPercent: 100, duration: 0.55, ease: 'expo.out' }); }
   }
 
   function marcarNav(caminho) {
@@ -409,6 +517,8 @@
     const ativo = $(`.navlink.is-active`);
     const titulo = $('[data-titulo]');
     if (titulo) titulo.textContent = ativo ? ativo.textContent.trim() : '';
+    moverPip($('.side__nav'));
+    moverPip($('.tabbar'));
   }
 
   async function sair() {
@@ -498,6 +608,8 @@
     montarShell();
     marcarNav(caminho);
     const main = $('#main');
+    await sairTela(main);
+    if (!state.vivo()) return;
     main.innerHTML = esqueleto(4);
     window.scrollTo(0, 0);
     try {
@@ -516,8 +628,10 @@
   /* ================= Login e senha ================= */
 
   const CADEADO = `<svg class="auth__lock" viewBox="0 0 200 230" aria-hidden="true">
-      <path d="M58 112V70a42 42 0 0 1 84 0v42" fill="none" stroke="#11131F" stroke-width="30" stroke-linecap="round"/>
-      <path d="M58 112V70a42 42 0 0 1 84 0v42" fill="none" stroke="#C5CAD8" stroke-width="18" stroke-linecap="round"/>
+      <g class="auth__shackle">
+        <path d="M58 112V70a42 42 0 0 1 84 0v42" fill="none" stroke="#11131F" stroke-width="30" stroke-linecap="round"/>
+        <path d="M58 112V70a42 42 0 0 1 84 0v42" fill="none" stroke="#C5CAD8" stroke-width="18" stroke-linecap="round"/>
+      </g>
       <rect x="26" y="104" width="148" height="116" rx="26" fill="#fff" stroke="#11131F" stroke-width="6"/>
       <circle cx="100" cy="152" r="13" fill="#11131F"/><rect x="94" y="156" width="12" height="32" rx="6" fill="#11131F"/>
     </svg>`;
@@ -526,15 +640,33 @@
     alvo.innerHTML = `<div class="auth">
       <section class="auth__brand">
         ${CADEADO}
-        <h1 class="auth__title">Lock<br>Machine</h1>
+        <a class="auth__logo" href="${SITE}" aria-label="LockMachine, por LinkWave: abrir o site">${MARCA}<span class="brand__name">LockMachine<small>por LinkWave</small></span></a>
+        <h1 class="auth__title">Sem capacitação válida, sem acesso.</h1>
         <p class="auth__lede">Controle de acesso a máquinas por capacitação. Administradores e funcionários usam o mesmo app.</p>
       </section>
       <section class="auth__form"><div class="auth__card">${conteudo}</div></section>
     </div>`;
     if (anima()) {
-      gsap.from($('.auth__lock', alvo), { y: -40, rotation: -10, autoAlpha: 0, duration: 0.9, ease: 'bounce.out' });
-      gsap.from($('.auth__card', alvo), { y: 24, autoAlpha: 0, duration: 0.5, ease: 'power3.out', delay: 0.1 });
+      quandoAberto(() => {
+        gsap.timeline()
+          .from($('.auth__lock', alvo), { y: -36, rotation: -4, autoAlpha: 0, duration: 1, ease: 'expo.out' }, 0)
+          .fromTo($('.auth__title', alvo), { yPercent: 40, clipPath: 'inset(0% 0% 100% 0%)' }, { yPercent: 0, clipPath: 'inset(0% 0% -25% 0%)', duration: 0.8, ease: 'expo.out', clearProps: 'transform,clipPath' }, 0.05)
+          .from($('.auth__lede', alvo), { y: 12, autoAlpha: 0, duration: 0.6, ease: 'expo.out' }, 0.18)
+          .from($('.auth__card', alvo), { y: 26, autoAlpha: 0, duration: 0.7, ease: 'expo.out' }, 0.12);
+      });
     }
+  }
+
+  // Right password: the padlock opens and the form steps aside before the app comes in.
+  function destrancar(alvo) {
+    if (!anima()) return Promise.resolve();
+    return new Promise((r) => {
+      gsap.timeline({ onComplete: r })
+        .to($('.auth__shackle', alvo), { y: -30, duration: 0.42, ease: 'back.out(2.2)' }, 0)
+        .to($('.auth__lock', alvo), { rotation: 2, duration: 0.42, ease: 'expo.out' }, 0)
+        .to($('.auth__card', alvo), { y: -14, autoAlpha: 0, duration: 0.3, ease: 'power2.in' }, 0.25)
+        .to([$('.auth__title', alvo), $('.auth__lede', alvo)], { y: -10, autoAlpha: 0, duration: 0.3, stagger: 0.04, ease: 'power2.in' }, 0.3);
+    });
   }
 
   function vLogin(alvo) {
@@ -556,6 +688,7 @@
       const r = await enviar(form, (d) => api('auth/login.php', { metodo: 'POST', corpo: { login: d.login, senha: d.senha } }));
       if (!r) return;
       state.user = r.dados;
+      await destrancar(alvo);
       toast(r.mensagem);
       ir('#' + inicial());
     });
@@ -587,6 +720,7 @@
       const r = await enviar(form, () => api('auth/senha.php', { metodo: 'POST', corpo: { senha_atual: d.senha_atual, nova_senha: d.nova_senha } }));
       if (!r) return;
       state.user = r.dados;
+      await destrancar(alvo);
       toast('Senha criada. Tudo pronto!');
       ir('#' + inicial());
     });
@@ -692,8 +826,12 @@
     </section>`;
     contar(main);
     if (anima()) {
-      gsap.from($$('.chart__bar', main), { scaleY: 0, transformOrigin: '50% 100%', duration: 0.6, stagger: 0.05, ease: 'back.out(1.6)' });
-      gsap.from($$('.bar__fill', main), { scaleX: 0, duration: 0.7, stagger: 0.06, ease: 'power3.out' });
+      gsap.set($$('.chart__bar', main), { scaleY: 0, transformOrigin: '50% 100%' });
+      gsap.set($$('.bar__fill', main), { scaleX: 0 });
+      quandoAberto(() => {
+        gsap.to($$('.chart__bar', main), { scaleY: 1, duration: 0.9, stagger: 0.05, ease: 'expo.out', delay: 0.25 });
+        gsap.to($$('.bar__fill', main), { scaleX: 1, duration: 1, stagger: 0.06, ease: 'expo.out', delay: 0.3 });
+      });
     }
     $('[data-atualizar]', main).addEventListener('click', () => vPainel(main));
     state.timers.push(setInterval(() => {
@@ -808,7 +946,7 @@
         }) + `<a class="btn btn--yellow" href="#/funcionarios/${r.dados.id}">Ver cadastro e capacitações ${icon('chevron')}</a>`;
         form.reset();
         $$('input, button', form).forEach((el) => { el.disabled = true; });
-        if (anima()) gsap.from($('[data-resultado] > *', main), { y: 20, autoAlpha: 0, duration: 0.4, stagger: 0.08 });
+        if (anima()) gsap.from($('[data-resultado] > *', main), { y: 20, autoAlpha: 0, duration: 0.6, stagger: 0.08, ease: 'expo.out' });
         return;
       }
       ir('#/funcionarios/' + (editando ? id : r.dados.id));
@@ -1428,7 +1566,7 @@
       }).join('')}</div>` : `<div class="card">${vazio('Nenhuma capacitação registrada.', 'O administrador registra os treinamentos concluídos.', 'book')}</div>`}
     </section>`;
     listar(main);
-    if (anima()) gsap.from($$('.validity span', main), { width: 0, duration: 0.8, stagger: 0.06, ease: 'power3.out' });
+    if (anima()) { gsap.set($$('.validity span', main), { scaleX: 0, transformOrigin: 'left center' }); quandoAberto(() => gsap.to($$('.validity span', main), { scaleX: 1, duration: 1, stagger: 0.06, ease: 'expo.out', delay: 0.25 })); }
   }
 
   async function vMinhasMaquinas(main) {
@@ -1497,10 +1635,7 @@
       if (e instanceof ApiError && e.status !== 401) toast(e.message, 'bad');
     }
     window.addEventListener('hashchange', render);
-    await render();
-    const boot = $('#boot');
-    if (anima()) gsap.to(boot, { yPercent: -100, duration: 0.55, ease: 'power3.inOut', onComplete: () => boot.remove() });
-    else boot.remove();
+    try { await render(); } finally { abrirApp(); }
   }
 
   document.addEventListener('DOMContentLoaded', iniciar);

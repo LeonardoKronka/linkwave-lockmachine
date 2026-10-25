@@ -1,8 +1,9 @@
 # Senha do banco: cada ambiente (PC, cPanel) cria a sua
 api/config.local.php
 
-# Sessões do PHP criadas enquanto o app roda
+# Sessões do PHP e contadores de tentativas criados enquanto o app roda
 api/storage/sessoes/
+api/storage/limites/
 
 # Configuração do Claude Code com caminhos desta máquina
 .claude/

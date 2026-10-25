@@ -4,6 +4,8 @@ require __DIR__ . '/../lib/bootstrap.php';
 
 exigir_metodo('POST');
 $u = exigir_login(null, true);
+// Sessão aberta não vira porta para adivinhar a senha atual.
+bloqueado_por_erros('senha', 10, 900);
 
 $in = entrada();
 $atual = (string) ($in['senha_atual'] ?? '');
@@ -11,6 +13,7 @@ $nova = (string) ($in['nova_senha'] ?? '');
 
 $registro = linha('SELECT senha_hash FROM usuarios WHERE id = ?', [$u['id']]);
 if (!password_verify($atual, $registro['senha_hash'])) {
+    registrar_erro('senha', 900);
     falha(400, 'DADOS_INVALIDOS', 'Revise os campos destacados.', ['senha_atual' => 'A senha atual não confere.']);
 }
 if (!senha_forte($nova)) {

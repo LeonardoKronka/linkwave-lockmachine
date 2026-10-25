@@ -55,28 +55,78 @@ svg:has(> use), .ico { fill: none; stroke: currentColor; stroke-width: 2.3; stro
 .mono { font-family: var(--f-mono); font-stretch: 87.5%; }
 [hidden] { display: none !important; }
 
-/* ---------- Boot ---------- */
+/* ---------- Product mark (padlock tile) ---------- */
+.mark-lm { overflow: visible; }
+.mark-lm .lm__tile { fill: var(--red); stroke: var(--ink); stroke-width: 3; }
+.mark-lm .lm__shackle { fill: none; stroke: var(--ink); stroke-width: 4; stroke-linecap: round; }
+.mark-lm .lm__body { fill: #fff; stroke: var(--ink); stroke-width: 3; }
+.mark-lm .lm__key circle { fill: var(--ink); }
+.mark-lm .lm__key path { fill: none; stroke: var(--ink); stroke-width: 3; stroke-linecap: round; }
+.mark-lm .lm__shackle, .mark-lm .lm__body, .mark-lm .lm__key { transform-box: fill-box; transform-origin: 50% 50%; }
+
+/* ---------- Boot: the padlock builds, then flies to its place and opens a hole into the app ---------- */
 .boot {
   position: fixed;
   inset: 0;
   z-index: 100;
+  /* if the script never runs, the cover still steps aside */
+  animation: boot-failsafe 0s 12s forwards;
+}
+@keyframes boot-failsafe { to { visibility: hidden; } }
+.boot__veil {
+  --hole: 0px;
+  --hx: 50%;
+  --hy: 50%;
+  position: absolute;
+  inset: 0;
+  background: var(--ink);
+  -webkit-mask-image: radial-gradient(circle at var(--hx) var(--hy), transparent var(--hole), #000 calc(var(--hole) + 1px));
+  mask-image: radial-gradient(circle at var(--hx) var(--hy), transparent var(--hole), #000 calc(var(--hole) + 1px));
+}
+.boot__lockup {
+  position: absolute;
+  inset: 0;
   display: grid;
-  place-items: center;
-  align-content: center;
-  gap: 26px;
-  background: var(--red);
+  place-content: center;
+  justify-items: center;
+  gap: 18px;
+  pointer-events: none;
 }
-.boot__mark { width: 92px; height: 92px; }
-.boot__bar {
-  width: 168px;
-  height: 14px;
+.boot__mark { width: clamp(78px, 20vw, 104px); height: auto; will-change: transform; }
+.boot__word {
+  display: inline-flex;
   overflow: hidden;
-  background: rgba(255, 255, 255, .3);
-  border: 3px solid var(--ink);
-  border-radius: 999px;
+  padding-block: .1em;
+  color: #fff;
+  font-weight: 800;
+  font-stretch: 106%;
+  font-size: clamp(1.9rem, 1.4rem + 2.4vw, 2.8rem);
+  line-height: 1;
+  letter-spacing: -.02em;
 }
-.boot__bar span { display: block; width: 42%; height: 100%; background: var(--yellow); border-radius: 999px; animation: boot 1s cubic-bezier(.65, 0, .35, 1) infinite; }
-@keyframes boot { from { transform: translateX(-105%); } to { transform: translateX(245%); } }
+.boot__word span { display: inline-block; }
+.boot__word .is-red { color: var(--red); }
+.boot__tag { color: var(--on-ink-2); font-weight: 600; font-size: .85rem; letter-spacing: .02em; }
+
+/* Built in CSS so it plays on the first frame; every step ends on the natural state */
+@media (prefers-reduced-motion: no-preference) {
+  .boot:not(.is-built) .boot__mark { animation: lb-pop .9s var(--ease) backwards; }
+  .boot:not(.is-built) .lm__body { animation: lb-rise .6s var(--ease) .12s backwards; }
+  .boot:not(.is-built) .lm__shackle { stroke-dasharray: 1; animation: lb-draw .5s cubic-bezier(.65, 0, .35, 1) .3s backwards, lb-latch .34s cubic-bezier(.3, 0, .2, 1) .82s; }
+  .boot:not(.is-built) .lm__key { animation: lb-key .45s var(--ease) .95s backwards; }
+  .boot:not(.is-built) .boot__word span { animation: lb-char .6s var(--ease) backwards; animation-delay: calc(.95s + var(--i) * 35ms); }
+  .boot:not(.is-built) .boot__tag { animation: lb-fade .5s ease 1.35s backwards; }
+}
+@keyframes lb-pop { from { transform: scale(.55) rotate(-12deg); opacity: 0; } }
+@keyframes lb-rise { from { transform: translateY(9px); opacity: 0; } }
+@keyframes lb-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@keyframes lb-latch { 45% { transform: translateY(-3px); } }
+@keyframes lb-key { from { transform: scale(0); } }
+@keyframes lb-char { from { transform: translateY(115%); } }
+@keyframes lb-fade { from { opacity: 0; transform: translateY(6px); } }
+
+/* Page cover used when leaving for the site */
+.cover { position: fixed; inset: 0; z-index: 110; background: var(--ink); pointer-events: none; }
 
 /* ---------- Buttons ---------- */
 .btn {
@@ -94,13 +144,12 @@ svg:has(> use), .ico { fill: none; stroke: currentColor; stroke-width: 2.3; stro
   border: var(--bw) solid var(--ink);
   border-radius: 999px;
   box-shadow: 0 4px 0 var(--sh);
-  font-weight: 850;
-  font-stretch: 110%;
-  font-size: .9rem;
+  font-weight: 750;
+  font-stretch: 100%;
+  font-size: .95rem;
   line-height: 1;
-  text-transform: uppercase;
   text-decoration: none;
-  letter-spacing: .01em;
+  letter-spacing: 0;
   white-space: nowrap;
   cursor: pointer;
   transition: transform .14s var(--ease), box-shadow .14s var(--ease), background-color .2s;
@@ -114,7 +163,7 @@ svg:has(> use), .ico { fill: none; stroke: currentColor; stroke-width: 2.3; stro
 .btn--ink { --bg: var(--ink); --fg: #fff; --sh: #000; }
 .btn--ghost { --bg: transparent; box-shadow: none; border-color: transparent; text-decoration: underline; text-underline-offset: .2em; }
 .btn--ghost:hover, .btn--ghost:active { box-shadow: none; transform: none; background: rgba(17, 19, 31, .06); }
-.btn--sm { min-height: 38px; padding: .55em .85em; font-size: .78rem; box-shadow: 0 3px 0 var(--sh); }
+.btn--sm { min-height: 38px; padding: .55em .85em; font-size: .84rem; box-shadow: 0 3px 0 var(--sh); }
 .btn--block { width: 100%; }
 .btn.is-loading { pointer-events: none; }
 .btn.is-loading::after {
@@ -156,7 +205,7 @@ svg:has(> use), .ico { fill: none; stroke: currentColor; stroke-width: 2.3; stro
 }
 .brand { display: flex; align-items: center; gap: 10px; padding: 6px 8px 18px; text-decoration: none; }
 .brand__mark { width: 42px; height: 42px; flex: none; }
-.brand__name { font-weight: 900; font-stretch: 118%; font-size: 1.1rem; line-height: 1; }
+.brand__name { font-weight: 800; font-stretch: 106%; font-size: 1.12rem; line-height: 1; letter-spacing: -.01em; }
 .brand__sub { display: block; margin-top: 3px; color: var(--on-ink-2); font-weight: 600; font-size: .72rem; font-stretch: 100%; }
 .side__nav { display: grid; gap: 4px; }
 .side__group { margin: 16px 10px 6px; color: var(--on-ink-2); font-weight: 800; font-size: .7rem; letter-spacing: .06em; text-transform: uppercase; }
@@ -175,6 +224,12 @@ svg:has(> use), .ico { fill: none; stroke: currentColor; stroke-width: 2.3; stro
 .navlink .ico { width: 22px; height: 22px; }
 .navlink:hover { background: rgba(255, 255, 255, .08); }
 .navlink.is-active { background: var(--yellow); color: var(--ink); }
+/* With JS the yellow pill slides between items instead of jumping */
+.side__nav, .tabbar { position: relative; }
+.pip { position: absolute; top: 0; left: 0; z-index: 0; background: var(--yellow); border-radius: 14px; visibility: hidden; pointer-events: none; }
+.tabbar .pip { border-radius: 18px; }
+.has-pip > .navlink, .has-pip > .tab { position: relative; z-index: 1; transition: color .3s var(--ease), background-color .15s; }
+.has-pip > .navlink.is-active, .has-pip > .tab.is-active { background: none; }
 .side__foot { margin-top: auto; display: grid; gap: 10px; padding-top: 16px; border-top: 2px solid rgba(255, 255, 255, .12); }
 .who { display: flex; align-items: center; gap: 10px; padding: 4px 6px; min-width: 0; }
 .who__name { font-weight: 800; font-size: .9rem; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -259,12 +314,12 @@ svg:has(> use), .ico { fill: none; stroke: currentColor; stroke-width: 2.3; stro
 .page { display: grid; gap: 18px; }
 .page__head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 16px; }
 .page__title {
-  font-weight: 900;
-  font-stretch: 125%;
-  font-size: clamp(1.55rem, 1.2rem + 1.6vw, 2.4rem);
-  line-height: .95;
-  letter-spacing: -.01em;
-  text-transform: uppercase;
+  font-weight: 800;
+  font-stretch: 106%;
+  font-size: clamp(1.75rem, 1.3rem + 1.7vw, 2.6rem);
+  line-height: 1.02;
+  letter-spacing: -.028em;
+  text-wrap: balance;
 }
 .page__sub { margin-top: 6px; color: var(--ink-2); font-weight: 550; }
 .page__actions { display: flex; flex-wrap: wrap; gap: 10px; }
@@ -284,7 +339,7 @@ svg:has(> use), .ico { fill: none; stroke: currentColor; stroke-width: 2.3; stro
   box-shadow: 0 var(--lift) 0 var(--ink);
 }
 .card__head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
-.card__title { font-weight: 900; font-stretch: 115%; font-size: 1.05rem; text-transform: uppercase; line-height: 1.1; }
+.card__title { font-weight: 800; font-stretch: 104%; font-size: 1.12rem; line-height: 1.15; letter-spacing: -.01em; }
 .card__note { color: var(--ink-3); font-size: .85rem; }
 .card--flat { box-shadow: none; }
 .card--ink { background: var(--ink); color: #fff; }
@@ -302,7 +357,11 @@ svg:has(> use), .ico { fill: none; stroke: currentColor; stroke-width: 2.3; stro
   border-radius: var(--r-md);
   box-shadow: 0 4px 0 var(--ink);
 }
-.kpi__n { font-weight: 900; font-stretch: 125%; font-size: 2.1rem; line-height: 1; font-variant-numeric: tabular-nums; }
+@media (max-width: 600px) {
+  .kpis { grid-template-columns: 1fr 1fr; }
+  .kpi:last-child:nth-child(odd) { grid-column: 1 / -1; }
+}
+.kpi__n { font-weight: 800; font-stretch: 112%; font-size: 2.1rem; line-height: 1; font-variant-numeric: tabular-nums; }
 .kpi__l { font-weight: 750; font-size: .82rem; line-height: 1.2; }
 
 /* ---------- Lists ---------- */
@@ -500,7 +559,7 @@ a.row:hover { background: #F6F7FA; }
 .badge-card__body { display: contents; }
 .badge-card .avatar--lg { margin: 4px 0 18px 18px; }
 .badge-card__info { padding: 4px 18px 18px 0; min-width: 0; }
-.badge-card__name { font-weight: 900; font-stretch: 112%; font-size: 1.3rem; line-height: 1.1; }
+.badge-card__name { font-weight: 800; font-stretch: 106%; font-size: 1.3rem; line-height: 1.1; }
 .badge-card__meta { margin-top: 4px; color: var(--ink-2); font-weight: 650; font-size: .9rem; }
 
 .validity { height: 10px; margin-top: 8px; overflow: hidden; background: var(--ground); border: 2.5px solid var(--ink); border-radius: 999px; }
@@ -534,8 +593,9 @@ a.row:hover { background: #F6F7FA; }
 }
 .auth__brand {
   position: relative;
-  display: grid;
-  align-content: end;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
   gap: 14px;
   min-height: 34svh;
   padding: 28px 22px 36px;
@@ -543,8 +603,12 @@ a.row:hover { background: #F6F7FA; }
   background: var(--red);
   border-bottom: var(--bw) solid var(--ink);
 }
-.auth__lock { position: absolute; right: -24px; top: 18px; width: min(46vw, 230px); height: auto; transform: rotate(8deg); }
-.auth__title { position: relative; font-weight: 900; font-stretch: 125%; font-size: clamp(2rem, 8vw, 3.6rem); line-height: .9; text-transform: uppercase; }
+.auth__lock { position: absolute; right: -24px; top: 18px; width: min(46vw, 230px); height: auto; transform: rotate(8deg); overflow: visible; }
+.auth__logo { position: relative; display: flex; align-items: center; gap: 10px; align-self: start; margin-bottom: auto; padding-bottom: 28px; color: var(--ink); text-decoration: none; }
+.auth__logo .brand__mark { width: 44px; height: 44px; }
+.auth__logo .brand__name { display: grid; gap: 3px; }
+.auth__logo small { color: #3A100B; font-weight: 650; font-size: .74rem; font-stretch: 100%; letter-spacing: 0; }
+.auth__title { position: relative; max-width: 16ch; font-weight: 800; font-stretch: 106%; font-size: clamp(1.9rem, 1.3rem + 2.8vw, 3.4rem); line-height: 1; letter-spacing: -.028em; text-wrap: balance; }
 .auth__lede { position: relative; max-width: 36ch; font-weight: 600; color: #3A100B; }
 .auth__form { display: grid; align-content: center; justify-items: center; padding: 28px 18px 40px; }
 .auth__card { width: min(100%, 420px); display: grid; gap: 16px; }
@@ -609,7 +673,7 @@ a.row:hover { background: #F6F7FA; }
 }
 .dialog::backdrop { background: rgba(17, 19, 31, .5); }
 .dialog__body { display: grid; gap: 12px; padding: 20px; }
-.dialog__title { font-weight: 900; font-stretch: 115%; font-size: 1.2rem; text-transform: uppercase; }
+.dialog__title { font-weight: 800; font-stretch: 104%; font-size: 1.25rem; letter-spacing: -.01em; }
 .dialog__actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 10px; margin-top: 6px; }
 
 .offline {

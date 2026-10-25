@@ -11,6 +11,9 @@ header('Content-Type: application/json; charset=utf-8');
 header('X-Content-Type-Options: nosniff');
 header('Cache-Control: no-store');
 header('Referrer-Policy: same-origin');
+// A API só devolve JSON: nada dela pode ser executado nem aberto dentro de outro site.
+header("Content-Security-Policy: default-src 'none'; frame-ancestors 'none'");
+header('X-Frame-Options: DENY');
 
 set_error_handler(function ($severidade, $mensagem, $arquivo, $linha) {
     if (!(error_reporting() & $severidade)) {
@@ -181,6 +184,83 @@ function exigir_cabecalho_app()
     if (metodo() !== 'GET' && ($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') !== 'LockMachine') {
         falha(403, 'ORIGEM_INVALIDA', 'Requisição recusada.');
     }
+}
+
+/* ---------- Limite por IP (sem banco: um arquivo pequeno por IP e por rota) ---------- */
+
+// REMOTE_ADDR é o único endereço que o cliente não consegue forjar por cabeçalho.
+function ip_cliente()
+{
+    return (string) ($_SERVER['REMOTE_ADDR'] ?? '0.0.0.0');
+}
+
+// Lê (e, se pedido, soma 1) o contador do IP numa janela fixa de $janela segundos.
+// O IP é guardado como hash, então a pasta não vira uma lista de endereços.
+function contador_ip($grupo, $janela, $somar)
+{
+    $pasta = __DIR__ . '/../storage/limites';
+    if (!is_dir($pasta)) {
+        @mkdir($pasta, 0700, true);
+    }
+    if (!is_dir($pasta) || !is_writable($pasta)) {
+        return [0, 0]; // sem onde guardar: o serviço continua funcionando
+    }
+    $agora = time();
+    if (random_int(1, 200) === 1) {
+        foreach (glob($pasta . '/*.json') ?: [] as $velho) {
+            if (@filemtime($velho) < $agora - 86400) {
+                @unlink($velho);
+            }
+        }
+    }
+    $f = @fopen($pasta . '/' . $grupo . '-' . hash('sha256', ip_cliente()) . '.json', 'c+');
+    if (!$f) {
+        return [0, 0];
+    }
+    flock($f, LOCK_EX);
+    $d = json_decode((string) stream_get_contents($f), true);
+    if (!is_array($d) || (int) ($d['inicio'] ?? 0) + $janela <= $agora) {
+        $d = ['inicio' => $agora, 'n' => 0];
+    }
+    if ($somar) {
+        $d['n']++;
+        ftruncate($f, 0);
+        rewind($f);
+        fwrite($f, json_encode($d));
+        fflush($f);
+    }
+    flock($f, LOCK_UN);
+    fclose($f);
+    return [(int) $d['n'], max(1, (int) $d['inicio'] + $janela - $agora)];
+}
+
+function recusar_por_limite($espera)
+{
+    header('Retry-After: ' . $espera);
+    falha(429, 'MUITAS_REQUISICOES', 'Muitas tentativas a partir desta rede. Aguarde ' . (int) ceil($espera / 60) . ' min e tente de novo.');
+}
+
+// Conta todo pedido (ex.: validação da leitora).
+function limitar($grupo, $maximo, $janela)
+{
+    list($n, $espera) = contador_ip($grupo, $janela, true);
+    if ($n > $maximo) {
+        recusar_por_limite($espera);
+    }
+}
+
+// Conta só os erros (ex.: senha errada), para não travar uma sala inteira atrás do mesmo IP.
+function bloqueado_por_erros($grupo, $maximo, $janela)
+{
+    list($n, $espera) = contador_ip($grupo, $janela, false);
+    if ($n >= $maximo) {
+        recusar_por_limite($espera);
+    }
+}
+
+function registrar_erro($grupo, $janela)
+{
+    contador_ip($grupo, $janela, true);
 }
 
 /* ---------- Sessão (cookie HttpOnly, SameSite=Lax) ---------- */

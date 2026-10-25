@@ -9,6 +9,8 @@ require __DIR__ . '/../lib/bootstrap.php';
 require __DIR__ . '/../lib/regras.php';
 
 exigir_metodo('POST');
+// Uma leitora lê no máximo alguns cartões por segundo: 120 pedidos por minuto por IP sobra.
+limitar('validar', 120, 60);
 
 $dispositivo = null;
 $token = trim((string) ($_SERVER['HTTP_X_DEVICE_TOKEN'] ?? ''));

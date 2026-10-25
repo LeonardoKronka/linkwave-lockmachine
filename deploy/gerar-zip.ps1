@@ -14,9 +14,10 @@ foreach ($pasta in 'assets', 'app', 'api') {
 }
 New-Item -ItemType Directory -Force -Path (Join-Path $etapa 'downloads') | Out-Null
 
-# Nunca enviar a configuração local nem sessões de teste
+# Nunca enviar a configuração local, sessões nem contadores de teste (o servidor cria os seus)
 Remove-Item (Join-Path $etapa 'api\config.local.php') -Force -ErrorAction SilentlyContinue
 Remove-Item (Join-Path $etapa 'api\storage\sessoes') -Recurse -Force -ErrorAction SilentlyContinue
+Remove-Item (Join-Path $etapa 'api\storage\limites') -Recurse -Force -ErrorAction SilentlyContinue
 
 $zip = Join-Path $PSScriptRoot 'linkwave-site.zip'
 if (Test-Path $zip) { Remove-Item $zip -Force }

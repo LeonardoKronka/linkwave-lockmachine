@@ -98,6 +98,24 @@ O app e o APK **precisam de HTTPS** para instalar e manter o login.
 | `SERVICO_INDISPONIVEL` | Nome do banco, usuário ou senha errados no `config.local.php`, ou o usuário não foi adicionado ao banco |
 | "faltam tabelas" | Importe o `schema.sql` (passo 2) |
 | Erro 500 | Veja **Errors** no cPanel; confira a versão do PHP (passo 5) |
+| "Muitas tentativas a partir desta rede" | 20 senhas erradas pela mesma rede em 15 min. Espere, ou apague a pasta `api/storage/limites` no File Manager |
+
+### Segurança que já vem configurada
+
+| Proteção | Onde está |
+|---|---|
+| Senhas guardadas só como hash (bcrypt), nunca em texto | `api/auth/*.php` |
+| Conta travada por 5 min após 5 senhas erradas | `api/auth/login.php` |
+| Limite por rede (IP): 20 senhas erradas a cada 15 min; 120 validações por minuto da leitora | `api/lib/bootstrap.php` (contadores em `api/storage/limites`, IP guardado só como hash) |
+| Rotas protegidas por login e por perfil (admin × funcionário) | `exigir_login()` em cada rota |
+| Sessão em cookie `HttpOnly` + `SameSite`, `Secure` quando há HTTPS | `api/lib/bootstrap.php` |
+| Consultas preparadas no banco (sem SQL injection) | PDO em toda a API |
+| Leitora identificada por token (o banco guarda só o hash) | `api/acessos/validar.php` |
+| Cabeçalhos: CSP (só scripts do próprio domínio), HSTS, `nosniff`, bloqueio de iframe de terceiros | `.htaccess` |
+
+A CSP do `.htaccess` só deixa rodar arquivos do próprio domínio. Se um dia adicionarem um script de fora
+(Google Analytics, por exemplo), o endereço dele precisa entrar na linha `Content-Security-Policy`.
+Para conferir os cabeçalhos: abra o site, **F12 > Network**, clique em `index.html` e veja **Response Headers**.
 
 ---
 

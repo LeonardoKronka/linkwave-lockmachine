@@ -13,21 +13,24 @@
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <link rel="preload" href="../assets/fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin>
   <style>
-    .boot{position:fixed;inset:0;z-index:100;display:grid;place-items:center;align-content:center;gap:26px;background:#FF3D2E}
+    .boot{position:fixed;inset:0;z-index:100}.boot__veil{position:absolute;inset:0;background:#11131F}
   </style>
   <link rel="stylesheet" href="../assets/fonts/fonts.css">
   <link rel="stylesheet" href="app.css">
 </head>
 <body>
   <div class="boot" id="boot" aria-hidden="true">
-    <svg class="boot__mark" viewBox="0 0 48 48">
-      <rect x="1.5" y="1.5" width="45" height="45" rx="13" fill="#FF3D2E" stroke="#11131F" stroke-width="3"/>
-      <path d="M17 22v-4.5a7 7 0 0 1 14 0V22" fill="none" stroke="#11131F" stroke-width="4" stroke-linecap="round"/>
-      <rect x="12" y="21" width="24" height="17" rx="5" fill="#fff" stroke="#11131F" stroke-width="3"/>
-      <circle cx="24" cy="28.5" r="2.6" fill="#11131F"/>
-      <path d="M24 30v3.5" stroke="#11131F" stroke-width="3" stroke-linecap="round"/>
-    </svg>
-    <div class="boot__bar"><span></span></div>
+    <span class="boot__veil" data-boot-veil></span>
+    <div class="boot__lockup">
+      <svg class="mark-lm boot__mark" viewBox="0 0 48 48" data-boot-mark>
+        <rect class="lm__tile" x="1.5" y="1.5" width="45" height="45" rx="13"/>
+        <path class="lm__shackle" d="M17 22v-4.5a7 7 0 0 1 14 0V22" pathLength="1"/>
+        <rect class="lm__body" x="12" y="21" width="24" height="17" rx="5"/>
+        <g class="lm__key"><circle cx="24" cy="28.5" r="2.6"/><path d="M24 30v3.5"/></g>
+      </svg>
+      <span class="boot__word" data-boot-word><span style="--i:0">L</span><span style="--i:1">o</span><span style="--i:2">c</span><span style="--i:3">k</span><span class="is-red" style="--i:4">M</span><span class="is-red" style="--i:5">a</span><span class="is-red" style="--i:6">c</span><span class="is-red" style="--i:7">h</span><span class="is-red" style="--i:8">i</span><span class="is-red" style="--i:9">n</span><span class="is-red" style="--i:10">e</span></span>
+      <span class="boot__tag" data-boot-tag>por LinkWave · SENAI Mococa</span>
+    </div>
   </div>
 
   <svg class="sprite" aria-hidden="true" focusable="false">
