@@ -11,6 +11,7 @@ Tempo estimado: 20 a 30 minutos. Você só precisa do navegador.
 |---|---|
 | `index.html` | Site da LinkWave |
 | `lockmachine.html` | Página do LockMachine (demonstração + download do app) |
+| `privacidade.html`, `termos.html` | Política de Privacidade e Termos de Uso (LGPD) |
 | `assets/` | CSS, JavaScript, fontes e GSAP (tudo local, sem depender de CDN) |
 | `app/` | O aplicativo (administrador e funcionário). É o mesmo app do APK |
 | `api/` | API em PHP que conversa com o MySQL |
@@ -41,6 +42,11 @@ O arquivo pronto para enviar é **`deploy/linkwave-site.zip`**.
 
 O `seed.sql` cria o administrador e dados de demonstração **fictícios** (funcionários, máquinas, treinamentos e algumas tentativas).
 Para começar com o banco vazio, abra o `seed.sql`, apague tudo depois do bloco "Administrador" e importe.
+
+## Antes de enviar: o e-mail da equipe
+
+`privacidade.html` e `termos.html` mostram `[e-mail da equipe]` como canal de contato da LGPD. Troque pelo e-mail real da
+LinkWave nos dois arquivos (procure por `e-mail da equipe`) e refaça o zip com `deploy/gerar-zip.ps1`.
 
 ## 3. Enviar os arquivos
 

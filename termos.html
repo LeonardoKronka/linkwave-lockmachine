@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Termos de Uso · LinkWave e LockMachine</title>
+  <meta name="description" content="Regras de uso do site da LinkWave e do app do LockMachine, protótipo acadêmico de controle de acesso a máquinas por capacitação.">
+  <meta name="theme-color" content="#06070A">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="assets/fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <style>html{background:#06070A}</style>
+  <link rel="stylesheet" href="assets/fonts/fonts.css">
+  <link rel="stylesheet" href="assets/css/styles.css">
+  <script src="assets/js/boot.js"></script>
+</head>
+<body class="page-doc">
+  <a class="skip" href="#conteudo">Pular para o conteúdo</a>
+
+  <svg class="sprite" aria-hidden="true" focusable="false">
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h15M13 5.5 19.5 12 13 18.5"/></symbol>
+    <symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="M12 20V5M5.5 11 12 4.5 18.5 11"/></symbol>
+  </svg>
+
+  <header class="nav" data-nav>
+    <div class="nav__bar">
+      <a class="brand" href="index.html" aria-label="LinkWave, página inicial" data-wipe>
+        <svg class="mark brand__mark" viewBox="0 0 64 64" aria-hidden="true"><g class="mark__spin"><path class="mark__a" d="M8 32a24 24 0 0 1 48 0 12 12 0 0 0-24 0 12 12 0 0 1-24 0z"/><path class="mark__b" d="M56 32a24 24 0 0 1-48 0 12 12 0 0 0 24 0 12 12 0 0 1 24 0z"/><path class="mark__s" d="M8 32a12 12 0 0 0 24 0 12 12 0 0 1 24 0" pathLength="1"/></g><circle class="mark__ring" cx="32" cy="32" r="24" pathLength="1"/></svg>
+        <span class="brand__name">Link<span>Wave</span></span>
+      </a>
+      <nav class="nav__links" aria-label="Páginas">
+        <a href="index.html" data-wipe>LinkWave</a>
+        <a href="lockmachine.html" data-wipe>LockMachine</a>
+        <a href="privacidade.html">Privacidade</a>
+        <a href="termos.html" aria-current="page">Termos</a>
+      </nav>
+      <a class="btn btn--ink btn--sm nav__cta" href="app/" data-wipe="app">Entrar <svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+      <button class="nav__toggle" type="button" aria-expanded="false" aria-controls="menu" aria-label="Abrir menu"><span></span><span></span></button>
+    </div>
+  </header>
+
+  <div class="menu" id="menu" data-menu hidden>
+    <nav class="menu__links" aria-label="Menu">
+      <a href="index.html" data-wipe>LinkWave</a>
+      <a href="lockmachine.html" data-wipe>LockMachine</a>
+      <a href="privacidade.html">Privacidade</a>
+      <a href="termos.html">Termos de uso</a>
+      <a href="app/" data-wipe="app">Entrar no app</a>
+    </nav>
+    <p class="menu__foot">Projeto acadêmico · SENAI Mococa</p>
+  </div>
+
+  <main id="conteudo">
+    <article class="plate s-red doc">
+      <div class="wrap">
+        <header class="doc__head">
+          <h1 class="h-xl">Termos de Uso</h1>
+          <p class="lede">As regras para usar o site da LinkWave e o app do LockMachine, e o que este protótipo faz e não faz.</p>
+          <p class="doc__meta">Versão 1.0 · 25 de outubro de 2026</p>
+        </header>
+
+        <div class="doc__body">
+          <nav class="doc__toc" aria-label="Nesta página">
+            <a href="#aceite">1. Aceite</a>
+            <a href="#prototipo">2. O que é o LockMachine</a>
+            <a href="#seguranca">3. Limites de segurança</a>
+            <a href="#contas">4. Contas e senhas</a>
+            <a href="#uso">5. Uso permitido</a>
+            <a href="#demo">6. Dados de demonstração</a>
+            <a href="#disponibilidade">7. Disponibilidade</a>
+            <a href="#licencas">8. Autoria e licenças</a>
+            <a href="#responsabilidade">9. Responsabilidade</a>
+            <a href="#contato">10. Contato</a>
+          </nav>
+
+          <div class="doc__text">
+            <div class="doc__callout">Documento escrito pela equipe LinkWave como parte do TCC do Técnico em Desenvolvimento de Sistemas do SENAI Mococa. Não substitui orientação jurídica.</div>
+
+            <h2 id="aceite">1. Aceite</h2>
+            <p>Ao usar o site ou o app, você concorda com estes termos e com a <a href="privacidade.html">Política de Privacidade</a>. Se não concordar, não use o app.</p>
+
+            <h2 id="prototipo">2. O que é o LockMachine</h2>
+            <p>O LockMachine é um <strong>protótipo educacional, um MVP em desenvolvimento</strong>. Ele associa o cartão RFID do operador às capacitações registradas no banco e confere, no servidor, se o cadastro está ativo, se a máquina está disponível e se as capacitações exigidas estão dentro da validade. Toda tentativa fica registrada com o motivo.</p>
+            <p>Ele ainda não passou pelos testes e evidências previstos no TCC e não é um produto certificado.</p>
+
+            <h2 id="seguranca">3. Limites de segurança</h2>
+            <ul>
+              <li>O LockMachine é um <strong>controle administrativo</strong>. Ele não substitui a NR-12, a análise de risco, as proteções físicas, os intertravamentos de segurança, os procedimentos de bloqueio e etiquetagem nem o treinamento presencial.</li>
+              <li>Na bancada, a saída da leitora começa sempre desenergizada e, na dúvida (sem rede, erro no servidor), o acesso é negado.</li>
+              <li>Não ligue o protótipo a máquinas reais em produção.</li>
+            </ul>
+
+            <h2 id="contas">4. Contas e senhas</h2>
+            <ul>
+              <li>Contas são criadas por um administrador. O primeiro acesso exige trocar a senha provisória.</li>
+              <li>A senha é pessoal. Não compartilhe e avise um administrador se suspeitar que alguém a conhece.</li>
+              <li>Depois de 5 senhas erradas a conta trava por 5 minutos, e há um limite de tentativas por rede.</li>
+              <li>Administradores podem desativar contas. O histórico de acessos é preservado.</li>
+            </ul>
+
+            <h2 id="uso">5. Uso permitido</h2>
+            <p>Você pode navegar, testar o simulador e usar o app dentro do seu perfil. Não é permitido:</p>
+            <ul>
+              <li>tentar burlar o login, os perfis ou os limites de tentativas, nem acessar dados de outras pessoas;</li>
+              <li>enviar requisições automatizadas em massa à API ou à rota de validação;</li>
+              <li>cadastrar dados reais de terceiros sem autorização deles;</li>
+              <li>usar o projeto para fins comerciais sem combinar com a equipe.</li>
+            </ul>
+
+            <h2 id="demo">6. Dados de demonstração</h2>
+            <p>Nomes, matrículas, cartões e históricos usados nas demonstrações são fictícios. Qualquer semelhança com pessoas reais é coincidência.</p>
+
+            <h2 id="disponibilidade">7. Disponibilidade</h2>
+            <p>O site e o app ficam numa hospedagem acadêmica. Podem sair do ar, mudar ou ter a base de demonstração apagada sem aviso, especialmente durante as entregas do curso.</p>
+
+            <h2 id="licencas">8. Autoria e licenças</h2>
+            <p>Textos, marcas (LinkWave e LockMachine) e código do projeto são da equipe LinkWave. Partes de terceiros usadas com as licenças dos autores:</p>
+            <ul>
+              <li><strong>GSAP</strong> (animações), licença gratuita da Webflow;</li>
+              <li><strong>three.js</strong> (cenas 3D), licença MIT;</li>
+              <li>fontes <strong>Archivo</strong> e <strong>Martian Mono</strong>, SIL Open Font License 1.1.</li>
+            </ul>
+
+            <h2 id="responsabilidade">9. Responsabilidade</h2>
+            <p>O projeto é oferecido como está, para fins de estudo. A equipe se esforça para que funcione e seja seguro, mas não garante ausência de falhas e não responde por usos fora do que estes termos descrevem.</p>
+
+            <h2 id="contato">10. Contato</h2>
+            <p>Equipe LinkWave · SENAI Mococa — SP<br>E-mail: <span class="todo">[e-mail da equipe]</span></p>
+          </div>
+        </div>
+      </div>
+    </article>
+  </main>
+
+  <footer class="plate s-ink footer">
+    <div class="wrap">
+      <div class="footer__base">
+        <span>© 2026 LinkWave · Projeto acadêmico</span>
+        <nav class="footer__legal" aria-label="Documentos"><a href="privacidade.html">Privacidade</a><a href="termos.html" aria-current="page">Termos de uso</a></nav>
+        <button class="totop" type="button" data-totop>Voltar ao topo <svg class="ico" aria-hidden="true"><use href="#i-arrow-up"/></svg></button>
+      </div>
+    </div>
+  </footer>
+
+  <script src="assets/vendor/gsap/gsap.min.js" defer></script>
+  <script src="assets/vendor/gsap/ScrollTrigger.min.js" defer></script>
+  <script src="assets/vendor/gsap/ScrollToPlugin.min.js" defer></script>
+  <script src="assets/vendor/gsap/SplitText.min.js" defer></script>
+  <script src="assets/vendor/gsap/Draggable.min.js" defer></script>
+  <script src="assets/vendor/gsap/InertiaPlugin.min.js" defer></script>
+  <script src="assets/vendor/gsap/DrawSVGPlugin.min.js" defer></script>
+  <script src="assets/js/main.js" defer></script>
+</body>
+</html>

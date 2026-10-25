@@ -9,6 +9,16 @@
     }
   } catch (e) { /* navegação privada sem sessionStorage */ }
   // Se os scripts não carregarem, a abertura sai sozinha e o site aparece.
+  // WebGL decides between the 3D scenes and their flat fallbacks before the first paint.
+  try {
+    var c = document.createElement('canvas');
+    var gl = c.getContext('webgl2') || c.getContext('webgl');
+    if (gl) {
+      d.classList.add('has-webgl');
+      var lose = gl.getExtension('WEBGL_lose_context');
+      if (lose) lose.loseContext();
+    }
+  } catch (e) {}
   setTimeout(function () {
     if (d.classList.contains('is-loading')) {
       d.classList.add('boot-timeout');

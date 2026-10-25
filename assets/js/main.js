@@ -147,7 +147,7 @@
         // a small breath in before it leaves
         .to(lMark, { scale: 0.88, duration: 0.24, ease: 'power2.out' }, 0.22)
         .to(lMark, { x: dx, y: dy, scale: s, duration: 1.05, ease: 'expo.inOut' }, 0.44)
-        .to(lMark, { '--mk-line': '#11131F', duration: 0.35, ease: 'none' }, 1.05)
+        .to(lMark, { '--mk-line': '#ECEEF4', duration: 0.35, ease: 'none' }, 1.05)
         .to(veil, { '--hole': `${farRadius()}px`, duration: 1.2, ease: 'expo.inOut' }, 0.44)
         .add(() => readyResolve(), 0.95)
         .add(() => {
@@ -376,18 +376,6 @@
             if (lede) tl.from(lede, { y: 18, autoAlpha: 0, duration: 0.9, ease: 'expo.out' }, 0.22);
             return tl;
           },
-        });
-      });
-
-      // Plates rise slightly as they come in, so sections stack instead of popping.
-      gsap.utils.toArray('main > .plate').forEach((plate) => {
-        if (plate.matches('.hero') || plate.querySelector('[data-record], [data-process-track]') || plate.matches('[data-process]')) return;
-        gsap.from(plate, {
-          y: 56,
-          scale: 0.975,
-          transformOrigin: '50% 0%',
-          ease: 'none',
-          scrollTrigger: { trigger: plate, start: 'top bottom', end: 'top 62%', scrub: 0.6 },
         });
       });
     }

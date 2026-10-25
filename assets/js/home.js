@@ -12,7 +12,7 @@
     const under = el.querySelector('.wave__under');
     const line = el.querySelector('.wave__line');
     const pulse = el.querySelector('.wave__pulse');
-    const hero = el.closest('.hero') || el;
+    const area = el.closest('section') || el;
     const nodes = gsap.utils.toArray('.node', el).map((node) => ({
       el: node,
       fx: parseFloat(node.dataset.x),
@@ -90,48 +90,49 @@
       onToggle: (self) => (self.isActive ? gsap.ticker.add(tick) : gsap.ticker.remove(tick)),
     });
 
-    // Leaving the hero, the wave settles and the headline drifts up: the scroll carries it out.
-    ScrollTrigger.create({
-      trigger: hero,
-      start: 'top top',
-      end: 'bottom top',
-      scrub: true,
-      onUpdate: (self) => { state.calm = 1 - self.progress * 0.7; },
-    });
-    gsap.to(hero.querySelector('.hero__top'), {
-      yPercent: -18,
-      autoAlpha: 0.35,
-      ease: 'none',
-      scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: true },
-    });
-
     // Pointer stirs the wave: closer to the line, bigger the swell.
     const ampTo = gsap.quickTo(state, 'amp', { duration: 0.9, ease: 'power3.out' });
     const speedTo = gsap.quickTo(state, 'speed', { duration: 0.6, ease: 'power2.out' });
     if (finePointer) {
-      hero.addEventListener('pointermove', (e) => {
+      area.addEventListener('pointermove', (e) => {
         const r = el.getBoundingClientRect();
         const dist = Math.abs(e.clientY - (r.top + H * 0.46));
         const near = 1 - clamp(0, 1, dist / (H * 1.4));
         ampTo(1 + near * 0.85);
         speedTo(1 + near * 1.6);
       });
-      hero.addEventListener('pointerleave', () => { ampTo(1); speedTo(1); });
+      area.addEventListener('pointerleave', () => { ampTo(1); speedTo(1); });
     }
 
-    // Entrance: wave swells up, nodes pop onto it.
+    // Entrance: the cable lights up when it scrolls in, then each layer switches on.
     gsap.set(nodes.map((n) => n.icon), { scale: 0 });
     gsap.set(gsap.utils.toArray('.node__label', el), { autoAlpha: 0, y: -8 });
-    ready.then(() => {
-      gsap.timeline({ delay: 0.25 })
-        .to(state, { amp: 1, duration: 1.8, ease: 'expo.out' })
-        .to(nodes.map((n) => n.icon), { scale: 1, duration: 0.9, stagger: 0.09, ease: 'expo.out' }, 0.15)
-        .to(gsap.utils.toArray('.node__label', el), { autoAlpha: 1, y: 0, duration: 0.4, stagger: 0.09 }, 0.45);
+    ScrollTrigger.create({
+      trigger: el,
+      start: 'top 82%',
+      once: true,
+      onEnter: () => {
+        gsap.timeline()
+          .to(state, { amp: 1, duration: 1.8, ease: 'expo.out' })
+          .to(nodes.map((n) => n.icon), { scale: 1, duration: 0.9, stagger: 0.09, ease: 'expo.out' }, 0.15)
+          .to(gsap.utils.toArray('.node__label', el), { autoAlpha: 1, y: 0, duration: 0.4, stagger: 0.09 }, 0.45);
+      },
     });
   }
 
   const wave = document.querySelector('[data-wave]');
   if (wave) initWave(wave);
+
+  /* ---------- Hero: the headline drifts up as the scene is left behind ---------- */
+  const heroTop = document.querySelector('.hero--home .hero__top');
+  if (heroTop && !reduce) {
+    gsap.to(heroTop, {
+      yPercent: -14,
+      autoAlpha: 0.2,
+      ease: 'none',
+      scrollTrigger: { trigger: heroTop.closest('.hero'), start: 'top top', end: 'bottom top', scrub: true },
+    });
+  }
 
   /* ---------- About: statement fills word by word ---------- */
   const statement = document.querySelector('[data-scrub-text]');

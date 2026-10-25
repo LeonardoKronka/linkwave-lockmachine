@@ -29,8 +29,13 @@ Pronto e testado localmente (PHP 8.2 + MariaDB 10.11): site, simulador do site, 
 6 motivos, token da leitora, histórico com filtros, dashboard) e o app nas duas interfaces, em celular e desktop.
 Em 25/10: logo nova (Encaixe), abertura animada no site e no app, títulos em frase normal, transições entre
 páginas e entre site e app, limite por IP na API e cabeçalhos de segurança (CSP/HSTS) no `.htaccess`.
+Depois, no mesmo dia: site redesenhado no tema escuro cinematográfico com cenas 3D (three.js) e reflexos, painel do
+app claro e minimalista, Política de Privacidade e Termos (LGPD), kit da marca em `assets/brand/`, design system
+publicado (https://claude.ai/artifact/Xj7upFJDECzTw9jEn7M6Yd) e roteiro de entrevistas em `docs/VALIDACAO_ENTREVISTAS.md`.
+Regras visuais detalhadas: `DESIGN.md` (leia antes de mexer no visual). Uma sessão separada faz o vídeo em `video/`.
 
 Falta:
+0. Trocar `[e-mail da equipe]` em `privacidade.html` e `termos.html` pelo e-mail real da LinkWave.
 1. **Publicar no cPanel do professor**: é o próximo passo. Siga `docs/DEPLOY_CPANEL.md` junto com o usuário,
    um passo de cada vez, pedindo para ele contar o que aparece na tela.
 2. **Gerar o APK** no PWABuilder depois do deploy (precisa de HTTPS) e subir `downloads/lockmachine.apk`
@@ -44,10 +49,15 @@ Falta:
 - **Honestidade (exigência do professor)**: o produto continua "MVP em desenvolvimento" até os testes e evidências.
   Não invente números, clientes ou resultados. Dados de demonstração são rotulados como fictícios.
   O LockMachine não substitui NR-12, análise de risco, proteções físicas nem intertravamentos.
-- **Visual "chunky"**: bordas grossas de 3px em `#11131F`, cantos arredondados, sombra sólida para baixo
-  (`0 6px 0`). Fonte Archivo: títulos em **frase normal** (peso 800, `font-stretch: 106%`, `letter-spacing: -.028em`);
-  maiúsculas só em rótulos pequenos, selos e pílulas. Martian Mono só para código e dados.
-  Cores: cobalto `#2F45FF` (LinkWave), vermelho `#FF3D2E` (LockMachine), amarelo `#FFD23F`, verde `#22D07B`, fundo `#E9ECF2`.
+- **Visual (desde 25/10, ver `DESIGN.md`)**: o site é o chão de fábrica à noite (fundo `#06070A`, painéis foscos com
+  linha de 1px, luz só de fontes reais: torre verde/âmbar/vermelha, LED, luz azul da LinkWave; peças físicas claras) e
+  o app é claro e minimalista (fundo `#F4F5F8`, cards brancos com sombra suave, vermelho como destaque do item ativo).
+  O visual "chunky" antigo (bordas de 3px, sombra sólida) foi aposentado. Fonte Archivo: títulos em **frase normal**
+  (peso 800, `font-stretch: 106%`); maiúsculas só em rótulos pequenos, selos e pílulas. Martian Mono só para dados.
+  Cores de marca: cobalto `#2F45FF` (LinkWave), vermelho `#FF3D2E` (LockMachine), amarelo `#FFD23F`, verde `#22D07B`.
+- **3D**: `assets/js/scene-kit.js` (palco, piso espelhado, economia de bateria) + `scene-home.js` e `scene-lm.js`,
+  módulos ES com three.js r170 em `assets/vendor/three/` (imports relativos, sem import map, por causa da CSP).
+  Sem WebGL ou com erro, a página volta para a versão plana (`.has-scene` só existe com a cena viva).
 - **Marcas**: LinkWave = "Encaixe" (círculo dividido por uma onda em S: metade cobalto, metade amarela, contorno
   e S em tinta), em `assets/img/favicon.svg` e no SVG `.mark` das páginas. LockMachine = cadeado no quadrado
   vermelho (`.mark-lm` no app).

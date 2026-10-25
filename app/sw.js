@@ -1,5 +1,5 @@
 /* LockMachine — service worker: abre o app sem rede; dados da API sempre vêm do servidor. */
-const VERSAO = 'lockmachine-v2';
+const VERSAO = 'lockmachine-v3';
 const ARQUIVOS = [
   './',
   './index.html',

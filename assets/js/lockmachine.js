@@ -60,8 +60,13 @@
   }
 
   /* ---------- Hero: looping demo at the reader ---------- */
+  // The 3D scene (scene-lm.js) tells this story; the flat reader is the fallback without WebGL.
   const heroDevice = document.querySelector('[data-hero-device]');
-  if (heroDevice) initHeroDevice(heroDevice);
+  if (heroDevice) {
+    ready.then(() => {
+      if (!document.documentElement.classList.contains('has-scene')) initHeroDevice(heroDevice);
+    });
+  }
 
   function initHeroDevice(dev) {
     const parts = readerParts(dev.querySelector('.reader'));
@@ -165,8 +170,8 @@
         { xPercent: (i) => scatter[i][0] * spread, y: (i) => scatter[i][1] * yUnit, rotation: (i) => scatter[i][2] * (desk ? 1 : 0.7), scale: 0.94 },
         { xPercent: 0, y: 0, rotation: 0, scale: 1, duration: 1, stagger: 0.05 })
         .fromTo(record,
-          { backgroundColor: 'rgba(233, 236, 242, 0)', borderColor: 'rgba(17, 19, 31, 0)' },
-          { backgroundColor: 'rgba(233, 236, 242, 1)', borderColor: 'rgba(17, 19, 31, 1)', duration: 0.35 }, '-=0.3')
+          { backgroundColor: 'rgba(15, 18, 25, 0)', borderColor: 'rgba(230, 234, 245, 0)' },
+          { backgroundColor: 'rgba(15, 18, 25, 1)', borderColor: 'rgba(230, 234, 245, .08)', duration: 0.35 }, '-=0.3')
         .fromTo(head, { autoAlpha: 0, y: 16 }, { autoAlpha: 1, y: 0, duration: 0.3 }, '<')
         // each value rolls in like a counter: the old note leaves upwards, clipped by .frag__swap
         .to(srcs, { yPercent: -115, autoAlpha: 0, duration: 0.3, stagger: 0.04, ease: 'power2.in' }, '-=0.05')

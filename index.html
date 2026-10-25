@@ -5,14 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>LinkWave — Conectamos pessoas, dados e máquinas</title>
   <meta name="description" content="LinkWave é a equipe de Desenvolvimento de Sistemas do SENAI Mococa por trás do LockMachine, protótipo de controle de acesso a máquinas com RFID e IoT.">
-  <meta name="theme-color" content="#2F45FF">
+  <meta name="theme-color" content="#06070A">
   <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
   <link rel="preload" href="assets/fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin>
   <style>
     /* Abertura: cobre a página desde o primeiro quadro, antes do CSS principal */
     .loader{display:none}
     html.js.is-loading .loader{display:block;position:fixed;inset:0;z-index:120}
-    .loader__veil{position:absolute;inset:0;background:#11131F}
+    .loader__veil{position:absolute;inset:0;background:#06070A} html{background:#06070A}
   </style>
   <link rel="stylesheet" href="assets/fonts/fonts.css">
   <link rel="stylesheet" href="assets/css/styles.css">
@@ -89,7 +89,10 @@
       <main id="conteudo">
 
         <!-- HERO -->
-        <section class="plate s-cobalt hero hero--home" id="topo">
+        <section class="plate hero hero--home" id="topo">
+          <div class="hero__scene" data-scene="home">
+            <svg class="mark hero__fallback" viewBox="0 0 64 64" aria-hidden="true"><g class="mark__spin"><path class="mark__a" d="M8 32a24 24 0 0 1 48 0 12 12 0 0 0-24 0 12 12 0 0 1-24 0z"/><path class="mark__b" d="M56 32a24 24 0 0 1-48 0 12 12 0 0 0 24 0 12 12 0 0 1 24 0z"/><path class="mark__s" d="M8 32a12 12 0 0 0 24 0 12 12 0 0 1 24 0"/></g><circle class="mark__ring" cx="32" cy="32" r="24"/></svg>
+          </div>
           <div class="wrap hero__top">
             <h1 class="h-xl hero__title" data-hero-title>
               Conectamos <span class="nowrap"><span class="hl">pessoas</span>,</span> dados e máquinas.
@@ -103,31 +106,6 @@
             </div>
           </div>
 
-          <div class="wave" data-wave>
-            <svg class="wave__svg" aria-hidden="true">
-              <path class="wave__under"/>
-              <path class="wave__line"/>
-              <circle class="wave__pulse" r="9"/>
-            </svg>
-            <ul class="wave__nodes" aria-label="Camadas que a LinkWave integra">
-              <li class="node" data-x="0.11">
-                <span class="node__icon"><svg aria-hidden="true"><use href="#i-browser"/></svg></span>
-                <span class="node__label"><span class="long">Interface web</span><span class="short">Web</span></span>
-              </li>
-              <li class="node" data-x="0.37">
-                <span class="node__icon"><svg aria-hidden="true"><use href="#i-server"/></svg></span>
-                <span class="node__label"><span class="long">API em PHP</span><span class="short">API</span></span>
-              </li>
-              <li class="node" data-x="0.63">
-                <span class="node__icon"><svg aria-hidden="true"><use href="#i-db"/></svg></span>
-                <span class="node__label"><span class="long">Banco MySQL</span><span class="short">Banco</span></span>
-              </li>
-              <li class="node" data-x="0.89">
-                <span class="node__icon"><svg aria-hidden="true"><use href="#i-rfid"/></svg></span>
-                <span class="node__label"><span class="long">ESP32 + RFID</span><span class="short">IoT</span></span>
-              </li>
-            </ul>
-          </div>
         </section>
 
         <!-- FAIXA -->
@@ -173,12 +151,38 @@
 
         <!-- O QUE FAZEMOS -->
         <section class="plate s-ground services" id="servicos">
-          <div class="wrap services__grid">
-            <div class="services__head">
-              <h2 class="h-lg" data-split>O que fazemos</h2>
-              <p class="lede">Quatro frentes que aprendemos no curso e que juntamos em um mesmo sistema, da tela até a leitora de cartões.</p>
-            </div>
+          <div class="wrap services__head">
+            <h2 class="h-lg" data-split>O que fazemos</h2>
+            <p class="lede">Quatro frentes que aprendemos no curso e que juntamos em um mesmo sistema, da tela até a leitora de cartões.</p>
+          </div>
 
+          <div class="wave" data-wave>
+            <svg class="wave__svg" aria-hidden="true">
+              <path class="wave__under"/>
+              <path class="wave__line"/>
+              <circle class="wave__pulse" r="9"/>
+            </svg>
+            <ul class="wave__nodes" aria-label="Camadas que a LinkWave integra">
+              <li class="node" data-x="0.11">
+                <span class="node__icon"><svg aria-hidden="true"><use href="#i-browser"/></svg></span>
+                <span class="node__label"><span class="long">Interface web</span><span class="short">Web</span></span>
+              </li>
+              <li class="node" data-x="0.37">
+                <span class="node__icon"><svg aria-hidden="true"><use href="#i-server"/></svg></span>
+                <span class="node__label"><span class="long">API em PHP</span><span class="short">API</span></span>
+              </li>
+              <li class="node" data-x="0.63">
+                <span class="node__icon"><svg aria-hidden="true"><use href="#i-db"/></svg></span>
+                <span class="node__label"><span class="long">Banco MySQL</span><span class="short">Banco</span></span>
+              </li>
+              <li class="node" data-x="0.89">
+                <span class="node__icon"><svg aria-hidden="true"><use href="#i-rfid"/></svg></span>
+                <span class="node__label"><span class="long">ESP32 + RFID</span><span class="short">IoT</span></span>
+              </li>
+            </ul>
+          </div>
+
+          <div class="wrap">
             <div class="rows" data-rows>
               <article class="row is-open" style="--tone: var(--yellow)">
                 <h3 class="row__h">
@@ -519,6 +523,7 @@
 
           <div class="footer__base">
             <span>© 2026 LinkWave · Projeto acadêmico</span>
+            <nav class="footer__legal" aria-label="Documentos"><a href="privacidade.html">Privacidade</a><a href="termos.html">Termos de uso</a></nav>
             <button class="totop" type="button" data-totop>Voltar ao topo <svg class="ico" aria-hidden="true"><use href="#i-arrow-up"/></svg></button>
           </div>
         </div>
@@ -536,5 +541,6 @@
   <script src="assets/vendor/gsap/DrawSVGPlugin.min.js" defer></script>
   <script src="assets/js/main.js" defer></script>
   <script src="assets/js/home.js" defer></script>
+  <script type="module" src="assets/js/scene-home.js"></script>
 </body>
 </html>

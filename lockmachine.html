@@ -5,14 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>LockMachine — Controle de acesso a máquinas com RFID · LinkWave</title>
   <meta name="description" content="LockMachine: protótipo educacional da LinkWave que confere, pelo cartão RFID, se as capacitações do operador estão válidas antes de autorizar o uso de uma máquina e registra cada tentativa.">
-  <meta name="theme-color" content="#FF3D2E">
+  <meta name="theme-color" content="#06070A">
   <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
   <link rel="preload" href="assets/fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin>
   <style>
     /* Abertura: cobre a página desde o primeiro quadro, antes do CSS principal */
     .loader{display:none}
     html.js.is-loading .loader{display:block;position:fixed;inset:0;z-index:120}
-    .loader__veil{position:absolute;inset:0;background:#11131F}
+    .loader__veil{position:absolute;inset:0;background:#06070A} html{background:#06070A}
   </style>
   <link rel="stylesheet" href="assets/fonts/fonts.css">
   <link rel="stylesheet" href="assets/css/styles.css">
@@ -96,10 +96,16 @@
       <main id="conteudo">
 
         <!-- HERO -->
-        <section class="plate s-red hero hero--lm" id="topo">
+        <section class="plate hero hero--lm" id="topo">
+          <div class="hero__scene" data-scene="lm"></div>
           <div class="wrap hero-lm">
             <div class="hero-lm__copy">
               <h1 class="h-xl hero__title" data-hero-title>Sem capacitação <span class="nowrap"><span class="hl hl--paper">válida</span>,</span> sem acesso.</h1>
+              <div class="scene-verdict" data-scene-verdict hidden>
+                <span class="scene-verdict__lamp" aria-hidden="true"></span>
+                <span class="scene-verdict__text">Leitora de <strong>P-01</strong> aguardando um cartão</span>
+                <button class="scene-verdict__next" type="button" data-scene-next>Próximo cartão <svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+              </div>
               <p class="hero__lede" data-hero-aside>O LockMachine é um protótipo educacional que associa o cartão RFID do operador às capacitações registradas no banco de dados e confere se continuam válidas antes de autorizar o uso da máquina. Liberado ou bloqueado, todo resultado fica registrado com o motivo.</p>
               <div class="btn-row" data-hero-aside>
                 <a class="btn btn--ink" href="#simulador">Testar o simulador <svg class="ico" aria-hidden="true"><use href="#i-arrow-down"/></svg></a>
@@ -786,6 +792,7 @@
 
           <div class="footer__base">
             <span>© 2026 LinkWave · Projeto acadêmico</span>
+            <nav class="footer__legal" aria-label="Documentos"><a href="privacidade.html">Privacidade</a><a href="termos.html">Termos de uso</a></nav>
             <button class="totop" type="button" data-totop>Voltar ao topo <svg class="ico" aria-hidden="true"><use href="#i-arrow-up"/></svg></button>
           </div>
         </div>
@@ -804,5 +811,6 @@
   <script src="assets/vendor/gsap/MotionPathPlugin.min.js" defer></script>
   <script src="assets/js/main.js" defer></script>
   <script src="assets/js/lockmachine.js" defer></script>
+  <script type="module" src="assets/js/scene-lm.js"></script>
 </body>
 </html>

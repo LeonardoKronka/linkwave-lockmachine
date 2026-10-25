@@ -80,6 +80,8 @@
 
   const pill = (txt, tipo = '', ic = '') => `<span class="pill${tipo ? ' pill--' + tipo : ''}">${ic ? icon(ic) : ''}${esc(txt)}</span>`;
   const pillMaq = (s) => pill((STATUS_MAQ[s] || [s])[0], (STATUS_MAQ[s] || [])[1]);
+  // Machine status drawn as the shop's own stack light: green runs, amber waits, red stops.
+  const torre = (s) => `<span class="lamp-tower" data-status="${esc(s)}" aria-hidden="true"><i></i><i></i><i></i></span>`;
   const pillSit = (s) => pill((SITUACAO[s] || [s])[0], (SITUACAO[s] || [])[1]);
   const pillResultado = (ok) => (ok ? pill('Liberado', 'ok', 'check') : pill('Bloqueado', 'bad', 'x'));
   const vazio = (titulo, texto = '', ic = 'info') => `<div class="empty">${icon(ic)}<strong>${esc(titulo)}</strong>${texto ? `<span>${esc(texto)}</span>` : ''}</div>`;
@@ -681,7 +683,8 @@
       <div class="auth__links">
         <a href="${SITE}">${'←'} Voltar ao site</a>
         <button class="btn btn--ghost btn--sm" type="button" data-instalar hidden>${icon('download')}Instalar app</button>
-      </div>`);
+      </div>
+      <p class="auth__legal">Ao entrar você concorda com os <a href="${new URL('../termos.html', location.href).href}">Termos de uso</a> e a <a href="${new URL('../privacidade.html', location.href).href}">Política de privacidade</a>.</p>`);
     const form = $('form', alvo);
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -745,16 +748,16 @@
       const total = s.liberados + s.bloqueados;
       const dia = fDia.format(lerData(s.dia)).replace('.', '');
       return `<g class="chart__col">
-        ${hL ? `<rect class="chart__bar" x="${x}" y="${base - hL}" width="${bw}" height="${hL}" rx="6" fill="#22D07B" stroke="#11131F" stroke-width="2.5"/>` : ''}
-        ${hB ? `<rect class="chart__bar" x="${x}" y="${base - hL - hB}" width="${bw}" height="${hB}" rx="6" fill="#FF3D2E" stroke="#11131F" stroke-width="2.5"/>` : ''}
-        ${!total ? `<rect x="${x}" y="${base - 3}" width="${bw}" height="3" rx="1.5" fill="#C5CAD8"/>` : ''}
+        ${hL ? `<rect class="chart__bar" x="${x}" y="${base - hL}" width="${bw}" height="${hL}" rx="6" fill="#2CCB7E" stroke="#fff" stroke-width="2"/>` : ''}
+        ${hB ? `<rect class="chart__bar" x="${x}" y="${base - hL - hB}" width="${bw}" height="${hB}" rx="6" fill="#FF4A3B" stroke="#fff" stroke-width="2"/>` : ''}
+        ${!total ? `<rect x="${x}" y="${base - 3}" width="${bw}" height="3" rx="1.5" fill="#E3E5EC"/>` : ''}
         <text x="${x + bw / 2}" y="${base - hL - hB - 7}" text-anchor="middle">${total || ''}</text>
         <text x="${x + bw / 2}" y="${H - 6}" text-anchor="middle">${esc(dia)}</text>
       </g>`;
     }).join('');
     const totalSemana = serie.reduce((a, s) => a + s.liberados + s.bloqueados, 0);
     return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Tentativas nos últimos 7 dias: ${totalSemana} no total">
-      <line x1="0" x2="${W}" y1="${base}" y2="${base}" stroke="#11131F" stroke-width="2.5"/>${barras}</svg>`;
+      <line x1="0" x2="${W}" y1="${base}" y2="${base}" stroke="#E3E5EC" stroke-width="1.5"/>${barras}</svg>`;
   }
 
   function linhaAcesso(a, { mostrarOperador = true } = {}) {
@@ -784,11 +787,11 @@
         </div>
       </div>
       <div class="kpis">
-        <div class="kpi"><span class="kpi__n" data-contar="${d.hoje.tentativas}">${d.hoje.tentativas}</span><span class="kpi__l">Tentativas hoje</span></div>
+        <div class="kpi" style="--tone:var(--cobalt)"><span class="kpi__n" data-contar="${d.hoje.tentativas}">${d.hoje.tentativas}</span><span class="kpi__l">Tentativas hoje</span></div>
         <div class="kpi" style="--tone:var(--green)"><span class="kpi__n" data-contar="${d.hoje.liberados}">${d.hoje.liberados}</span><span class="kpi__l">Liberadas hoje</span></div>
         <div class="kpi" style="--tone:var(--red)"><span class="kpi__n" data-contar="${d.hoje.bloqueados}">${d.hoje.bloqueados}</span><span class="kpi__l">Bloqueadas hoje</span></div>
-        <div class="kpi"><span class="kpi__n" data-contar="${d.operadores.ativos}">${d.operadores.ativos}</span><span class="kpi__l">Funcionários ativos</span></div>
-        <div class="kpi" style="--tone:${d.capacitacoes.vencidas ? 'var(--yellow)' : 'var(--paper)'}"><span class="kpi__n" data-contar="${d.capacitacoes.vencidas}">${d.capacitacoes.vencidas}</span><span class="kpi__l">Capacitações vencidas</span></div>
+        <div class="kpi" style="--tone:var(--steel)"><span class="kpi__n" data-contar="${d.operadores.ativos}">${d.operadores.ativos}</span><span class="kpi__l">Funcionários ativos</span></div>
+        <div class="kpi" style="--tone:${d.capacitacoes.vencidas ? 'var(--yellow)' : 'var(--steel)'}"><span class="kpi__n" data-contar="${d.capacitacoes.vencidas}">${d.capacitacoes.vencidas}</span><span class="kpi__l">Capacitações vencidas</span></div>
       </div>
       <div class="grid grid--2">
         <article class="card">
@@ -811,8 +814,8 @@
         <article class="card">
           <div class="card__head"><h2 class="card__title">Máquinas</h2><a class="btn btn--ghost btn--sm" href="#/maquinas">Gerenciar</a></div>
           ${d.lista_maquinas.length ? `<ul class="list">${d.lista_maquinas.map((m) => `<li><a class="row" href="#/maquinas/${m.id}">
-              <span class="code">${esc(m.codigo)}</span>
-              <span class="row__main"><span class="row__title">${esc(m.nome)}</span></span>
+              ${torre(m.status)}
+              <span class="row__main"><span class="row__title"><span class="code">${esc(m.codigo)}</span> ${esc(m.nome)}</span></span>
               <span class="row__end">${pillMaq(m.status)}</span></a></li>`).join('')}</ul>` : vazio('Nenhuma máquina cadastrada.')}
         </article>
         <article class="card">
@@ -1085,7 +1088,7 @@
         <div class="page__actions"><a class="btn btn--yellow" href="#/maquinas/nova">${icon('plus')}Nova máquina</a></div>
       </div>
       ${dados.length ? `<div class="grid grid--3">${dados.map((m) => `<a class="card" href="#/maquinas/${m.id}" style="text-decoration:none;display:grid;gap:10px">
-          <div class="inline" style="justify-content:space-between"><span class="code" style="font-size:.95rem">${esc(m.codigo)}</span>${pillMaq(m.status)}</div>
+          <div class="inline" style="justify-content:space-between"><span class="inline">${torre(m.status)}<span class="code" style="font-size:.95rem">${esc(m.codigo)}</span></span>${pillMaq(m.status)}</div>
           <div><h2 class="card__title" style="text-transform:none;font-size:1.2rem">${esc(m.nome)}</h2><p class="muted">${esc(m.localizacao || 'Sem localização')}</p></div>
           <div class="inline">${m.exigencias.length ? m.exigencias.map((t) => pill(t.nome, 'soft')).join('') : '<span class="muted">Nenhuma capacitação exigida</span>'}</div>
           <p class="card__note">${plural(m.acessos_hoje, 'tentativa', 'tentativas')} hoje${m.ultimo_acesso ? ' · última ' + esc(quando(m.ultimo_acesso)) : ''}</p>
@@ -1536,8 +1539,8 @@
       ${c.vencendo ? `<div class="alert alert--warn">${icon('calendar')}<span>${plural(c.vencendo, 'capacitação vence', 'capacitações vencem')} nos próximos 30 dias. Programe a renovação.</span></div>` : ''}
       <div class="kpis">
         <a class="kpi" href="#/capacitacoes" style="--tone:var(--green);text-decoration:none"><span class="kpi__n" data-contar="${c.valida}">${c.valida}</span><span class="kpi__l">Válidas</span></a>
-        <a class="kpi" href="#/capacitacoes" style="--tone:${c.vencendo ? 'var(--yellow)' : 'var(--paper)'};text-decoration:none"><span class="kpi__n" data-contar="${c.vencendo}">${c.vencendo}</span><span class="kpi__l">Vencendo</span></a>
-        <a class="kpi" href="#/capacitacoes" style="--tone:${c.vencida ? 'var(--red)' : 'var(--paper)'};text-decoration:none"><span class="kpi__n" data-contar="${c.vencida}">${c.vencida}</span><span class="kpi__l">Vencidas</span></a>
+        <a class="kpi" href="#/capacitacoes" style="--tone:${c.vencendo ? 'var(--yellow)' : 'var(--steel)'};text-decoration:none"><span class="kpi__n" data-contar="${c.vencendo}">${c.vencendo}</span><span class="kpi__l">Vencendo</span></a>
+        <a class="kpi" href="#/capacitacoes" style="--tone:${c.vencida ? 'var(--red)' : 'var(--steel)'};text-decoration:none"><span class="kpi__n" data-contar="${c.vencida}">${c.vencida}</span><span class="kpi__l">Vencidas</span></a>
         <a class="kpi" href="#/minhas-maquinas" style="text-decoration:none"><span class="kpi__n">${p.resumo.maquinas_liberadas}<small style="font-size:1rem"> de ${p.resumo.maquinas_total}</small></span><span class="kpi__l">Máquinas liberadas</span></a>
       </div>
       <article class="card">

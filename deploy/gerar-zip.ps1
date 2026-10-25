@@ -6,7 +6,7 @@ $etapa = Join-Path $env:TEMP 'linkwave-deploy'
 if (Test-Path $etapa) { Remove-Item $etapa -Recurse -Force }
 New-Item -ItemType Directory -Path $etapa | Out-Null
 
-foreach ($arquivo in 'index.html', 'lockmachine.html', '.htaccess') {
+foreach ($arquivo in 'index.html', 'lockmachine.html', 'privacidade.html', 'termos.html', '.htaccess') {
     Copy-Item (Join-Path $raiz $arquivo) $etapa
 }
 foreach ($pasta in 'assets', 'app', 'api') {
@@ -22,7 +22,7 @@ Remove-Item (Join-Path $etapa 'api\storage\limites') -Recurse -Force -ErrorActio
 $zip = Join-Path $PSScriptRoot 'linkwave-site.zip'
 if (Test-Path $zip) { Remove-Item $zip -Force }
 Push-Location $etapa
-& "$env:SystemRoot\System32\tar.exe" -a -c -f $zip index.html lockmachine.html .htaccess assets app api downloads
+& "$env:SystemRoot\System32\tar.exe" -a -c -f $zip index.html lockmachine.html privacidade.html termos.html .htaccess assets app api downloads
 Pop-Location
 Remove-Item $etapa -Recurse -Force
 
