@@ -48,8 +48,9 @@
   --nav-h: 92px;
   --lift: 0px;
 
-  --shadow-1: 0 1px 0 rgba(255, 255, 255, .045) inset, 0 18px 40px -26px rgba(0, 0, 0, .95);
-  --shadow-2: 0 1px 0 rgba(255, 255, 255, .06) inset, 0 30px 70px -34px rgba(0, 0, 0, 1);
+  /* blur kept at 32px or less: big blurs were the largest raster cost while scrolling */
+  --shadow-1: 0 1px 0 rgba(255, 255, 255, .045) inset, 0 14px 26px -16px rgba(0, 0, 0, .95);
+  --shadow-2: 0 1px 0 rgba(255, 255, 255, .06) inset, 0 22px 32px -20px rgba(0, 0, 0, 1);
 
   --ease: cubic-bezier(.16, 1, .3, 1);
   --f-sans: "Archivo", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -302,7 +303,7 @@ svg:has(> use), .ico {
   backdrop-filter: blur(18px) saturate(150%);
   border: 1px solid var(--line-2);
   border-radius: 999px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06), 0 20px 44px -24px rgba(0, 0, 0, 1);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06), 0 16px 28px -16px rgba(0, 0, 0, 1);
 }
 .brand {
   display: inline-flex;
@@ -531,7 +532,8 @@ html.js.is-loading:not(.boot-timeout) .nav__bar { clip-path: inset(0 calc(100% -
   background: var(--bg);
 }
 .hero__scene { position: absolute; inset: 0; z-index: -2; overflow: hidden; }
-.hero__scene canvas { display: block; width: 100%; height: 100%; }
+.hero__scene canvas { display: block; width: 100%; height: 100%; opacity: 0; transition: opacity .9s cubic-bezier(.16, 1, .3, 1); }
+.hero__scene.is-ready canvas { opacity: 1; }
 /* legibility: the floor darkens where the copy sits */
 .hero::after {
   content: "";
@@ -575,6 +577,17 @@ html.js.is-loading:not(.boot-timeout) .nav__bar { clip-path: inset(0 calc(100% -
 @media (max-width: 1020px) {
   .hero__top { grid-template-columns: 1fr; }
 }
+/* Wide screens: the copy stacks on the left and the right side belongs to the mark and its reflection */
+@media (min-width: 1021px) and (min-aspect-ratio: 5/4) {
+  .has-scene .hero--home .hero__top { grid-template-columns: minmax(0, min(47rem, 54%)); gap: 26px; }
+  .has-scene .hero--home .hero__aside { padding-bottom: 0; }
+  .has-scene .hero--home::after {
+    background:
+      linear-gradient(180deg, rgba(6, 7, 10, .5) 0%, rgba(6, 7, 10, 0) 18%),
+      linear-gradient(0deg, rgba(6, 7, 10, .92) 0%, rgba(6, 7, 10, 0) 15%),
+      linear-gradient(90deg, rgba(6, 7, 10, .8) 0%, rgba(6, 7, 10, .55) 30%, rgba(6, 7, 10, 0) 55%);
+  }
+}
 @media (max-aspect-ratio: 5/6) {
   .hero__fallback { right: 50%; top: 14%; transform: translateX(50%); }
 }
@@ -614,7 +627,7 @@ html.js.is-loading:not(.boot-timeout) .nav__bar { clip-path: inset(0 calc(100% -
   color: var(--tone);
   border: 1px solid var(--line-2);
   border-radius: clamp(16px, 1.6vw, 22px);
-  box-shadow: var(--shadow-2), 0 0 40px -18px var(--tone);
+  box-shadow: var(--shadow-2), 0 0 28px -12px var(--tone);
 }
 .node__icon::after {
   content: "";
@@ -723,7 +736,7 @@ html.js.is-loading:not(.boot-timeout) .nav__bar { clip-path: inset(0 calc(100% -
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, .45),
     inset 0 -2px 8px rgba(0, 0, 0, .28),
-    0 40px 80px -36px color-mix(in oklab, var(--tone) 70%, transparent),
+    0 30px 44px -26px color-mix(in oklab, var(--tone) 70%, transparent),
     0 30px 50px -30px rgba(0, 0, 0, .9);
   transform-origin: 50% 34px;
 }
@@ -914,7 +927,7 @@ html.js.is-loading:not(.boot-timeout) .nav__bar { clip-path: inset(0 calc(100% -
   color: var(--dark);
   text-align: center;
   border-radius: 26px 26px 34px 34px;
-  box-shadow: inset 0 1px 0 #fff, 0 50px 90px -40px rgba(0, 0, 0, 1), 0 0 0 1px rgba(255, 255, 255, .5);
+  box-shadow: inset 0 1px 0 #fff, 0 30px 32px -18px rgba(0, 0, 0, 1), 0 0 0 1px rgba(255, 255, 255, .5);
   transform-origin: 50% 0%;
 }
 .bigtag__ring {
@@ -1038,7 +1051,7 @@ html.js.is-loading:not(.boot-timeout) .nav__bar { clip-path: inset(0 calc(100% -
   font-size: clamp(3.6rem, 7vw, 6rem);
   line-height: .8;
   letter-spacing: -.04em;
-  text-shadow: 0 0 40px color-mix(in oklab, var(--tone) 45%, transparent);
+  text-shadow: 0 0 24px color-mix(in oklab, var(--tone) 45%, transparent);
 }
 .step p { color: var(--text-2); font-size: 1rem; line-height: 1.55; }
 .process__meter {
@@ -1125,7 +1138,7 @@ html.js.is-loading:not(.boot-timeout) .nav__bar { clip-path: inset(0 calc(100% -
   color: var(--dark);
   text-align: center;
   border-radius: 22px;
-  box-shadow: inset 0 1px 0 #fff, 0 40px 60px -34px rgba(0, 0, 0, 1);
+  box-shadow: inset 0 1px 0 #fff, 0 26px 30px -18px rgba(0, 0, 0, 1);
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 }
@@ -1134,7 +1147,7 @@ html.js.is-loading:not(.boot-timeout) .nav__bar { clip-path: inset(0 calc(100% -
   background: radial-gradient(120% 90% at 50% 0%, color-mix(in oklab, var(--tone) 30%, transparent), transparent 70%), var(--panel-2);
   color: var(--text);
   justify-content: flex-start;
-  box-shadow: inset 0 0 0 1px var(--line-2), 0 40px 60px -34px rgba(0, 0, 0, 1);
+  box-shadow: inset 0 0 0 1px var(--line-2), 0 26px 30px -18px rgba(0, 0, 0, 1);
 }
 .badge__slot {
   position: absolute;
@@ -1239,7 +1252,7 @@ html.js.is-loading:not(.boot-timeout) .nav__bar { clip-path: inset(0 calc(100% -
     linear-gradient(180deg, #171B25, #0F121A);
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .05), inset 0 30px 60px -40px rgba(0, 0, 0, .9);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .05), inset 0 22px 30px -22px rgba(0, 0, 0, .9);
 }
 .js .board { display: block; padding: 0; }
 .sticker {
@@ -1460,7 +1473,7 @@ html.js.is-loading:not(.boot-timeout) .nav__bar { clip-path: inset(0 calc(100% -
   color: var(--text);
   border: 1px solid var(--line-2);
   border-radius: 30px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08), 0 40px 70px -36px rgba(0, 0, 0, 1);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08), 0 26px 32px -20px rgba(0, 0, 0, 1);
 }
 .reader__top { display: flex; justify-content: space-between; align-items: center; padding-inline: 4px; }
 .reader__brand { font-weight: 800; font-stretch: 112%; font-size: .74rem; letter-spacing: .06em; text-transform: uppercase; color: var(--text-2); }
@@ -1567,7 +1580,7 @@ html.js.is-loading:not(.boot-timeout) .nav__bar { clip-path: inset(0 calc(100% -
   background: linear-gradient(160deg, #FFFFFF, #E2E5ED);
   color: var(--dark);
   border-radius: 14px;
-  box-shadow: inset 0 1px 0 #fff, 0 30px 50px -26px rgba(0, 0, 0, 1);
+  box-shadow: inset 0 1px 0 #fff, 0 22px 30px -16px rgba(0, 0, 0, 1);
   user-select: none;
   -webkit-user-select: none;
 }
@@ -1722,7 +1735,7 @@ html.js.is-loading:not(.boot-timeout) .nav__bar { clip-path: inset(0 calc(100% -
   color: color-mix(in oklab, var(--tone) 85%, white);
   border: 1px solid var(--line-2);
   border-radius: 28px;
-  box-shadow: var(--shadow-2), 0 0 50px -20px var(--tone);
+  box-shadow: var(--shadow-2), 0 0 30px -12px var(--tone);
 }
 .how__badge svg { width: 44%; height: auto; aspect-ratio: 1; }
 .how__n {
@@ -2487,7 +2500,7 @@ html.js.is-loading:not(.boot-timeout) .nav__bar { clip-path: inset(0 calc(100% -
   padding: 9px;
   background: linear-gradient(160deg, #3A3F4D, #15181F 40%, #0C0E13);
   border-radius: 40px;
-  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, .14), 0 60px 90px -40px rgba(0, 0, 0, 1);
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, .14), 0 34px 32px -18px rgba(0, 0, 0, 1);
 }
 .phone::before {
   content: "";
@@ -2748,3 +2761,12 @@ html.js.is-loading:not(.boot-timeout) .nav__bar { clip-path: inset(0 calc(100% -
   *, *::before, *::after { scroll-behavior: auto !important; }
   .status-pill__dot { animation: none; }
 }
+
+/* Elements moved by scroll-linked tweens get their own GPU layer: they slide instead of being
+   repainted every frame (with their text and box shadows). */
+.hero--home .hero__top, [data-process-track], .step, .frag, [data-phone-back], [data-phone-front], .wave__svg,
+.bigtag, [data-padlock], .ltag, .node__icon, .badge { will-change: transform; }
+
+/* honesty note under the 3D verdict line (only while the scene is live) */
+.scene-note { display: none; margin: -12px 0 0; color: var(--text-3); font-size: .8rem; line-height: 1.45; }
+.has-scene .scene-note { display: block; }

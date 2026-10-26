@@ -32,6 +32,8 @@ páginas e entre site e app, limite por IP na API e cabeçalhos de segurança (C
 Depois, no mesmo dia: site redesenhado no tema escuro cinematográfico com cenas 3D (three.js) e reflexos, painel do
 app claro e minimalista, Política de Privacidade e Termos (LGPD), kit da marca em `assets/brand/`, design system
 publicado (https://claude.ai/artifact/Xj7upFJDECzTw9jEn7M6Yd) e roteiro de entrevistas em `docs/VALIDACAO_ENTREVISTAS.md`.
+À noite: passada de desempenho (travas no carregamento e na rolagem medidas e reduzidas), reflexo da logo visível em
+1920×1080 e cena do LockMachine refeita (prensa hidráulica P-01 com posto bimanual, leitora e torre de sinalização).
 Regras visuais detalhadas: `DESIGN.md` (leia antes de mexer no visual). Uma sessão separada faz o vídeo em `video/`.
 
 Falta:
@@ -57,7 +59,17 @@ Falta:
   Cores de marca: cobalto `#2F45FF` (LinkWave), vermelho `#FF3D2E` (LockMachine), amarelo `#FFD23F`, verde `#22D07B`.
 - **3D**: `assets/js/scene-kit.js` (palco, piso espelhado, economia de bateria) + `scene-home.js` e `scene-lm.js`,
   módulos ES com three.js r170 em `assets/vendor/three/` (imports relativos, sem import map, por causa da CSP).
-  Sem WebGL ou com erro, a página volta para a versão plana (`.has-scene` só existe com a cena viva).
+  Sem WebGL, com WebGL sem placa de vídeo (SwiftShader) ou com erro, a página volta para a versão plana
+  (`.has-scene` só existe com a cena viva). Desempenho (medido, não mexa sem medir de novo):
+  - o ambiente de reflexos é a imagem `assets/img/env-room.png` (gerada por `docs/ferramentas/bake-env.mjs`);
+    gerar no navegador travava a abertura por ~0,3 s;
+  - sombreadores compilam em paralelo (`compileParallel`) e texturas sobem uma por tarefa antes do 1º quadro;
+  - `addFloor` vem depois da geometria (o 1º uso do WebGL espera a placa de vídeo inicializar);
+  - detalhes pequenos ficam na camada `DETAIL` (o espelho do piso não os desenha);
+  - a cena desenha no `gsap.ticker` e lê a rolagem pelo ScrollTrigger (nada de `getBoundingClientRect` por quadro);
+  - nunca mude o número de luzes com `visible` (recompila tudo): use `intensity`;
+  - elementos que se mexem com a rolagem ou balançam têm `will-change: transform` (final do `styles.css`) e as
+    sombras com desfoque ficam em até 32 px: sombras grandes eram o maior custo de desenho na rolagem.
 - **Marcas**: LinkWave = "Encaixe" (círculo dividido por uma onda em S: metade cobalto, metade amarela, contorno
   e S em tinta), em `assets/img/favicon.svg` e no SVG `.mark` das páginas. LockMachine = cadeado no quadrado
   vermelho (`.mark-lm` no app).
