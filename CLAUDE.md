@@ -41,8 +41,10 @@ Falta:
 0. Trocar `[e-mail da equipe]` em `privacidade.html` e `termos.html` pelo e-mail real da LinkWave.
 1. **Publicar no cPanel do professor**: é o próximo passo. Siga `docs/DEPLOY_CPANEL.md` junto com o usuário,
    um passo de cada vez, pedindo para ele contar o que aparece na tela. Em 26/10 ele não lembrava a senha do cPanel
-   (seção 0 do guia) e escolheu a publicação automática: `.github/workflows/publicar-cpanel.yml` envia por FTPS a cada
-   push na `main`, depois que as variáveis `FTP_SERVIDOR`/`FTP_USUARIO` e o segredo `FTP_SENHA` existirem no GitHub.
+   (seção 0 do guia): recupera com o professor na aula de quarta, 28/10, e volta com endereço e senha. Ele escolheu a
+   publicação automática: `.github/workflows/publicar-cpanel.yml` envia por FTPS a cada push na `main`, depois que as
+   variáveis `FTP_SERVIDOR`/`FTP_USUARIO`/`SITE_URL` e o segredo `FTP_SENHA` existirem no GitHub. O roteiro do dia está
+   no topo de `docs/DEPLOY_CPANEL.md`; depois de cada envio, confira o resumo com `gh run view`.
    Senhas e credenciais quem digita é sempre o usuário (no cPanel e no GitHub), nunca o Claude.
 2. **Gerar o APK** no PWABuilder depois do deploy (precisa de HTTPS) e subir `downloads/lockmachine.apk`
    e `.well-known/assetlinks.json`. O botão de download do site se ativa sozinho quando o APK existe.

@@ -5,6 +5,36 @@ Tempo estimado: 20 a 30 minutos. Você só precisa do navegador.
 
 ---
 
+## Roteiro do dia da publicação
+
+### Na aula, com o professor (10 minutos)
+
+Leve só o celular. Anote tudo no gerenciador de senhas do celular (ou num papel que fica com você), nunca no código.
+
+- [ ] Endereço do cPanel, usuário e **senha nova**. Entre uma vez ali mesmo para confirmar que funciona.
+- [ ] Qual é o domínio (ou subdomínio) do grupo e qual pasta ele usa (`public_html` ou outra).
+- [ ] Se o domínio já tem HTTPS (cadeado). Se não tiver, peça para rodar o **AutoSSL**.
+- [ ] Se a conta deixa criar banco MySQL e conta FTP (quase sempre deixa).
+- [ ] Versão do PHP do domínio: precisa ser 8.1 ou mais nova (7.4 também funciona).
+- [ ] Opcional, para o Workbench: o IP público da rede do SENAI (pesquise "meu ip" num computador de lá).
+
+### Em casa, com o Claude (cerca de 30 minutos)
+
+Abra o cPanel no navegador do app do Claude: assim ele vê a tela e guia cada clique. As senhas quem digita é você.
+
+1. **Banco** (seções 1 e 2): criar o banco `lockmachine`, o usuário `lmapp` com senha gerada, dar todos os
+   privilégios e importar `database/schema.sql` e `database/seed.sql` pelo phpMyAdmin.
+2. **Conta FTP do site** e **variáveis no GitHub** (seção [Atualização automática](#atualização-automática-github)),
+   incluindo `SITE_URL` com o endereço do site.
+3. **Publicar**: aba Actions > Publicar no cPanel > Run workflow. O resumo da execução mostra se as páginas
+   estão no ar e se os arquivos internos estão bloqueados.
+4. **Ligar a API ao banco** (seção 4): criar `api/config.local.php` no Gerenciador de Arquivos.
+5. **PHP e HTTPS** (seção 5) e **testar** (seção 6). Troque a senha do `admin` logo no primeiro acesso.
+6. Depois: o APK (seção 7) e, se quiserem, o Workbench (seção 8).
+
+Se a primeira página der **Erro 500**: algumas hospedagens não aceitam a linha `Options -Indexes`. Coloque um `#`
+no começo dela no `.htaccess` da raiz e no de `api/`, pelo Gerenciador de Arquivos, e recarregue.
+
 ## O que vai para o servidor
 
 | Pasta / arquivo | O que é |
@@ -120,7 +150,7 @@ O app e o APK **precisam de HTTPS** para instalar e manter o login.
 | `NAO_CONFIGURADO` | Falta o `api/config.local.php` (passo 4) |
 | `SERVICO_INDISPONIVEL` | Nome do banco, usuário ou senha errados no `config.local.php`, ou o usuário não foi adicionado ao banco |
 | "faltam tabelas" | Importe o `schema.sql` (passo 2) |
-| Erro 500 | Veja **Errors** no cPanel; confira a versão do PHP (passo 5) |
+| Erro 500 | Veja **Errors** no cPanel; confira a versão do PHP (passo 5). Se for logo na primeira página, comente a linha `Options -Indexes` nos `.htaccess` |
 | "Muitas tentativas a partir desta rede" | 20 senhas erradas pela mesma rede em 15 min. Espere, ou apague a pasta `api/storage/limites` no File Manager |
 
 ### Segurança que já vem configurada
@@ -213,6 +243,8 @@ A cada `git push` na `main`, o GitHub envia para o cPanel só os arquivos do sit
    (algo como `deploy@seudominio.com.br`) e o **FTP Server** (algo como `ftp.seudominio.com.br`).
 3. No GitHub, abra o repositório > **Settings** > **Secrets and variables** > **Actions**:
    - aba **Variables** > **New repository variable**: `FTP_SERVIDOR` com o FTP Server e `FTP_USUARIO` com o FTP Username;
+   - ainda em **Variables**: `SITE_URL` com o endereço do site (ex.: `https://seudominio.com.br/`). Com ela, cada envio
+     termina conferindo se as páginas estão no ar, se os arquivos internos estão bloqueados e se a API responde;
    - aba **Secrets** > **New repository secret**: `FTP_SENHA` com a senha da conta FTP.
      O GitHub guarda o segredo cifrado e não mostra de novo, nem para você.
 4. Aba **Actions** > **Publicar no cPanel** > **Run workflow**. O primeiro envio manda tudo (alguns minutos);
@@ -233,6 +265,7 @@ A cada `git push` na `main`, o GitHub envia para o cPanel só os arquivos do sit
 | Erro de TLS ou de conexão segura | A hospedagem não tem FTPS: crie a variável `FTP_PROTOCOLO` com o valor `ftp` (envio sem criptografia; use só se não houver outro jeito) |
 | Arquivos foram para a pasta errada | A conta FTP abre em outra pasta: crie a variável `FTP_PASTA` com o caminho até a pasta do site, terminando em `/` (ex.: `public_html/`) |
 | O job aparece cinza, "skipped" | Falta a variável `FTP_SERVIDOR` |
+| "Conferir o site no ar" falhou com ❌ | O resumo da execução mostra qual endereço: página fora do ar (veja o envio) ou arquivo interno aberto (confira se os `.htaccess` foram enviados) |
 
 Para desfazer uma atualização: reverta o commit (`git revert`) e faça push; o envio seguinte volta os arquivos.
 

@@ -2,6 +2,7 @@
 # Configuração (uma vez só), no GitHub: Settings > Secrets and variables > Actions
 #   Variables: FTP_SERVIDOR (ex.: ftp.seudominio.com.br), FTP_USUARIO (a conta FTP criada para o site)
 #              FTP_PASTA (opcional; "./" quando a conta FTP já abre na pasta do site)
+#              SITE_URL (opcional; ex.: https://seudominio.com.br/ — liga a conferência depois do envio)
 #   Secrets:   FTP_SENHA
 # Passo a passo e solução de problemas: docs/DEPLOY_CPANEL.md, seção "Atualização automática".
 name: Publicar no cPanel
@@ -59,3 +60,41 @@ jobs:
             api/storage/sessoes/**
             api/storage/limites/**
             downloads/*.apk
+
+      # Com a variável SITE_URL (ex.: https://seudominio.com.br/), confere o site logo depois do envio:
+      # páginas no ar, arquivos internos bloqueados, cabeçalhos de segurança e a resposta da API.
+      # O resultado aparece no resumo da execução (aba Actions); falha se uma página sumir ou algo interno vazar.
+      - name: Conferir o site no ar
+        if: ${{ vars.SITE_URL != '' }}
+        env:
+          SITE: ${{ vars.SITE_URL }}
+        run: |
+          SITE="${SITE%/}"
+          OUT="$GITHUB_STEP_SUMMARY"
+          falhou=0
+          codigo() { curl -s -o /dev/null -w '%{http_code}' --max-time 25 "$SITE/$1" || true; }
+          {
+            echo "### Site depois do envio: $SITE"
+            echo ""
+            echo "| Endereço | Esperado | Resposta |"
+            echo "|---|---|---|"
+          } >> "$OUT"
+          for p in "" lockmachine.html privacidade.html termos.html app/ assets/img/env-room.png; do
+            c=$(codigo "$p")
+            [ "$c" = 200 ] && r="✅ $c" || { r="❌ $c"; falhou=1; }
+            echo "| /$p | 200 | $r |" >> "$OUT"
+          done
+          for p in api/config.local.php api/lib/bootstrap.php api/storage/ .ftp-deploy-sync-state.json database/schema.sql CLAUDE.md; do
+            c=$(codigo "$p")
+            [ "$c" != 200 ] && r="✅ $c" || { r="❌ $c (aberto!)"; falhou=1; }
+            echo "| /$p | bloqueado | $r |" >> "$OUT"
+          done
+          cab=$(curl -sI --max-time 25 "$SITE/" | tr -d '\r')
+          for h in Content-Security-Policy X-Content-Type-Options Strict-Transport-Security; do
+            echo "$cab" | grep -qi "^$h:" && r="✅ presente" || r="⚠️ ausente"
+            echo "| cabeçalho $h | presente | $r |" >> "$OUT"
+          done
+          api=$(curl -s --max-time 25 "$SITE/api/health.php" | head -c 400)
+          { echo ""; echo "API (\`/api/health.php\`): \`${api:-sem resposta}\`"; } >> "$OUT"
+          cat "$OUT"
+          exit $falhou
