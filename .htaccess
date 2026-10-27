@@ -19,6 +19,10 @@ AddType font/woff2 .woff2
 <FilesMatch "\.(sql|md|ino|ps1|sh|log)$">
   Require all denied
 </FilesMatch>
+# Controle da publicação automática (lista de arquivos enviados pelo GitHub)
+<Files ".ftp-deploy-sync-state.json">
+  Require all denied
+</Files>
 
 <IfModule mod_headers.c>
   Header always set X-Content-Type-Options "nosniff"

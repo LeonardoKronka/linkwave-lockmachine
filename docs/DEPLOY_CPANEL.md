@@ -24,6 +24,18 @@ O arquivo pronto para enviar é **`deploy/linkwave-site.zip`**.
 
 ---
 
+## 0. Entrar no cPanel
+
+- **Endereço**: o link que o professor mandou. Costuma ser `https://SEU-DOMINIO:2083` ou `https://SEU-DOMINIO/cpanel`.
+- **Usuário e senha**: vêm na mensagem do professor ou num e-mail com assunto parecido com
+  "Informações da nova conta" / "New Account Information".
+- **Esqueceu a senha?**
+  1. Procure no gerenciador de senhas do navegador (no Chrome: `chrome://password-manager`, busque pelo domínio ou por "cpanel").
+  2. Na tela de login do cPanel, use **Reset Password** (Redefinir senha), se a hospedagem tiver: o link chega no
+     e-mail de contato da conta.
+  3. Peça ao professor para redefinir: ele administra as contas e faz isso em um minuto.
+- Guarde a senha nova num gerenciador de senhas. Ela não vai para o repositório nem para o código.
+
 ## 1. Criar o banco de dados
 
 1. No cPanel, abra **MySQL® Databases** (Bancos de dados MySQL).
@@ -49,6 +61,11 @@ Para começar com o banco vazio, abra o `seed.sql`, apague tudo depois do bloco 
 LinkWave nos dois arquivos (procure por `e-mail da equipe`) e refaça o zip com `deploy/gerar-zip.ps1`.
 
 ## 3. Enviar os arquivos
+
+**Recomendado: publicação automática.** Configure a seção [Atualização automática](#atualização-automática-github)
+no fim deste guia: o primeiro envio já manda o site inteiro. Depois volte para o passo 4.
+
+Sem a publicação automática, envie o zip:
 
 1. No cPanel, abra **File Manager** (Gerenciador de arquivos).
 2. Entre na pasta do domínio do grupo (normalmente `public_html`, ou a pasta do subdomínio que o professor criou).
@@ -179,8 +196,48 @@ crie o banco `lockmachine` e rode `schema.sql` e `seed.sql`. Lembre que essa có
 
 ---
 
-## Atualizar depois
+## Atualização automática (GitHub)
 
-- Envie só os arquivos que mudaram, por cima dos antigos.
+A cada `git push` na `main`, o GitHub envia para o cPanel só os arquivos do site que mudaram
+(`.github/workflows/publicar-cpanel.yml`). Leva cerca de um minuto e você não precisa abrir o painel.
+
+**Configurar (uma vez só):**
+
+1. No cPanel, abra **FTP Accounts** (Contas FTP) e crie uma conta só para o site:
+   - **Log In**: `deploy`;
+   - **Password**: use o gerador do cPanel e guarde a senha;
+   - **Directory**: a pasta do site (`public_html`, ou a pasta do subdomínio que o professor criou).
+     Apague o que o cPanel sugerir e escreva só o nome da pasta.
+   - Conta separada de propósito: se um dia vazar, ela só alcança a pasta do site, não o e-mail nem o banco.
+2. Na lista de contas, clique em **Configure FTP Client** na conta nova e anote o **FTP Username**
+   (algo como `deploy@seudominio.com.br`) e o **FTP Server** (algo como `ftp.seudominio.com.br`).
+3. No GitHub, abra o repositório > **Settings** > **Secrets and variables** > **Actions**:
+   - aba **Variables** > **New repository variable**: `FTP_SERVIDOR` com o FTP Server e `FTP_USUARIO` com o FTP Username;
+   - aba **Secrets** > **New repository secret**: `FTP_SENHA` com a senha da conta FTP.
+     O GitHub guarda o segredo cifrado e não mostra de novo, nem para você.
+4. Aba **Actions** > **Publicar no cPanel** > **Run workflow**. O primeiro envio manda tudo (alguns minutos);
+   o círculo fica verde quando termina.
+
+**Depois disso:** commit + push na `main` = site atualizado. Mudanças só em `docs/`, `database/`, `firmware/`,
+`deploy/` ou em arquivos `.md` não disparam o envio.
+
+**Nunca é enviado nem apagado no servidor:** `api/config.local.php`, as sessões e contadores da API,
+`docs/`, `database/`, `firmware/`, `deploy/`, `video/` e o APK de `downloads/` (esse você sobe à mão).
+
+**O banco não muda com o push.** Se o `schema.sql` ganhar uma tabela ou coluna nova, rode no phpMyAdmin
+(aba **SQL**) só o comando que cria a novidade, sem apagar os dados.
+
+| Problema na aba Actions | O que fazer |
+|---|---|
+| `530 Login authentication failed` | Usuário ou senha da conta FTP errados (`FTP_USUARIO` / `FTP_SENHA`) |
+| Erro de TLS ou de conexão segura | A hospedagem não tem FTPS: crie a variável `FTP_PROTOCOLO` com o valor `ftp` (envio sem criptografia; use só se não houver outro jeito) |
+| Arquivos foram para a pasta errada | A conta FTP abre em outra pasta: crie a variável `FTP_PASTA` com o caminho até a pasta do site, terminando em `/` (ex.: `public_html/`) |
+| O job aparece cinza, "skipped" | Falta a variável `FTP_SERVIDOR` |
+
+Para desfazer uma atualização: reverta o commit (`git revert`) e faça push; o envio seguinte volta os arquivos.
+
+## Atualizar sem o GitHub
+
+- Envie só os arquivos que mudaram, por cima dos antigos (ou o zip novo, extraído por cima).
 - **Nunca** sobrescreva `api/config.local.php`.
 - Para zerar os dados de demonstração: importe `schema.sql` (apaga tudo) e depois `seed.sql`.

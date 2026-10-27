@@ -1,0 +1,61 @@
+# Publica o site no cPanel a cada push na main: envia por FTPS só o que mudou desde o último envio.
+# Configuração (uma vez só), no GitHub: Settings > Secrets and variables > Actions
+#   Variables: FTP_SERVIDOR (ex.: ftp.seudominio.com.br), FTP_USUARIO (a conta FTP criada para o site)
+#              FTP_PASTA (opcional; "./" quando a conta FTP já abre na pasta do site)
+#   Secrets:   FTP_SENHA
+# Passo a passo e solução de problemas: docs/DEPLOY_CPANEL.md, seção "Atualização automática".
+name: Publicar no cPanel
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'docs/**'
+      - 'database/**'
+      - 'firmware/**'
+      - 'deploy/**'
+      - '.impeccable/**'
+      - '**.md'
+  workflow_dispatch: # botão "Run workflow" na aba Actions, para publicar de novo na mão
+
+concurrency:
+  group: publicar-cpanel
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    # sem o servidor configurado, o push não falha: só não publica
+    if: ${{ vars.FTP_SERVIDOR != '' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - name: Baixar o código
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Enviar para o cPanel
+        uses: SamKirkland/FTP-Deploy-Action@110f9186c050f71550953127052e77650219c287 # v4.4.0
+        with:
+          server: ${{ vars.FTP_SERVIDOR }}
+          username: ${{ vars.FTP_USUARIO }}
+          password: ${{ secrets.FTP_SENHA }}
+          protocol: ${{ vars.FTP_PROTOCOLO || 'ftps' }}
+          server-dir: ${{ vars.FTP_PASTA || './' }}
+          # O que fica só no repositório (e o que o servidor cria sozinho) nunca é enviado nem apagado lá.
+          exclude: |
+            **/.git*
+            **/.git*/**
+            .github/**
+            docs/**
+            database/**
+            firmware/**
+            deploy/**
+            video/**
+            .impeccable/**
+            .claude/**
+            *.md
+            api/config.local.php
+            api/storage/sessoes/**
+            api/storage/limites/**
+            downloads/*.apk

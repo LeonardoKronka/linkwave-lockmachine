@@ -21,6 +21,7 @@ da equipe LinkWave (TCC do Técnico em Desenvolvimento de Sistemas, SENAI Mococa
 | `firmware/` | Sketch do ESP32 + MFRC522 (Arduino IDE) |
 | `docs/DEPLOY_CPANEL.md` | Guia de publicação no cPanel, APK, Workbench e leitora |
 | `deploy/` | `linkwave-site.zip` pronto para o cPanel e `gerar-zip.ps1` para refazer o zip |
+| `.github/workflows/` | `publicar-cpanel.yml`: publica o site no cPanel a cada push na `main` |
 
 ## Situação em 25/10/2026
 
@@ -39,7 +40,10 @@ Regras visuais detalhadas: `DESIGN.md` (leia antes de mexer no visual). Uma sess
 Falta:
 0. Trocar `[e-mail da equipe]` em `privacidade.html` e `termos.html` pelo e-mail real da LinkWave.
 1. **Publicar no cPanel do professor**: é o próximo passo. Siga `docs/DEPLOY_CPANEL.md` junto com o usuário,
-   um passo de cada vez, pedindo para ele contar o que aparece na tela.
+   um passo de cada vez, pedindo para ele contar o que aparece na tela. Em 26/10 ele não lembrava a senha do cPanel
+   (seção 0 do guia) e escolheu a publicação automática: `.github/workflows/publicar-cpanel.yml` envia por FTPS a cada
+   push na `main`, depois que as variáveis `FTP_SERVIDOR`/`FTP_USUARIO` e o segredo `FTP_SENHA` existirem no GitHub.
+   Senhas e credenciais quem digita é sempre o usuário (no cPanel e no GitHub), nunca o Claude.
 2. **Gerar o APK** no PWABuilder depois do deploy (precisa de HTTPS) e subir `downloads/lockmachine.apk`
    e `.well-known/assetlinks.json`. O botão de download do site se ativa sozinho quando o APK existe.
 3. Compilar e testar o firmware (não foi compilado: a máquina original não tinha Arduino IDE).
