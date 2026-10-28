@@ -39,7 +39,13 @@ Regras visuais detalhadas: `DESIGN.md` (leia antes de mexer no visual). Uma sess
 
 Falta:
 0. Trocar `[e-mail da equipe]` em `privacidade.html` e `termos.html` pelo e-mail real da LinkWave.
-1. **Publicar no cPanel do professor**: é o próximo passo. Siga `docs/DEPLOY_CPANEL.md` junto com o usuário,
+1. **Publicar no cPanel do professor**: em 28/10 o zip foi enviado e extraído em `public_html` de
+   https://somoslinkwave.com.br (site, `/app/` e bloqueio dos arquivos internos conferidos; `api/health.php` responde
+   `NAO_CONFIGURADO`). Falta: criar o banco no Database Wizard (o nome do usuário pode ser outro além de `lmapp`),
+   importar `schema.sql` e `seed.sql` no phpMyAdmin, criar `api/config.local.php`, ativar o redirecionamento para HTTPS
+   (o `http://` ainda abre sem redirecionar) e trocar a senha do `admin`. As pastas extraídas ficaram com permissão 0777
+   e os arquivos 0666: o certo é 0755 e 0644. A apresentação de andamento (30/10) está em `docs/apresentacao/`.
+   Era o próximo passo. Siga `docs/DEPLOY_CPANEL.md` junto com o usuário,
    um passo de cada vez, pedindo para ele contar o que aparece na tela. Em 26/10 ele não lembrava a senha do cPanel
    (seção 0 do guia): recupera com o professor na aula de quarta, 28/10, e volta com endereço e senha. Ele escolheu a
    publicação automática: `.github/workflows/publicar-cpanel.yml` envia por FTPS a cada push na `main`, depois que as
