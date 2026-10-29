@@ -127,9 +127,32 @@ return [
 1. **MultiPHP Manager** (ou **Select PHP Version**): escolha **PHP 8.1 ou mais novo** para o domínio.
    A API funciona do 7.4 ao 8.4 e precisa das extensões `pdo_mysql` e `mbstring` (normalmente já vêm ativas).
 2. **SSL/TLS Status**: confira se o domínio tem certificado (cadeado verde). Se não tiver, clique em **Run AutoSSL**.
-3. **Domains**: ative **Force HTTPS Redirect** para o domínio.
+3. O redirecionamento de `http://` para `https://` já vem no `.htaccess` da raiz. Na conta da HostGator (29/10), a chave
+   **Force HTTPS Redirect** de **Domínios** fica desativada, por isso ele foi para o `.htaccess`. Confira abrindo
+   `http://SEU-DOMINIO`: o navegador deve trocar sozinho para `https://`.
 
 O app e o APK **precisam de HTTPS** para instalar e manter o login.
+
+### Permissões depois de extrair o zip
+
+O zip é feito no Windows e chega com permissões abertas demais (pastas 0777, arquivos 0666). Depois de extrair, o certo
+é: pastas 755, arquivos 644, `api/storage/sessoes` e `api/storage/limites` 700 e `api/config.local.php` 600.
+Se o cPanel não tiver **Terminal**, use uma **Tarefa Cron** de uso único:
+
+1. Search Tools > **Tarefas Cron** > **Configurações comuns**: **Uma vez por minuto (\* \* \* \* \*)**.
+2. Em **Comando**, cole a linha abaixo (se a pasta da conta não for `/home2/somoslinkwavecom`, troque nos dois lugares)
+   e clique em **Adicionar nova tarefa cron**:
+
+```bash
+cd /home2/somoslinkwavecom/public_html && { find . -path ./api/storage -prune -o -type d -exec chmod 755 {} + ; find . -path ./api/storage -prune -o -type f -exec chmod 644 {} + ; chmod 755 api/storage ; chmod 644 api/storage/.htaccess ; chmod 700 api/storage/sessoes api/storage/limites ; [ -O api/storage/sessoes ] && chmod 600 api/config.local.php ; ls -ld . api api/storage api/storage/* api/config.local.php ; } > /home2/somoslinkwavecom/permissoes.txt 2>&1
+```
+
+3. Espere 2 minutos e abra `permissoes.txt` na pasta principal (a casinha do Gerenciador de arquivos): deve mostrar
+   `drwxr-xr-x` nas pastas, `drwx------` em `limites`/`sessoes` e `-rw-------` no `config.local.php`.
+4. **Exclua a tarefa** em **Tarefas cron atuais**: ela não pode ficar rodando.
+
+O `[ -O ... ]` só fecha o `config.local.php` em 600 quando o PHP roda com a própria conta (é o caso da HostGator);
+se o PHP rodasse como outro usuário, 600 derrubaria a API.
 
 ## 6. Testar
 

@@ -39,20 +39,21 @@ Regras visuais detalhadas: `DESIGN.md` (leia antes de mexer no visual). Uma sess
 
 Falta:
 0. Trocar `[e-mail da equipe]` em `privacidade.html` e `termos.html` pelo e-mail real da LinkWave.
-1. **Publicar no cPanel do professor**: em 28/10 o zip foi enviado e extraído em `public_html` de
-   https://somoslinkwave.com.br (site, `/app/` e bloqueio dos arquivos internos conferidos; `api/health.php` responde
-   `NAO_CONFIGURADO`). Falta: criar o banco no Database Wizard (o nome do usuário pode ser outro além de `lmapp`),
-   importar `schema.sql` e `seed.sql` no phpMyAdmin, criar `api/config.local.php`, ativar o redirecionamento para HTTPS
-   (o `http://` ainda abre sem redirecionar) e trocar a senha do `admin`. As pastas extraídas ficaram com permissão 0777
-   e os arquivos 0666: o certo é 0755 e 0644. A apresentação de andamento (30/10) está em `docs/apresentacao/`.
-   Era o próximo passo. Siga `docs/DEPLOY_CPANEL.md` junto com o usuário,
-   um passo de cada vez, pedindo para ele contar o que aparece na tela. Em 26/10 ele não lembrava a senha do cPanel
-   (seção 0 do guia): recupera com o professor na aula de quarta, 28/10, e volta com endereço e senha. Ele escolheu a
-   publicação automática: `.github/workflows/publicar-cpanel.yml` envia por FTPS a cada push na `main`, depois que as
-   variáveis `FTP_SERVIDOR`/`FTP_USUARIO`/`SITE_URL` e o segredo `FTP_SENHA` existirem no GitHub. O roteiro do dia está
-   no topo de `docs/DEPLOY_CPANEL.md`; depois de cada envio, confira o resumo com `gh run view`.
-   Senhas e credenciais quem digita é sempre o usuário (no cPanel e no GitHub), nunca o Claude.
-2. **Gerar o APK** no PWABuilder depois do deploy (precisa de HTTPS) e subir `downloads/lockmachine.apk`
+1. **Publicação automática**. O site está no ar desde 28–29/10 em https://somoslinkwave.com.br (HostGator, cPanel 134,
+   pasta `/home2/somoslinkwavecom/public_html`): zip extraído; banco `somoslin_lockmachine` com o usuário
+   `somoslin_lmapp`; `schema.sql` e `seed.sql` importados; `api/config.local.php` criado no servidor (permissão 600);
+   `api/health.php` responde "Tudo pronto"; senha do `admin` trocada. Essa conta não tem Terminal e a chave
+   "Force HTTPS Redirect" fica desativada: o redirecionamento para HTTPS está no `.htaccess`, e as permissões (pastas
+   755, arquivos 644, `api/storage/*` 700) foram corrigidas por uma Tarefa Cron de uso único (comando em
+   `docs/DEPLOY_CPANEL.md`, seção 5). O zip de `deploy/` sai do `tar.exe` do Windows com permissões 0666/0777:
+   depois de extrair um zip no servidor, rode essa correção de novo.
+   Falta a atualização automática: conta FTP do site e, no GitHub, as variáveis `FTP_SERVIDOR`/`FTP_USUARIO`/`SITE_URL`
+   e o segredo `FTP_SENHA` (seção "Atualização automática" do guia); `.github/workflows/publicar-cpanel.yml` já está
+   pronto e só publica quando elas existem. Até lá, atualizações vão pelo zip. Depois de cada envio automático,
+   confira o resumo com `gh run view`. Guie o usuário um passo de cada vez, dizendo como chegar em cada tela, e peça
+   print do que aparece. Senhas e credenciais quem digita é sempre o usuário (no cPanel e no GitHub), nunca o Claude.
+   A apresentação de andamento (30/10) está em `docs/apresentacao/`.
+2. **Gerar o APK** no PWABuilder (o HTTPS já funciona) e subir `downloads/lockmachine.apk`
    e `.well-known/assetlinks.json`. O botão de download do site se ativa sozinho quando o APK existe.
 3. Compilar e testar o firmware (não foi compilado: a máquina original não tinha Arduino IDE).
 4. Fotos e contatos dos integrantes: o usuário vai enviar. Hoje os crachás mostram iniciais.

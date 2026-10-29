@@ -2,13 +2,14 @@
 Options -Indexes
 DirectoryIndex index.html index.php
 
-# Para obrigar HTTPS, prefira o botão "Force HTTPS Redirect" em cPanel > Domains.
-# Se não existir, tire o # das 4 linhas abaixo DEPOIS que https:// já estiver funcionando.
-# <IfModule mod_rewrite.c>
-#   RewriteEngine On
-#   RewriteCond %{HTTPS} !=on
-#   RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
-# </IfModule>
+# Todo acesso por http:// vai para https:// (a chave "Force HTTPS Redirect" do cPanel
+# não fica disponível nesta conta). Se o site trocar de hospedagem, só mantenha estas
+# linhas depois que https:// já estiver funcionando lá.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{HTTPS} !=on
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+</IfModule>
 
 # Tipos de arquivo usados pelo app e pelo download do APK
 AddType application/manifest+json .webmanifest
