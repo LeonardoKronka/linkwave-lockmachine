@@ -132,7 +132,7 @@ QUEM FALA: João Victor. Tempo: 40 s (se o tempo apertar, resuma em uma frase).
 
 QUEM FALA: Evelyn narra e Leonardo opera o app. Tempo: 3 min.
 
-ANTES DE SEXTA: deixem o app aberto já logado como administrador (no cPanel, se já estiver publicado, ou no notebook com "php -S localhost:8080"). Testem a demo inteira pelo menos duas vezes.
+ANTES DE SEXTA: deixem o app aberto já logado como administrador no site publicado (https://somoslinkwave.com.br/app/). Testem a demo inteira pelo menos duas vezes.
 
 Roteiro (entrada → processamento → resultado):
 1. Mostre o Painel: tentativas do dia, liberadas, bloqueadas, vencimentos e o status das máquinas (a torrezinha de cada uma).
@@ -152,7 +152,7 @@ QUEM FALA: Evelyn. Tempo: 1 min.
 - Início: o crachá digital e o resumo (quantas capacitações válidas, vencendo, vencidas, quantas máquinas liberadas).
 - Capacitações: cada treinamento com a data de validade e uma barra mostrando quanto falta para vencer.
 - Máquinas: em quais ele pode operar e, se não pode, por quê.
-- O app é um PWA: roda no navegador e, depois que o site estiver publicado com HTTPS, geramos o APK para Android pelo PWABuilder.
+- O app é um PWA: roda no navegador e, como o site já está publicado com HTTPS, o próximo passo é gerar o APK para Android pelo PWABuilder.
 - Se der tempo, mostrem ao vivo no celular (entrem com OP-1042).
 
 ## Slide 16 · 15 Testes e validação
@@ -169,7 +169,7 @@ QUEM FALA: Gabriel. Tempo: 1 min.
 QUEM FALA: Cauê. Tempo: 50 s.
 
 - Resumo do andamento: dos 9 módulos, 6 estão implementados e funcionando juntos: site, simulador, banco, API, app do administrador e app do funcionário.
-- Dois estão em preparação: o APK (depende de publicar o site com HTTPS) e a leitora (o firmware está escrito, falta montar a bancada e testar).
+- Dois estão em preparação: o APK (o site já está publicado com HTTPS; falta gerar) e a leitora (o firmware está escrito, falta montar a bancada e testar).
 - Um está pendente: os testes formais com evidências.
 - Evidências que já dá para mostrar: o site e o app funcionando (a demo que vocês viram) e o código no GitHub.
 
@@ -177,9 +177,9 @@ QUEM FALA: Cauê. Tempo: 50 s.
 
 QUEM FALA: Evelyn. Tempo: 1 min.
 
-- O que falta: montar e testar a bancada (o firmware está escrito, mas ainda não foi compilado), gerar o APK (precisa do site publicado com HTTPS), os testes formais e a validação com usuários.
+- O que falta: montar e testar a bancada (o firmware está escrito, mas ainda não foi compilado), gerar o APK (o site já está publicado com HTTPS), os testes formais e a validação com usuários.
 - Limites do protótipo, sem medo de falar: é apoio administrativo, não certifica segurança, não substitui NR-12, proteções físicas nem intertravamentos, e o relé é de bancada, não liga numa máquina de verdade.
-- Próximas etapas, em ordem: publicar no cPanel da escola (estamos nisso agora, com o professor), gerar o APK, montar a bancada, executar os testes, registrar as evidências e fechar a documentação para a banca.
+- Próximas etapas: a publicação já foi feita (o site está no ar em somoslinkwave.com.br). Agora, em ordem: gerar o APK, montar a bancada, executar os testes, registrar as evidências e fechar a documentação para a banca.
 
 ## Slide 19 · 18 Considerações finais
 

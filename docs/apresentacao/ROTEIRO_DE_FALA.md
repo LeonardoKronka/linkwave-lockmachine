@@ -29,7 +29,7 @@ QUEM FALA: Leonardo. Tempo: 50 s.
 - O operador aproxima o crachá, o sistema confere cadastro, máquina e validade dos treinamentos, e libera ou bloqueia.
 - Toda tentativa fica no histórico, com o motivo.
 
-## Slide 3 · 02 · 03 Problema e justificativa
+## Slide 3 · 02 Problema e justificativa
 
 QUEM FALA: Gabriel. Tempo: 50 s.
 
@@ -38,7 +38,7 @@ QUEM FALA: Gabriel. Tempo: 50 s.
 - Deixe claro: é apoio administrativo, não substitui NR-12 nem proteções físicas.
 - Se perguntarem: esse cenário ainda vai ser confirmado com entrevistas (o roteiro está pronto).
 
-## Slide 4 · 04 Objetivos
+## Slide 4 · 03 Objetivos
 
 QUEM FALA: Evelyn. Tempo: 40 s.
 
@@ -46,7 +46,7 @@ QUEM FALA: Evelyn. Tempo: 40 s.
 - Os específicos já mostram o andamento: banco e regra prontos; o app está pronto na web e falta gerar o APK; a leitora tem o programa escrito e falta montar; os testes formais são a próxima etapa.
 - ANTES DE SEXTA: confiram se o objetivo geral está igual ao do documento do TCC.
 
-## Slide 5 · 05 Público-alvo e requisitos
+## Slide 5 · 04 Público-alvo e requisitos
 
 QUEM FALA: Evelyn. Tempo: 40 s.
 
@@ -54,7 +54,7 @@ QUEM FALA: Evelyn. Tempo: 40 s.
 - Levantamos 12 requisitos funcionais e 7 não funcionais, cada um com um critério de aceitação para conferir no teste.
 - Essenciais: login por perfil, capacitações com validade, liberação pelo cartão e histórico.
 
-## Slide 6 · 06 · 07 Metodologia e tecnologias
+## Slide 6 · 05 Metodologia e tecnologias
 
 QUEM FALA: Cauê. Tempo: 50 s.
 
@@ -63,7 +63,7 @@ QUEM FALA: Cauê. Tempo: 50 s.
 - Tecnologias: site e app em HTML, CSS e JavaScript; servidor em PHP; banco MySQL; leitora com ESP32 e RFID.
 - Escolhemos assim porque tudo roda na hospedagem da escola (cPanel). (Se usaram Trello ou outro quadro, citem aqui.)
 
-## Slide 7 · 08 · 09 Como a solução funciona
+## Slide 7 · 06 Como a solução funciona
 
 QUEM FALA: João Victor. Tempo: 50 s.
 
@@ -73,22 +73,22 @@ QUEM FALA: João Victor. Tempo: 50 s.
 - Regra de ouro: na dúvida, bloqueia. Se cair a rede ou o servidor, a máquina não libera.
 - Tudo fica registrado no banco, com o motivo. Na demonstração mostramos isso funcionando.
 
-## Slide 8 · 11 · 12 Testes e resultados
+## Slide 8 · 07 Testes e resultados
 
 QUEM FALA: Cauê. Tempo: 40 s.
 
 - De 9 módulos, 6 estão prontos e funcionando juntos: site, simulador, banco, servidor e os dois apps.
-- Em preparação: o APK (depende de publicar o site) e a leitora (o programa está escrito, falta montar).
+- Em preparação: o APK (o site já está publicado com HTTPS, então já dá para gerar) e a leitora (o programa está escrito, falta montar).
 - Testes: testamos durante o desenvolvimento; os testes formais, com evidências, são a próxima etapa. Por isso ainda é um MVP em desenvolvimento.
 
-## Slide 9 · 13 Limitações e próximos passos
+## Slide 9 · 08 Limitações e próximos passos
 
 QUEM FALA: Gabriel. Tempo: 40 s.
 
-- Próximos passos, em ordem: publicar no servidor da escola (estamos fazendo agora com o professor), gerar o APK, montar a bancada da leitora, executar os testes, registrar as evidências e preparar a apresentação final.
+- O primeiro passo já foi feito: o site e o app estão no ar em somoslinkwave.com.br, com HTTPS. Agora, em ordem: gerar o APK, montar a bancada da leitora, executar os testes, registrar as evidências e preparar a apresentação final.
 - Limites, sem medo de falar: é apoio administrativo, não substitui NR-12 nem proteções físicas, e a leitora é de bancada, não liga numa máquina real.
 
-## Slide 10 · 14 Considerações finais
+## Slide 10 · 09 Considerações finais
 
 QUEM FALA: João Victor. Tempo: 30 s.
 
@@ -105,11 +105,11 @@ Divisão sugerida da demonstração:
 - App do administrador (Leonardo opera; Cauê explica a regra e João mostra o banco/histórico): painel, cadastro de um funcionário com capacitação, "Simular leitura" e o resultado no histórico com o motivo.
 - App do funcionário (Evelyn, no celular): entrar com a matrícula, capacitações com validade e máquinas liberadas.
 
-ANTES DE SEXTA: deixem tudo aberto e logado (no cPanel, se já estiver publicado, ou no notebook com "php -S localhost:8080"). Treinem a demonstração inteira pelo menos duas vezes.
+ANTES DE SEXTA: deixem tudo aberto e logado no site publicado (https://somoslinkwave.com.br e https://somoslinkwave.com.br/app/). Treinem a demonstração inteira pelo menos duas vezes.
 Plano B: se a rede ou o servidor falharem, usem os prints da versão completa da apresentação (pasta completa).
 Depois da demonstração, voltem para o último slide (Obrigado / Perguntas).
 
-## Slide 12 · Encerramento e 15 Referências
+## Slide 12 · Encerramento e referências
 
 QUEM FALA: Leonardo agradece; todos respondem às perguntas. Tempo: 20 s.
 
