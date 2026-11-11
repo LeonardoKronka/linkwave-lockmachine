@@ -1,0 +1,509 @@
+<title>Ligações da leitora LockMachine</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100,500;100,700;106,800&family=Martian+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  /* Folha de bancada: o diagrama do protoboard ocupa o centro, os passos de montagem ficam ao lado
+     (embaixo no celular) e a tabela de pinos fecha a página como referência rápida. */
+  :root {
+    --bg: #F4F5F8;
+    --panel: #FFFFFF;
+    --panel-2: #EEF0F5;
+    --fg: #14171F;
+    --muted: #5B6273;
+    --line: rgba(20, 23, 31, .12);
+    --accent: #FF3D2E;
+    --accent-ink: #FFFFFF;
+    --cobalt: #2F45FF;
+    --ok: #12A464;
+    --warn: #B7791F;
+    --shadow: 0 1px 2px rgba(20, 23, 31, .06), 0 8px 24px rgba(20, 23, 31, .06);
+    /* bancada do diagrama: igual nos dois temas, como uma foto da mesa */
+    --mesa: #D7DCE5;
+    --display: "Archivo", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --mono: "Martian Mono", ui-monospace, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #06070A; --panel: #0F1219; --panel-2: #151923; --fg: #ECEEF4; --muted: #A6ACC0;
+      --line: rgba(230, 234, 245, .12); --accent: #FF5A4D; --accent-ink: #1C0503; --cobalt: #7D8BFF;
+      --ok: #22D07B; --warn: #FFD23F; --shadow: none; color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #06070A; --panel: #0F1219; --panel-2: #151923; --fg: #ECEEF4; --muted: #A6ACC0;
+    --line: rgba(230, 234, 245, .12); --accent: #FF5A4D; --accent-ink: #1C0503; --cobalt: #7D8BFF;
+    --ok: #22D07B; --warn: #FFD23F; --shadow: none; color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--display);
+    font-size: 15px;
+    line-height: 1.5;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 24px 40px;
+  }
+  .pagina { max-width: 1360px; margin: 0 auto; display: grid; gap: 18px; }
+  header { display: flex; gap: 14px; align-items: center; }
+  .marca { width: 42px; height: 42px; flex: none; }
+  h1 {
+    margin: 0; font-weight: 800; font-stretch: 106%; letter-spacing: -.02em; line-height: 1.05;
+    font-size: clamp(1.5rem, 1.1rem + 1.5vw, 2.15rem); text-wrap: balance;
+  }
+  .sub { margin: 4px 0 0; color: var(--muted); max-width: 80ch; }
+  h2 { margin: 0 0 10px; font-size: 1.05rem; font-weight: 800; font-stretch: 104%; text-wrap: balance; }
+  .cartao { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 16px 18px; box-shadow: var(--shadow); min-width: 0; }
+  .grade { display: grid; grid-template-columns: minmax(0, 1fr) minmax(300px, 380px); gap: 18px; align-items: start; }
+  @media (max-width: 1060px) { .grade { grid-template-columns: 1fr; } }
+
+  .diagrama { padding: 0; overflow: hidden; }
+  .diagrama .topo-diag { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; padding: 14px 18px 10px; }
+  .diagrama .topo-diag p { margin: 0; color: var(--muted); font-size: 13.5px; max-width: 70ch; }
+  .rolagem { overflow-x: auto; background: var(--mesa); border-top: 1px solid var(--line); }
+  .rolagem svg { display: block; width: 100%; min-width: 860px; height: auto; }
+  .botao {
+    font: 700 13px var(--display); color: var(--fg); background: var(--panel-2); border: 1px solid var(--line);
+    border-radius: 999px; padding: 7px 14px; cursor: pointer;
+  }
+  .botao:hover { border-color: var(--muted); }
+  button:focus-visible, input:focus-visible { outline: 2px solid var(--cobalt); outline-offset: 2px; }
+
+  /* Passos */
+  .passos { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+  .passo { border: 1px solid var(--line); border-radius: 14px; background: var(--panel); }
+  .passo[aria-current="true"] { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+  .passo > button {
+    all: unset; box-sizing: border-box; width: 100%; cursor: pointer; display: grid; grid-template-columns: 26px 1fr auto;
+    gap: 10px; align-items: center; padding: 10px 12px; border-radius: 14px;
+  }
+  .passo > button:focus-visible { outline: 2px solid var(--cobalt); outline-offset: 2px; }
+  .num {
+    width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font: 600 12px var(--mono);
+    background: var(--panel-2); color: var(--fg);
+  }
+  .passo[aria-current="true"] .num { background: var(--accent); color: var(--accent-ink); }
+  .passo.feito .num { background: var(--ok); color: #fff; }
+  .titulo-passo { font-weight: 700; }
+  .conta { font: 12px var(--mono); color: var(--muted); white-space: nowrap; }
+  .fios-passo { list-style: none; margin: 0; padding: 0 12px 12px 48px; display: grid; gap: 6px; }
+  .fios-passo[hidden] { display: none; }
+  .fios-passo label { display: grid; grid-template-columns: 16px 14px 1fr; gap: 8px; align-items: start; cursor: pointer; font-size: 13.5px; }
+  .fios-passo input { margin: 3px 0 0; accent-color: var(--ok); }
+  .amostra { width: 14px; height: 6px; border-radius: 3px; margin-top: 7px; box-shadow: 0 0 0 1px rgba(0, 0, 0, .25); }
+  .fios-passo .de { font-weight: 700; }
+  .fios-passo .para { color: var(--muted); }
+  .fios-passo input:checked ~ span .de { text-decoration: line-through; text-decoration-color: var(--muted); }
+  .dica-passo { margin: 0 12px 12px 48px; padding: 8px 10px; border-radius: 10px; background: var(--panel-2); color: var(--muted); font-size: 13px; }
+
+  /* Tabela de pinos */
+  .tabela { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; min-width: 640px; font-size: 14px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font: 600 11px var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+  td.pino { font: 600 13px var(--mono); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  td .fio-cor { display: inline-block; width: 18px; height: 6px; border-radius: 3px; vertical-align: middle; margin-right: 8px; box-shadow: 0 0 0 1px rgba(0, 0, 0, .25); }
+  .local { display: inline-block; font: 600 11px var(--mono); letter-spacing: .04em; padding: 2px 8px; border-radius: 999px; background: var(--panel-2); color: var(--muted); white-space: nowrap; }
+
+  .cuidados { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+  .cuidado { border-left: 3px solid var(--warn); padding: 4px 0 4px 12px; }
+  .cuidado strong { display: block; margin-bottom: 2px; }
+  .cuidado p { margin: 0; color: var(--muted); font-size: 14px; }
+  .rodape { color: var(--muted); font-size: 13px; margin: 0; }
+  code { font-family: var(--mono); font-size: .88em; }
+
+  /* SVG: cores físicas fixas (a bancada é igual nos dois temas) */
+  svg text { font-family: var(--mono); }
+  .fio { transition: opacity .2s; }
+  .apagado { opacity: .12; }
+  @media (prefers-reduced-motion: reduce) { .fio { transition: none; } }
+</style>
+
+<div class="pagina">
+  <header>
+    <svg class="marca" viewBox="0 0 48 48" aria-hidden="true">
+      <rect x="1.5" y="1.5" width="45" height="45" rx="13" fill="#FF3D2E" stroke="#11131F" stroke-width="3"/>
+      <path d="M17 22v-4.5a7 7 0 0 1 14 0V22" fill="none" stroke="#11131F" stroke-width="3.2" stroke-linecap="round"/>
+      <rect x="12" y="21" width="24" height="17" rx="5" fill="#fff" stroke="#11131F" stroke-width="3"/>
+      <circle cx="24" cy="28.5" r="2.6" fill="#11131F"/><path d="M24 30v3.5" stroke="#11131F" stroke-width="2.6" stroke-linecap="round"/>
+    </svg>
+    <div>
+      <h1>Ligações da leitora LockMachine</h1>
+      <p class="sub">Montagem final: o ESP32 nos dois protoboards emendados, o leitor RFID, o servo do martelo e o módulo de 4 relés, que liga a torre de sinalização de 12 V. Pinos iguais aos do sketch <code>lockmachine_esp32.ino</code>.</p>
+    </div>
+  </header>
+
+  <div class="grade">
+    <section class="cartao diagrama" aria-labelledby="titulo-diagrama">
+      <div class="topo-diag">
+        <h2 id="titulo-diagrama" style="margin:0">Protoboard visto de cima</h2>
+        <button type="button" class="botao" id="mostrar-tudo">Mostrar tudo</button>
+        <p>Clique num passo para ver só os fios dele. A posição exata do furo pode mudar um pouco; o que vale é a <strong>fileira do pino</strong>: os 5 furos de uma fileira são ligados entre si por baixo.</p>
+      </div>
+      <div class="rolagem"><svg id="placa" viewBox="0 0 1040 820" role="img" aria-label="Diagrama do protoboard com o ESP32, o leitor RFID, o servo, o módulo de relés, a torre de sinalização e a fonte de 12 V"></svg></div>
+    </section>
+
+    <aside class="cartao" aria-labelledby="titulo-passos">
+      <h2 id="titulo-passos">Montagem passo a passo</h2>
+      <ol class="passos" id="passos"></ol>
+      <p class="rodape" style="margin-top:12px">As marcações ficam salvas só neste navegador.</p>
+    </aside>
+  </div>
+
+  <section class="cartao" aria-labelledby="titulo-tabela">
+    <h2 id="titulo-tabela">Pino por pino do ESP32</h2>
+    <div class="tabela"><table>
+      <thead><tr><th>ESP32</th><th>Vai para</th><th>Fio</th><th>Onde a peça fica na prensa</th></tr></thead>
+      <tbody id="tabela"></tbody>
+    </table></div>
+  </section>
+
+  <section class="cartao" aria-labelledby="titulo-cuidados">
+    <h2 id="titulo-cuidados">Antes de ligar o USB e a fonte</h2>
+    <div class="cuidados">
+      <div class="cuidado"><strong>12 V nunca no ESP32</strong><p>A fonte de 12 V só vai nos bornes dos relés (COM) e no fio preto da torre. Os pinos de 5 V e 3,3 V do protoboard continuam vindo do USB.</p></div>
+      <div class="cuidado"><strong>Leitor só no 3V3</strong><p>O MFRC522 funciona com 3,3 V. Ligado no 5 V (VIN), ele pode queimar.</p></div>
+      <div class="cuidado"><strong>Fio preto é o comum</strong><p>Na torre HDL-T50L-3C-J o preto é o comum (−). Cada cor acende quando recebe os +12 V pelo relé.</p></div>
+      <div class="cuidado"><strong>Relé que liga com LOW</strong><p>A maioria dos módulos liga o relé com o pino em LOW (o sketch já vem assim). Se a torre ficar ao contrário, mude <code>SAIDAS_ATIVAS_EM_ALTO</code> para <code>true</code>.</p></div>
+      <div class="cuidado"><strong>O buzzer da torre é alto</strong><p>Para testar na sala, mude <code>BUZZER_LIGADO</code> para <code>false</code>, ou deixe o fio roxo desligado.</p></div>
+      <div class="cuidado"><strong>Capacitor tem lado</strong><p>A faixa clara com sinais de menos fica no trilho azul (−). Ele segura o pico de corrente do servo.</p></div>
+    </div>
+  </section>
+
+  <p class="rodape">Baseado nas fotos do kit e da torre: ESP32 DevKit de 30 pinos, protoboard grande + pequeno emendados, leitor RFID-RC522, servo SG90, módulo de 4 relés de 5 V e torre HDL-T50L-3C-J (12/24 V DC, com buzzer). A fonte de 12 V entra pelo conector da caixa de comando.</p>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  const NS = 'http://www.w3.org/2000/svg';
+  const svg = document.getElementById('placa');
+  const P = 12;                                   // passo entre furos no desenho (2,54 mm de verdade)
+  const yLinha = (r) => 80 + (r - 1) * P;
+
+  // Colunas dos protoboards (x de cada furo)
+  const PEQ = { 'L+': 170, 'L-': 182 };
+  'abcde'.split('').forEach((c, i) => { PEQ[c] = 206 + i * P; });
+  'fghij'.split('').forEach((c, i) => { PEQ[c] = 290 + i * P; });
+  const GRD = { 'E+': 392, 'E-': 404, 'D-': 614, 'D+': 626 };
+  'abcde'.split('').forEach((c, i) => { GRD[c] = 458 + i * P; });
+  'fghij'.split('').forEach((c, i) => { GRD[c] = 542 + i * P; });
+
+  // Pinos do ESP32 (USB em cima). Esquerda na coluna j do protoboard pequeno, direita na coluna a do grande.
+  const ESQ = ['3V3', 'GND', 'D15', 'D2', 'D4', 'RX2', 'TX2', 'D5', 'D18', 'D19', 'D21', 'RX0', 'TX0', 'D22', 'D23'];
+  const DIR = ['VIN', 'GND', 'D13', 'D12', 'D14', 'D27', 'D26', 'D25', 'D33', 'D32', 'D35', 'D34', 'VN', 'VP', 'EN'];
+  const yE = (n) => yLinha(ESQ.indexOf(n) + 2);
+  const yD = (n) => yLinha(DIR.indexOf(n) + 2);
+
+  function el(nome, atributos, pai) {
+    const e = document.createElementNS(NS, nome);
+    Object.entries(atributos || {}).forEach(([k, v]) => e.setAttribute(k, v));
+    if (pai) pai.appendChild(e);
+    return e;
+  }
+  function texto(t, x, y, attrs, pai) {
+    const e = el('text', Object.assign({ x, y, 'font-size': 9, fill: '#1B1F27' }, attrs), pai);
+    e.textContent = t;
+    return e;
+  }
+
+  const camadaPlaca = el('g', {}, svg);
+  const camadaPecas = el('g', {}, svg);
+  const camadaFios = el('g', {}, svg);
+
+  /* ---------- Protoboards ---------- */
+  function protoboard(x0, x1, linhas, colunas, trilhos, rotuloLinhas) {
+    el('rect', { x: x0, y: 62, width: x1 - x0, height: linhas * P + 22, rx: 6, fill: '#F3F2EC', stroke: '#BDBBB2' }, camadaPlaca);
+    trilhos.forEach(([x, sinal]) => {
+      el('line', { x1: x + (sinal === '+' ? -5 : 5), y1: 70, x2: x + (sinal === '+' ? -5 : 5), y2: 72 + linhas * P, stroke: sinal === '+' ? '#E0483B' : '#2F6FE0', 'stroke-width': 1.2 }, camadaPlaca);
+      texto(sinal === '+' ? '+' : '−', x - 3, 68, { fill: sinal === '+' ? '#C62828' : '#1E5BC6', 'font-size': 10, 'font-weight': 600 }, camadaPlaca);
+    });
+    for (let r = 1; r <= linhas; r++) {
+      const y = yLinha(r);
+      colunas.forEach((x) => el('rect', { x: x - 2, y: y - 2, width: 4, height: 4, rx: .8, fill: '#9C9A92' }, camadaPlaca));
+      if (rotuloLinhas && (r === 1 || r % 5 === 0)) texto(String(r), rotuloLinhas, y + 3, { fill: '#8A887F', 'font-size': 7, 'text-anchor': 'middle' }, camadaPlaca);
+    }
+  }
+  protoboard(160, 352, 30, Object.values(PEQ), [[PEQ['L+'], '+'], [PEQ['L-'], '-']], 196);
+  protoboard(380, 640, 60, Object.values(GRD), [[GRD['E+'], '+'], [GRD['E-'], '-'], [GRD['D-'], '-'], [GRD['D+'], '+']], 530);
+  'abcdefghij'.split('').forEach((c) => {
+    texto(c, PEQ[c], 68, { fill: '#8A887F', 'font-size': 7, 'text-anchor': 'middle' }, camadaPlaca);
+    if (c !== 'a') texto(c, GRD[c], 68, { fill: '#8A887F', 'font-size': 7, 'text-anchor': 'middle' }, camadaPlaca);
+  });
+  texto('protoboard pequeno', 256, 452, { fill: '#6C6A62', 'font-size': 9, 'text-anchor': 'middle' }, camadaPlaca);
+  texto('protoboard grande', 510, 808, { fill: '#6C6A62', 'font-size': 9, 'text-anchor': 'middle' }, camadaPlaca);
+  texto('trilho + = 5 V (VIN)', 650, 790, { fill: '#C62828', 'font-size': 8.5 }, camadaPlaca);
+  texto('trilho − = GND', 650, 802, { fill: '#1E5BC6', 'font-size': 8.5 }, camadaPlaca);
+
+  /* ---------- Peças (cada uma marcada com o passo em que entra) ---------- */
+  function grupoPeca(passo) {
+    return el('g', { class: 'fio', 'data-passo': passo }, camadaPecas);
+  }
+  function etiqueta(t, x, y, pai) {
+    const g = el('g', {}, pai);
+    const largura = t.length * 5.6 + 12;
+    el('rect', { x, y: y - 9, width: largura, height: 13, rx: 6.5, fill: '#1B1F27' }, g);
+    texto(t, x + 6, y + 1, { fill: '#F4F5F8', 'font-size': 8 }, g);
+  }
+
+  // ESP32 DevKit
+  const esp = grupoPeca('base');
+  el('rect', { x: 328, y: 50, width: 140, height: 224, rx: 6, fill: '#1B1D22', stroke: '#0B0C0F' }, esp);
+  el('rect', { x: 386, y: 38, width: 24, height: 14, rx: 2, fill: '#B8BCC4', stroke: '#7C818B' }, esp);   // micro-USB
+  el('rect', { x: 376, y: 176, width: 44, height: 90, rx: 3, fill: '#C9CCD2' }, esp);                    // módulo WROOM
+  texto('ESP32', 398, 226, { fill: '#5E626B', 'font-size': 9, 'text-anchor': 'middle', 'font-weight': 600 }, esp);
+  ESQ.forEach((n, i) => {
+    const y = yLinha(i + 2);
+    el('circle', { cx: PEQ.j, cy: y, r: 3.2, fill: '#D7B45A', stroke: '#8E7330' }, esp);
+    texto(n, 344, y + 3, { fill: '#E6E8EE', 'font-size': 7.5 }, esp);
+  });
+  DIR.forEach((n, i) => {
+    const y = yLinha(i + 2);
+    el('circle', { cx: GRD.a, cy: y, r: 3.2, fill: '#D7B45A', stroke: '#8E7330' }, esp);
+    texto(n, 452, y + 3, { fill: '#E6E8EE', 'font-size': 7.5, 'text-anchor': 'end' }, esp);
+  });
+
+  // Leitor RFID (fica no posto da frente, embaixo da mesa)
+  const PINOS_RFID = ['SDA', 'SCK', 'MOSI', 'MISO', 'IRQ', 'GND', 'RST', '3.3V'];
+  const yRfid = (k) => 322 + k * 18;
+  const rfid = grupoPeca('leitor');
+  el('rect', { x: 22, y: 296, width: 118, height: 170, rx: 5, fill: '#1F4DBF', stroke: '#14347F' }, rfid);
+  [26, 34, 42].forEach((r) => el('circle', { cx: 70, cy: 380, r, fill: 'none', stroke: '#BFD0FF', 'stroke-width': 1.4, opacity: .8 }, rfid));
+  texto('RFID-RC522', 70, 452, { fill: '#E3EAFF', 'font-size': 8.5, 'text-anchor': 'middle', 'font-weight': 600 }, rfid);
+  PINOS_RFID.forEach((n, k) => {
+    el('circle', { cx: 138, cy: yRfid(k), r: 3, fill: '#D7B45A', stroke: '#8E7330' }, rfid);
+    texto(n, 130, yRfid(k) + 3, { fill: '#E3EAFF', 'font-size': 7.5, 'text-anchor': 'end' }, rfid);
+  });
+  etiqueta('fica embaixo da mesa, na frente', 22, 482, rfid);
+
+  // Módulo de 4 relés (caixa de comando): 6 pinos à esquerda, bornes NO/COM/NC à direita.
+  const PINOS_RELE = [['GND', 140], ['IN1', yD('D27')], ['IN2', yD('D26')], ['IN3', yD('D25')], ['IN4', yD('D33')], ['VCC', 200]];
+  const yPinoRele = Object.fromEntries(PINOS_RELE);
+  const yRele = (k) => 150 + k * 48;
+  const xBorne = 854;
+  const yBorne = (k, nome) => yRele(k) + { NO: -12, COM: 0, NC: 12 }[nome];
+  const rele = grupoPeca('rele');
+  el('rect', { x: 680, y: 118, width: 180, height: 220, rx: 5, fill: '#1F4DBF', stroke: '#14347F' }, rele);
+  for (let k = 0; k < 4; k++) {
+    el('rect', { x: 724, y: yRele(k) - 18, width: 74, height: 36, rx: 3, fill: '#2E7BE8', stroke: '#1B4FA8' }, rele);
+    texto(`relé ${k + 1}`, 761, yRele(k) + 3, { fill: '#E3EAFF', 'font-size': 8, 'text-anchor': 'middle' }, rele);
+    el('rect', { x: 840, y: yRele(k) - 19, width: 20, height: 38, rx: 2, fill: '#2C66C9', stroke: '#1B4FA8' }, rele);
+    ['NO', 'COM', 'NC'].forEach((n) => {
+      el('circle', { cx: xBorne, cy: yBorne(k, n), r: 3.4, fill: '#C9CCD2', stroke: '#6E737C' }, rele);
+      texto(n, 836, yBorne(k, n) + 3, { fill: '#E3EAFF', 'font-size': 6.5, 'text-anchor': 'end' }, rele);
+    });
+  }
+  PINOS_RELE.forEach(([n, y]) => {
+    el('circle', { cx: 680, cy: y, r: 2.8, fill: '#D7B45A', stroke: '#8E7330' }, rele);
+    texto(n, 687, y + 3, { fill: '#E3EAFF', 'font-size': 7 }, rele);
+  });
+  texto('módulo de 4 relés', 770, 332, { fill: '#E3EAFF', 'font-size': 8, 'text-anchor': 'middle' }, rele);
+  etiqueta('fica na caixa de comando', 680, 108, rele);
+
+  // Torre de sinalização (parafusada na tampa da caixa de comando)
+  const torre = grupoPeca('torre');
+  const xT = 972;
+  el('rect', { x: xT - 18, y: 70, width: 36, height: 14, rx: 7, fill: '#EDEDEA', stroke: '#B9B9B4' }, torre);
+  [['#E53935', 84, 54], ['#FFC107', 138, 52], ['#22B26B', 190, 42]].forEach(([cor, y, h]) =>
+    el('rect', { x: xT - 22, y, width: 44, height: h, fill: cor, stroke: 'rgba(0,0,0,.25)' }, torre));
+  el('rect', { x: xT - 22, y: 232, width: 44, height: 58, rx: 3, fill: '#EDEDEA', stroke: '#B9B9B4' }, torre);
+  texto('HDL-T50L', xT, 264, { 'font-size': 6.5, 'text-anchor': 'middle' }, torre);
+  el('rect', { x: xT - 7, y: 290, width: 14, height: 95, fill: '#B8BCC4', stroke: '#8D9199' }, torre);
+  el('rect', { x: xT - 28, y: 385, width: 56, height: 12, rx: 3, fill: '#EDEDEA', stroke: '#B9B9B4' }, torre);
+  texto('torre', xT, 62, { 'font-size': 8.5, 'text-anchor': 'middle' }, torre);
+  etiqueta('na tampa da caixa de comando', 870, 48, torre);
+
+  // Fonte de 12 V
+  const fonte = grupoPeca('torre');
+  el('rect', { x: 890, y: 456, width: 120, height: 72, rx: 6, fill: '#2B2E35', stroke: '#15171B' }, fonte);
+  texto('fonte 12 V', 950, 486, { fill: '#F4F5F8', 'font-size': 9, 'text-anchor': 'middle', 'font-weight': 600 }, fonte);
+  texto('entra pelo conector', 950, 500, { fill: '#B9BDC6', 'font-size': 7, 'text-anchor': 'middle' }, fonte);
+  texto('de trás da caixa', 950, 511, { fill: '#B9BDC6', 'font-size': 7, 'text-anchor': 'middle' }, fonte);
+  [['+', 476, '#E53935'], ['−', 504, '#90A4AE']].forEach(([s, y, cor]) => {
+    el('circle', { cx: 890, cy: y, r: 3.4, fill: cor, stroke: '#15171B' }, fonte);
+    texto(s, 898, y + 3, { fill: '#F4F5F8', 'font-size': 9 }, fonte);
+  });
+
+  // Servo SG90 (dentro da coroa)
+  const servo = grupoPeca('servo');
+  el('rect', { x: 704, y: 400, width: 92, height: 40, rx: 4, fill: '#2B57D9', stroke: '#1B3A99' }, servo);
+  el('rect', { x: 694, y: 412, width: 112, height: 16, rx: 3, fill: '#2B57D9', stroke: '#1B3A99' }, servo);
+  el('circle', { cx: 778, cy: 420, r: 9, fill: '#E9ECF2', stroke: '#9AA0A9' }, servo);
+  texto('SG90', 740, 424, { fill: '#E3EAFF', 'font-size': 8.5, 'font-weight': 600 }, servo);
+  etiqueta('fica dentro da coroa', 694, 390, servo);
+
+  // Capacitor 470 µF entre os trilhos da direita
+  const capacitor = grupoPeca('servo');
+  const yCap = yLinha(25);
+  el('line', { x1: GRD['D-'], y1: yCap, x2: GRD['D-'], y2: yCap + 16, stroke: '#9AA0A9', 'stroke-width': 1.4 }, capacitor);
+  el('line', { x1: GRD['D+'], y1: yCap, x2: GRD['D+'], y2: yCap + 16, stroke: '#9AA0A9', 'stroke-width': 1.4 }, capacitor);
+  el('rect', { x: 607, y: yCap + 14, width: 26, height: 30, rx: 6, fill: '#25306B', stroke: '#141A40' }, capacitor);
+  el('rect', { x: 607, y: yCap + 14, width: 8, height: 30, rx: 3, fill: '#B9C2E6' }, capacitor);
+  texto('−', 609, yCap + 32, { fill: '#25306B', 'font-size': 8, 'font-weight': 600 }, capacitor);
+  texto('470 µF', 640, yCap + 34, { 'font-size': 8 }, capacitor);
+
+  /* ---------- Fios ---------- */
+  const PASSOS = [
+    { id: 'energia', titulo: 'Alimentação e trilhos', dica: 'Comece por aqui: os trilhos da direita levam 5 V e GND para o servo e o módulo de relés.' },
+    { id: 'leitor', titulo: 'Leitor RFID', dica: 'Use jumpers fêmea-macho: o lado fêmea vai nos pinos do leitor. O IRQ fica sem ligar.' },
+    { id: 'rele', titulo: 'Módulo de relés', dica: 'Jumpers fêmea-macho: o lado fêmea nos pinos do módulo. Os 6 fios passam pela abertura entre a base e a caixa de comando.' },
+    { id: 'torre', titulo: 'Torre e fonte de 12 V', dica: 'Tudo nos bornes de parafuso do módulo. Monte com a fonte desligada da tomada; os 12 V nunca encostam no ESP32.' },
+    { id: 'servo', titulo: 'Servo e capacitor', dica: 'O cabo do servo tem 3 fios coloridos: laranja é o sinal, vermelho é 5 V, marrom é GND.' },
+  ];
+
+  const FIOS = [
+    // passo, id, de, para, cor, pontos, local, largura, ...outros traçados do mesmo fio
+    ['energia', 'vin', 'ESP32 VIN', 'trilho + (direita)', '#E53935', [[GRD.d, yD('VIN')], [GRD['D+'], yD('VIN')]], 'protoboard'],
+    ['energia', 'gnd', 'ESP32 GND (lado direito)', 'trilho − (direita)', '#2E2E2E', [[GRD.c, yD('GND')], [GRD['D-'], yD('GND')]], 'protoboard'],
+    ['energia', 'usb', 'micro-USB do ESP32', 'computador ou carregador', '#5B606A', [[398, 38], [398, 8]], 'cabo USB', 4.5],
+  ];
+  // Leitor: cada fio sai do pino, desce por uma via própria e entra na fileira do pino do ESP32.
+  [['SDA', 'D5', '#FB8C00'], ['SCK', 'D18', '#8D6E63'], ['MOSI', 'D23', '#1E88E5'], ['MISO', 'D19', '#9C4DCC'],
+    ['GND', 'GND', '#2E2E2E'], ['RST', 'D22', '#9E9E9E'], ['3.3V', '3V3', '#F5F5F5']].forEach(([pino, alvo, cor]) => {
+    const k = PINOS_RFID.indexOf(pino);
+    const vx = 148 + k * 6;
+    const y = yE(alvo);
+    const furo = PEQ[['f', 'g', 'h'][k % 3]];
+    const rotulo = alvo === 'GND' ? 'ESP32 GND (lado esquerdo)' : alvo === '3V3' ? 'ESP32 3V3 (nunca 5 V)' : `ESP32 ${alvo} (GPIO ${alvo.slice(1)})`;
+    FIOS.push(['leitor', 'rfid-' + pino, `Leitor ${pino}`, rotulo, cor, [[138, yRfid(k)], [vx, yRfid(k)], [vx, y], [furo, y]], 'embaixo da mesa']);
+  });
+  // Módulo de relés: os sinais saem do furo e da fileira do pino e vão retos até o módulo.
+  [['IN1', 'D27', '#22D07B', 'luz verde'], ['IN2', 'D26', '#FFD23F', 'luz amarela'], ['IN3', 'D25', '#FF7043', 'luz vermelha'],
+    ['IN4', 'D33', '#9C4DCC', 'buzzer da torre']].forEach(([pino, alvo, cor, funcao]) => {
+    FIOS.push(['rele', 'rele-' + pino, `ESP32 ${alvo} (GPIO ${alvo.slice(1)})`, `relé ${pino} · ${funcao}`, cor, [[GRD.e, yD(alvo)], [680, yPinoRele[pino]]], 'caixa de comando']);
+  });
+  FIOS.push(['rele', 'rele-VCC', 'trilho + (5 V)', 'relé VCC', '#E53935', [[GRD['D+'], 200], [680, 200]], 'caixa de comando']);
+  FIOS.push(['rele', 'rele-GND', 'trilho − (GND)', 'relé GND', '#2E2E2E', [[GRD['D-'], 140], [680, 140]], 'caixa de comando']);
+  // Torre: cada cor desce pela haste e vai ao NO do seu relé; o preto (comum) vai ao − da fonte.
+  [['verde', '#22B26B'], ['amarelo', '#FFC107'], ['vermelho', '#E53935'], ['roxo (buzzer)', '#8E44AD']].forEach(([nome, cor], k) => {
+    const xs = 962 + k * 4;
+    const via = 900 - k * 8;
+    const yb = 412 + k * 8;
+    FIOS.push(['torre', 'torre-' + k, `Torre · fio ${nome}`, `borne NO do relé ${k + 1}`, cor,
+      [[xs, 397], [xs, yb], [via, yb], [via, yBorne(k, 'NO')], [xBorne, yBorne(k, 'NO')]], 'tampa da caixa de comando']);
+  });
+  FIOS.push(['torre', 'torre-preto', 'Torre · fio preto (comum)', 'fonte de 12 V · −', '#2E2E2E', [[982, 397], [982, 504], [890, 504]], 'tampa da caixa de comando']);
+  FIOS.push(['torre', 'fonte-mais', 'Fonte de 12 V · +', 'borne COM do relé 4', '#C62828', [[890, 476], [866, 476], [866, yBorne(3, 'COM')], [xBorne, yBorne(3, 'COM')]], 'caixa de comando']);
+  FIOS.push(['torre', 'pontes-com', 'Pontes COM1 · COM2 · COM3 · COM4', 'levam os 12 V aos 4 relés', '#C62828',
+    [[xBorne, yBorne(0, 'COM')], [846, yBorne(0, 'COM')], [846, yBorne(1, 'COM')], [xBorne, yBorne(1, 'COM')]], 'caixa de comando', 2.4,
+    [[xBorne, yBorne(1, 'COM')], [846, yBorne(1, 'COM')], [846, yBorne(2, 'COM')], [xBorne, yBorne(2, 'COM')]],
+    [[xBorne, yBorne(2, 'COM')], [846, yBorne(2, 'COM')], [846, yBorne(3, 'COM')], [xBorne, yBorne(3, 'COM')]]]);
+  // Servo: o sinal sobe por uma via entre as colunas d e e (não cruza os fios dos relés).
+  FIOS.push(['servo', 'servo-sinal', 'Servo · laranja (sinal)', 'ESP32 D13 (GPIO 13)', '#FB8C00', [[694, 416], [500, 416], [500, yD('D13')], [GRD.d, yD('D13')]], 'coroa']);
+  FIOS.push(['servo', 'servo-5v', 'Servo · vermelho (5 V)', 'trilho + (direita)', '#E53935', [[694, 422], [GRD['D+'], 422]], 'coroa']);
+  FIOS.push(['servo', 'servo-gnd', 'Servo · marrom (GND)', 'trilho − (direita)', '#6D4C41', [[694, 428], [676, 428], [676, 448], [GRD['D-'], 448]], 'coroa']);
+
+  const caminho = (pts) => pts.map((p, i) => (i ? 'L' : 'M') + p[0] + ' ' + p[1]).join(' ');
+  const fiosPorId = {};
+  FIOS.forEach(([passo, id, de, para, cor, pts, local, largura = 3, ...extras]) => {
+    const g = el('g', { class: 'fio', 'data-passo': passo, 'data-fio': id }, camadaFios);
+    const d = [pts, ...extras].map(caminho).join(' ');
+    el('path', { d, fill: 'none', stroke: 'rgba(15,17,22,.55)', 'stroke-width': largura + 2.2, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, g);
+    el('path', { d, fill: 'none', stroke: cor, 'stroke-width': largura, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, g);
+    const fim = pts[pts.length - 1];
+    if (local !== 'cabo USB') el('rect', { x: fim[0] - 2.6, y: fim[1] - 2.6, width: 5.2, height: 5.2, rx: 1, fill: '#15161A' }, g);
+    el('title', {}, g).textContent = `${de} → ${para}`;
+    fiosPorId[id] = { g, passo, de, para, cor, local, largura };
+  });
+  texto('USB', 404, 18, { 'font-size': 8.5 }, camadaFios);
+
+  /* ---------- Passos (lista ao lado) ---------- */
+  const CHAVE = 'lm-ligacoes-feitas-v2';
+  let feitos = {};
+  try { feitos = JSON.parse(localStorage.getItem(CHAVE) || '{}') || {}; } catch (e) { feitos = {}; }
+  const salvar = () => { try { localStorage.setItem(CHAVE, JSON.stringify(feitos)); } catch (e) { /* sem armazenamento: só não lembra */ } };
+
+  let passoAtivo = null;
+  const ol = document.getElementById('passos');
+  const itensPasso = {};
+
+  function destacar(passo) {
+    passoAtivo = passo;
+    document.querySelectorAll('#placa .fio').forEach((g) => {
+      const p = g.getAttribute('data-passo');
+      g.classList.toggle('apagado', passo !== null && p !== passo && p !== 'base');
+    });
+    Object.entries(itensPasso).forEach(([id, item]) => {
+      const ativo = id === passo;
+      item.li.setAttribute('aria-current', String(ativo));
+      item.botao.setAttribute('aria-expanded', String(ativo));
+      item.lista.hidden = !ativo;
+      item.dica.hidden = !ativo;
+    });
+  }
+
+  function atualizarContagem(passoId) {
+    const fios = FIOS.filter((f) => f[0] === passoId);
+    const n = fios.filter((f) => feitos[f[1]]).length;
+    const item = itensPasso[passoId];
+    item.conta.textContent = `${n}/${fios.length}`;
+    item.li.classList.toggle('feito', n === fios.length);
+  }
+
+  PASSOS.forEach((passo, i) => {
+    const li = document.createElement('li');
+    li.className = 'passo';
+    const botao = document.createElement('button');
+    botao.type = 'button';
+    botao.id = 'passo-' + passo.id;
+    botao.innerHTML = `<span class="num">${i + 1}</span><span class="titulo-passo"></span><span class="conta"></span>`;
+    botao.querySelector('.titulo-passo').textContent = passo.titulo;
+    const dica = document.createElement('p');
+    dica.className = 'dica-passo';
+    dica.textContent = passo.dica;
+    const lista = document.createElement('ul');
+    lista.className = 'fios-passo';
+    FIOS.filter((f) => f[0] === passo.id).forEach(([, id, de, para, cor]) => {
+      const item = document.createElement('li');
+      item.innerHTML = `<label><input type="checkbox" id="feito-${id}"><span class="amostra"></span><span><span class="de"></span><br><span class="para"></span></span></label>`;
+      item.querySelector('.amostra').style.background = cor;
+      item.querySelector('.de').textContent = de;
+      item.querySelector('.para').textContent = '→ ' + para;
+      const caixa = item.querySelector('input');
+      caixa.checked = !!feitos[id];
+      caixa.addEventListener('change', () => { feitos[id] = caixa.checked; salvar(); atualizarContagem(passo.id); });
+      const traco = fiosPorId[id].g.querySelectorAll('path')[1];
+      item.addEventListener('mouseenter', () => traco.setAttribute('stroke-width', fiosPorId[id].largura + 2));
+      item.addEventListener('mouseleave', () => traco.setAttribute('stroke-width', fiosPorId[id].largura));
+      lista.appendChild(item);
+    });
+    botao.addEventListener('click', () => destacar(passoAtivo === passo.id ? null : passo.id));
+    li.append(botao, dica, lista);
+    ol.appendChild(li);
+    itensPasso[passo.id] = { li, botao, lista, dica, conta: botao.querySelector('.conta') };
+    atualizarContagem(passo.id);
+  });
+  document.getElementById('mostrar-tudo').addEventListener('click', () => destacar(null));
+  destacar('energia');
+
+  /* ---------- Tabela pino por pino ---------- */
+  const NOMES_COR = {
+    '#FB8C00': 'laranja', '#8D6E63': 'marrom', '#1E88E5': 'azul', '#9C4DCC': 'roxo', '#2E2E2E': 'preto', '#9E9E9E': 'cinza',
+    '#F5F5F5': 'branco', '#E53935': 'vermelho', '#22D07B': 'verde', '#FFD23F': 'amarelo', '#FF7043': 'laranja-claro',
+  };
+  const corpo = document.getElementById('tabela');
+  const LINHAS = [
+    ['3V3', 'rfid-3.3V', 'Leitor 3.3V'], ['GND (esquerda)', 'rfid-GND', 'Leitor GND'], ['D5 · GPIO 5', 'rfid-SDA', 'Leitor SDA'],
+    ['D18 · GPIO 18', 'rfid-SCK', 'Leitor SCK'], ['D19 · GPIO 19', 'rfid-MISO', 'Leitor MISO'], ['D22 · GPIO 22', 'rfid-RST', 'Leitor RST'],
+    ['D23 · GPIO 23', 'rfid-MOSI', 'Leitor MOSI'],
+    ['VIN (5 V)', 'vin', 'trilho + (alimenta o servo e o módulo de relés)'], ['GND (direita)', 'gnd', 'trilho − (GND do servo e do módulo de relés)'],
+    ['D13 · GPIO 13', 'servo-sinal', 'Servo, fio laranja'],
+    ['D27 · GPIO 27', 'rele-IN1', 'Relé IN1 → luz verde'], ['D26 · GPIO 26', 'rele-IN2', 'Relé IN2 → luz amarela'],
+    ['D25 · GPIO 25', 'rele-IN3', 'Relé IN3 → luz vermelha'], ['D33 · GPIO 33', 'rele-IN4', 'Relé IN4 → buzzer da torre'],
+  ];
+  LINHAS.forEach(([pino, id, destino]) => {
+    const f = fiosPorId[id];
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<td class="pino"></td><td></td><td><span class="fio-cor"></span><span class="nome-cor"></span></td><td><span class="local"></span></td>';
+    tr.children[0].textContent = pino;
+    tr.children[1].textContent = destino;
+    tr.querySelector('.fio-cor').style.background = f.cor;
+    tr.querySelector('.nome-cor').textContent = NOMES_COR[f.cor] || '';
+    tr.querySelector('.local').textContent = f.local;
+    corpo.appendChild(tr);
+  });
+})();
+</script>

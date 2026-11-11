@@ -14,7 +14,13 @@ downloads/*.apk
 *.jks
 signing-key-info.txt
 
+# Dependências do gerador da caixa 3D (npm install em firmware/caixa-3d)
+node_modules/
+
 # Arquivos do sistema
 Thumbs.db
 desktop.ini
 .DS_Store
+
+# Token da leitora e senha do Wi-Fi do firmware (cada um cria o seu a partir de segredos.exemplo.h)
+firmware/lockmachine_esp32/segredos.h

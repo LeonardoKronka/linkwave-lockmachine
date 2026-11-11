@@ -1,0 +1,53 @@
+PRENSA P-01 NO TINKERCAD
+========================
+
+Estes arquivos são a prensa do LockMachine peça por peça, cada uma na posição de montagem,
+com as medidas reais em milímetros. Servem para VER e MEDIR. Para IMPRIMIR, use os arquivos
+da pasta de cima (stl/prensa-1-base.stl ... prensa-9-tampa-comando.stl), que já vêm deitados
+na posição certa para a impressora.
+
+
+COMO IMPORTAR
+-------------
+1. Entre em https://www.tinkercad.com, clique em "Criar" e escolha "Design 3D".
+2. Clique em "Importar" (canto de cima, à direita) e escolha um arquivo desta pasta.
+3. Na janela que abre, confira: Unidades = Milímetros e Escala = 100%. Clique em "Importar".
+4. Repita para os outros arquivos, um de cada vez. Comece pelo 01-base.stl.
+
+Cada peça cai no lugar dela, já montada. Isso funciona porque todo arquivo tem 2 cubinhos de
+1 mm no chão, nos cantos do conjunto: são marcadores de alinhamento, pode ignorar.
+Se alguma peça cair fora do lugar, importe-a de novo sem mexer em nada antes.
+
+
+PEÇAS PARA IMPRIMIR (9)                         cor sugerida
+01-base ........... guarda o protoboard          cinza-escuro
+02-mesa ........... tampa da base, com o leitor  cinza-claro
+03-portico ........ colunas + coroa com o servo  vermelho
+04-tampa-mecanismo  fecha a coroa por baixo      vermelho
+05-pistao ......... sobe e desce com o servo     cinza
+06-martelo ........ ponta do pistão              amarelo
+07-cilindro ....... enfeite em cima da coroa     cinza
+08-caixa-comando .. módulo de relés + 12 V       cinza-escuro
+09-tampa-comando .. a torre é parafusada nela    cinza-claro
+
+REFERÊNCIAS (não imprimir: são as peças do kit, para conferir se tudo cabe)
+ref-a-protoboard-esp32   ref-b-leitor-rfid   ref-c-servo   ref-d-modulo-reles   ref-e-torre
+
+
+DICAS NO TINKERCAD
+------------------
+- Mudar a cor: selecione a peça e escolha a cor no painel "Forma" (Shape).
+- Ver uma peça sozinha: selecione as outras e use "Ocultar" (o ícone da lâmpada);
+  "Mostrar tudo" traz de volta.
+- Medidas: com a peça selecionada, as alças mostram largura, profundidade e altura.
+  A "Régua" (Ruler) mede a distância entre dois pontos.
+- Se mudar alguma medida no Tinkercad, avise: o desenho original fica no código
+  (firmware/caixa-3d/caixa-leitora.js) e é ele que gera os arquivos de impressão.
+
+
+MEDIDAS QUE O DESENHO SUPÕE (confira nas peças de vocês antes de imprimir)
+- Protoboards emendados: 100 x 165 mm
+- Leitor RC522: 39,5 x 60 mm
+- Módulo de 4 relés: 56 x 76 mm
+- Pé da torre: 60 mm de diâmetro, 3 furos a 23 mm do centro
+- Braço do servo: furo a 6 mm do centro

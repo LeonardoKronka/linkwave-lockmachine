@@ -55,7 +55,28 @@ Falta:
    A apresentação de andamento (30/10) está em `docs/apresentacao/`.
 2. **Gerar o APK** no PWABuilder (o HTTPS já funciona) e subir `downloads/lockmachine.apk`
    e `.well-known/assetlinks.json`. O botão de download do site se ativa sozinho quando o APK existe.
-3. Compilar e testar o firmware (não foi compilado: a máquina original não tinha Arduino IDE).
+3. Testar o firmware na placa. Em 11/11 a resposta passou para a torre de sinalização HDL-T50L-3C-J (12/24 V, com
+   buzzer) por um módulo de 4 relés: IN1 verde GPIO 27, IN2 amarelo 26, IN3 vermelho 25, IN4 buzzer 33 (pinos dos
+   LEDs do teste do Caue); servo do martelo no GPIO 13; leitor como no teste do Caue (SPI 18/19/23/5, RST 22).
+   Wi-Fi e token ficam em `firmware/lockmachine_esp32/segredos.h` (no `.gitignore`; modelo em `segredos.exemplo.h`).
+   Leitora "Leitora da prensa P-01 (bancada)" cadastrada no app em 11/11. O sketch compila no notebook do SENAI
+   (Arduino IDE, esp32 3.3.12, MFRC522, ArduinoJson, ESP32Servo; ESP32 na COM5); a versão anterior foi gravada e o
+   autoteste acusou o leitor desligado: o RC522 da maleta está sem a barra de pinos soldada (catálogo da maleta).
+   A maleta não tem capacitor e só tem 10 jumpers macho-fêmea. Até a fonte de 12 V chegar, a turma testa com LEDs nos
+   pinos 27/26/25: o sketch está com `SAIDAS_ATIVAS_EM_ALTO = true` (voltar para `false` ao ligar os relés) e
+   `firmware/teste_servo_leds/` testa LEDs e servo sem leitor nem Wi-Fi. Em 11/11 esse teste foi gravado e
+   funcionou na bancada (3 LEDs com resistor + servo SG90 no VIN, sem capacitor, sem reiniciar o ESP32); montagem
+   em `firmware/ligacoes/teste-leds.html`. Ainda em 11/11 o sketch principal funcionou de ponta a ponta com o
+   leitor soldado: cartão 00 52 C2 80 negado como CARTAO_DESCONHECIDO (acessos #15 e #16), depois vinculado ao
+   funcionário de teste "Leonardo" (matrícula 399, capacitações de NR-12 e prensa registradas só para a demonstração)
+   e liberado (acesso #22), com LEDs, servo e buzzer. O buzzer da maleta é passivo: ligado direto no pino, o sketch
+   manda uma onda de ~2,7 kHz. Falta ligar relés e torre conforme `firmware/ligacoes/ligacoes.html` quando a fonte
+   de 12 V chegar.
+   A caixa 3D (prensa P-01 em miniatura + caixa de comando com a torre) fica em `firmware/caixa-3d/`:
+   `npm run gerar` refaz os STL e a prévia; versões anteriores em `versao-1-simples/`, `versao-2-fixa/` e `versao-3-leds/`.
+   `stl/prensa-*.stl` são para imprimir (já na posição de impressão); `stl/tinkercad/` traz as mesmas peças na posição
+   de montagem + peças de referência do kit, cada arquivo com 2 cubinhos de 1 mm nos cantos do conjunto para o
+   Tinkercad (que recentraliza cada importação) montar tudo no lugar. Guia em `stl/tinkercad/LEIA-ME.txt`.
 4. Fotos e contatos dos integrantes: o usuário vai enviar. Hoje os crachás mostram iniciais.
 5. Executar os casos de teste (CT/TNF) e registrar evidências EV-XX.
 
