@@ -106,6 +106,12 @@ async function principal() {
   }
   console.log(`stl/tinkercad: ${montadas.length} peças + ${REFS.length} referências (conjunto de ${r1(gx1 - gx0)} x ${r1(gy1 - gy0)} mm)`)
 
+  // Uma peça por arquivo, exatamente como no Tinkercad (mesma posição e orientação), sem os cubinhos marcadores.
+  const pastaPecas = pasta(path.join('stl', 'pecas-separadas'))
+  for (const f of fs.readdirSync(pastaPecas)) if (f.endsWith('.stl')) fs.unlinkSync(path.join(pastaPecas, f))
+  for (const g of montadas) salvar(path.join(pastaPecas, `${NOMES_TK[g.grupo]}.stl`), g)
+  console.log(`stl/pecas-separadas: ${montadas.length} peças, uma por arquivo`)
+
   // Prévia: cada peça vira uma lista de triângulos (x, y, z) com a sua cor e o seu grupo (que peça a carrega).
   function malha(peca) {
     const g = costurar(peca)

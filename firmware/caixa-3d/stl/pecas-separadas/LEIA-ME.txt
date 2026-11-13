@@ -1,0 +1,22 @@
+PRENSA P-01 (LockMachine) - UMA PEÇA POR ARQUIVO
+================================================
+
+São as 9 peças do projeto do Tinkercad, iguais às de lá (mesma forma, posição e orientação),
+cada uma num arquivo .stl. Medidas em milímetros. Todas cabem numa mesa de 22 x 22 cm.
+
+Arquivo                  Medida (mm)            Cor no projeto   Face que vai na mesa (sem suporte)
+01-base.stl              113,4 x 178,4 x 50     preto            o fundo (como está)
+02-mesa.stl              107,4 x 172,4 x 9,4    branco           virar: a face de cima (com as escritas) na mesa
+03-portico.stl           104 x 48 x 102         vermelho         virar: a coroa na mesa, colunas para cima
+04-tampa-mecanismo.stl   49,1 x 39,1 x 9,8      vermelho         a placa (como está)
+05-pistao.stl            8 x 22 x 35,4          branco           deitado de lado (o rasgo fica em pé)
+06-martelo.stl           38 x 24 x 23           azul             a ponta larga (como está)
+07-cilindro.stl          24 x 24 x 28,5         branco           virar: a tampa do cilindro na mesa
+08-caixa-comando.stl     98 x 122 x 50          preto            o fundo (como está)
+09-tampa-comando.stl     92 x 116 x 7,4         branco           virar: a face de cima (com as escritas) na mesa
+
+Se preferir, as mesmas peças já viradas na posição de impressão estão na pasta de cima:
+stl/prensa-1-base.stl ... stl/prensa-9-tampa-comando.stl.
+
+Não precisa imprimir: protoboard, ESP32, leitor RFID, servo, módulo de relés e a torre de
+sinalização (são as peças compradas ou do kit).
