@@ -77,6 +77,10 @@ Falta:
    `stl/prensa-*.stl` são para imprimir (já na posição de impressão); `stl/tinkercad/` traz as mesmas peças na posição
    de montagem + peças de referência do kit, cada arquivo com 2 cubinhos de 1 mm nos cantos do conjunto para o
    Tinkercad (que recentraliza cada importação) montar tudo no lugar. Guia em `stl/tinkercad/LEIA-ME.txt`.
+   As booleanas rodam no Manifold (`booleanas-manifold.js`): as do JSCAD deixavam emendas que o Tinkercad desenhava
+   como riscos. Em 13/11 a equipe mediu as peças reais com régua (não há paquímetro): protoboard, USB, relés e torre
+   entraram no desenho; o servo foi arredondado para cima e o vão na coroa aceita o medido e o SG90 do catálogo
+   (batentes + rasgo do pistão mais comprido, conferido em 8 posições do braço). Impressora menor: ~22 × 22 cm.
 4. Fotos e contatos dos integrantes: o usuário vai enviar. Hoje os crachás mostram iniciais.
 5. Executar os casos de teste (CT/TNF) e registrar evidências EV-XX.
 

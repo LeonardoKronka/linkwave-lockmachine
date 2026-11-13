@@ -46,9 +46,11 @@ const getParameterDefinitions = () => [
   { name: 'grupo1', type: 'group', caption: 'Protoboard e ESP32' },
   { name: 'protoLargura', type: 'float', initial: 100, step: 0.5, caption: 'Largura do protoboard' },
   { name: 'protoComprimento', type: 'float', initial: 165, step: 0.5, caption: 'Comprimento do protoboard' },
-  { name: 'sobraEsp', type: 'float', initial: 4, step: 0.5, caption: 'ESP32 passando da borda de trás' },
-  { name: 'usbX', type: 'float', initial: 50, step: 0.5, caption: 'Centro do USB: distância da borda esquerda' },
-  { name: 'usbZ', type: 'float', initial: 15, step: 0.5, caption: 'Centro do USB: altura acima do fundo do protoboard' },
+  // Medidos pela equipe em 13/11/2026: protoboard 165 × 100, o ESP32 não passa da borda de trás,
+  // a porta USB vai de 45 a 50 mm da borda esquerda e o centro dela fica a ~20 mm do fundo.
+  { name: 'sobraEsp', type: 'float', initial: 0, step: 0.5, caption: 'ESP32 passando da borda de trás' },
+  { name: 'usbX', type: 'float', initial: 47.5, step: 0.5, caption: 'Centro do USB: distância da borda esquerda' },
+  { name: 'usbZ', type: 'float', initial: 20, step: 0.5, caption: 'Centro do USB: altura acima do fundo do protoboard' },
   { name: 'grupo2', type: 'group', caption: 'Base' },
   { name: 'alturaLivre', type: 'float', initial: 48, step: 1, caption: 'Altura livre dentro da base' },
   { name: 'folga', type: 'float', initial: 1.5, step: 0.1, caption: 'Folga em volta do protoboard' },
@@ -64,7 +66,8 @@ const getParameterDefinitions = () => [
   { name: 'torrePe', type: 'float', initial: 60, step: 0.5, caption: 'Diâmetro do pé da torre' },
   { name: 'torreFuros', type: 'float', initial: 46, step: 0.5, caption: 'Distância do centro do pé até o centro dos furos × 2' },
   { name: 'torreFuro', type: 'float', initial: 4.5, step: 0.1, caption: 'Diâmetro dos 3 furos do pé (parafuso M4)' },
-  { name: 'torreFios', type: 'float', initial: 14, step: 0.5, caption: 'Furo do meio, para os 5 fios da torre' },
+  // O pé tem 60 mm e 3 furos ovais (10 mm de ponta a ponta) a 23 mm do centro; os fios descem por um tubo de 17 mm.
+  { name: 'torreFios', type: 'float', initial: 18.5, step: 0.5, caption: 'Furo do meio: passa o tubo dos fios da torre (17 mm)' },
   { name: 'conector12v', type: 'float', initial: 11, step: 0.5, caption: 'Furo do conector P4 de 12 V' },
   { name: 'grupo4', type: 'group', caption: 'Mecanismo do martelo' },
   { name: 'manivela', type: 'float', initial: 6, step: 0.5, min: 4, max: 7, caption: 'Furo do braço do servo: distância do centro (4 a 7)' },
@@ -75,14 +78,17 @@ const getParameterDefinitions = () => [
 // MFRC522 deitado na frente da mesa: os 60 mm ao longo da largura, conector virado para a esquerda.
 const LEITOR = { largura: 39.5, comprimento: 60, x: 12, y: 3.5 }
 const ANTENA = { x: LEITOR.x + LEITOR.comprimento - 22, y: LEITOR.y + LEITOR.largura / 2 } // o lado oposto ao conector
-const PORTICO = { y: 84, colunasX: [10, 90], colLargura: 14, colProf: 22, coroaLargura: 104, coroaProf: 40, coroaAltura: 28, chanfro: 4 }
+// Colunas a 6,5 mm das bordas do protoboard: entre elas passa o servo (que entra na coroa por baixo).
+// A coroa tem 48 mm de fundo e fica 4 mm mais para trás que as colunas (coroaDy): a frente continua no mesmo lugar
+// e o espaço a mais atrás guarda as orelhas do servo.
+const PORTICO = { y: 84, colunasX: [6.5, 93.5], colLargura: 14, colProf: 22, coroaLargura: 104, coroaProf: 48, coroaDy: 4, coroaAltura: 28, chanfro: 4 }
 const MARCA = { x: 50, y: 114 }                                      // cadeado + "LockMachine", atrás das colunas
 const USB = { largura: 14, altura: 15 }                              // abertura do micro-USB (cabe a capa do plugue)
 // Caixa de comando, encostada na lateral direita da base e alinhada com a parede de trás.
 const COMANDO = { largura: 92, comprimento: 116, vao: 6 }            // vao: entre as paredes das duas caixas (as sapatas se encostam)
 const PASSAGEM = { recuo: 30, largura: 24, altura: 14, z: 26 }       // abertura lateral dos fios (recuo: do centro da caixa para a frente)
-// Módulo de 4 relés (5 V): 56 × 76 mm, com os bornes de parafuso num lado comprido e os 6 pinos num lado curto.
-const RELE = { largura: 56, comprimento: 76, altura: 19, apoio: 3 }
+// Módulo de 4 relés (5 V): 55 × 75 mm (medido), com os bornes de parafuso num lado comprido e os 6 pinos num lado curto.
+const RELE = { largura: 55, comprimento: 75, altura: 19, apoio: 3 }
 // Torre HDL-T50L-3C-J, só para a prévia (medidas aproximadas, pela foto).
 const TORRE = { corpo: 50, haste: 20, alturaHaste: 95, alturaPe: 10, alturaBase: 60, gomos: [42, 52, 54], alturaTopo: 14 }
 const ESP = { largura: 28.3, comprimento: 51.5, fileiras: 12.7, primeiroPino: 7 } // ESP32 DevKit de 30 pinos
@@ -90,11 +96,30 @@ const GRAVACAO = 0.5                                                 // profundi
 const GRAVACAO_LADO = 0.6                                            // nas faces de pé
 
 /* Mecanismo dentro da coroa (x a partir do centro da prensa; z a partir de baixo da coroa).
-   Servo SG90 deitado, com o eixo apontando para +x; o pistão fica logo à direita do braço. */
-const SERVO = { corpo: 22.7, largura: 11.8, comprimento: 22.2, eixoDaPonta: 5.6, abas: 32.2, abaAltura: 15.9, abaEsp: 2.5, ateBraco: 26.7 }
+   Servo deitado, com o eixo apontando para +x; o pistão fica logo à direita do braço.
+
+   O servo foi medido com régua (sem paquímetro), então o vão é feito para a MAIOR medida de cada item: a da
+   equipe, arredondada para cima (SERVO). O mecanismo também foi conferido com o SG90 do catálogo (SG90), que é
+   menor. Para o servo ficar no lugar mesmo sobrando folga, ele encosta em três batentes:
+     - o fundo do servo encosta no fim do vão (x), e o braço nunca alcança o pistão, mesmo com a maior medida;
+     - a ponta do lado do eixo encosta na parede da frente do vão (y);
+     - a lateral apoia no calço da tampa do mecanismo (z).
+   Os dois "erros" que sobram (o eixo pode ficar até 0,7 mm para a frente ou para trás e 0,8 mm acima ou abaixo)
+   são absorvidos pelo rasgo do pistão, que é mais comprido. Se o servo ficar solto, prenda com cola quente. */
+const SERVO = {
+  corpo: 30,          // H: do fundo até o topo da caixa, sem o eixo (catálogo: 22,7)
+  largura: 15,        // L (catálogo: 11,8)
+  comprimento: 25,    // A (catálogo: 22,2)
+  abas: 35,           // B: de uma orelha à outra (catálogo: 32,2)
+  abaAltura: 17,      // C: do fundo até embaixo das orelhas (catálogo: 15,9)
+  abaEsp: 3,          // D: espessura das orelhas (catálogo: 2,5)
+  eixoDaPonta: 7,     // E: do centro do eixo até a ponta mais próxima (catálogo: 5,6)
+  ateBraco: 37,       // F: do fundo até o topo do braço encaixado (catálogo: ~28)
+}
+const SG90 = { corpo: 22.7, largura: 11.8, comprimento: 22.2, abas: 32.2, abaAltura: 15.9, abaEsp: 2.5, eixoDaPonta: 5.6, ateBraco: 28.2 }
 const MEC = {
-  pistaoX: 3,             // eixo do pistão (3 mm à direita do centro, para o servo passar entre as guias das colunas)
-  pistaoDy: -5,           // em relação à linha das colunas
+  pistaoX: 9,             // eixo do pistão: 9 mm à direita do centro, para o servo (até 37 mm) entrar por baixo entre as guias das colunas
+  pistaoDy: -3,           // em relação à linha das colunas
   eixoZ: 16.5,            // altura do eixo do servo dentro da coroa
   haste: 8,               // pistão quadrado de 8 × 8 mm (não gira na guia)
   braco: 1.5,             // espessura do braço do servo
@@ -122,6 +147,7 @@ function medidas(p) {
   const yR = cy + MEC.pistaoDy
   const zs = zC0 + MEC.eixoZ
   const xBraco = xP - MEC.haste / 2 - 1          // face de cima do braço do servo (o jugo fica 1 mm à direita)
+  const servo = posicaoServo(xBraco, yR, zs)
   // Caixa de comando (coordenadas da prensa): mesma altura da base, encostada à direita.
   const cmdX0 = We / 2 + COMANDO.vao
   const cmdY1 = Le / 2
@@ -144,12 +170,25 @@ function medidas(p) {
     colunasX: PORTICO.colunasX.map(px),
     zC0, zC1,                                       // embaixo e em cima da coroa
     zTopo: zC1 + PORTICO.chanfro,                   // topo da coroa, onde o cilindro encaixa
-    yFrente: cy - PORTICO.coroaProf / 2,            // face da frente da coroa
+    yFrente: cy + PORTICO.coroaDy - PORTICO.coroaProf / 2, // face da frente da coroa
     ledZ: zC0 + PORTICO.coroaAltura / 2,
     xP, yR, zs, xBraco,
-    xServo: xBraco - MEC.braco - SERVO.ateBraco,  // fundo do servo (o braço encaixa no eixo, que termina em xBraco - braco)
+    ...servo,
     curso: 2 * p.manivela,
-    zJugo: zs + p.manivela,                         // centro do rasgo do pistão com o martelo em cima
+    zJugo: servo.zEixo + p.manivela,                // centro do rasgo do pistão com o martelo em cima (servo maior)
+  }
+}
+
+/* Batentes do servo e onde fica o eixo de um servo com as medidas s (SERVO ou SG90). */
+function posicaoServo(xBraco, yR, zs) {
+  const yParede = yR - (SG90.eixoDaPonta + SERVO.eixoDaPonta) / 2   // parede da frente: o eixo fica no meio dos dois casos
+  const zApoio = zs - (SG90.largura + SERVO.largura) / 4             // topo do calço: idem, na altura
+  const eixo = (s) => ({ y: yParede + s.eixoDaPonta, z: zApoio + s.largura / 2, xFundo: xBraco - SERVO.ateBraco })
+  return {
+    xServo: xBraco - SERVO.ateBraco,               // fundo do vão: com a maior medida, o braço fica 1 mm antes do pistão
+    yServo: yParede, zApoio,
+    yEixo: eixo(SERVO).y, zEixo: eixo(SERVO).z,    // eixo do servo da equipe (o da prévia)
+    eixo,
   }
 }
 
@@ -350,9 +389,15 @@ function tampa(p) {
 
 /* ======================= Pórtico (colunas + coroa com o servo) ======================= */
 
-/* Contorno da tampa do mecanismo (o rebaixo embaixo da coroa onde ela encaixa). */
+const FOLGA_SERVO = 0.5   // folga do vão do servo (além da maior medida)
+const SOBRA_ORELHA = 6   // quanto a orelha passa do corpo, de cada lado (catálogo e medida: 5 mm)
+const RASGO_EXTRA = 2.4  // o rasgo do pistão passa 2,4 mm do curso do pino de cada lado (o eixo pode variar 0,7 mm)
+
+/* Contorno da tampa do mecanismo (o rebaixo embaixo da coroa onde ela encaixa). O servo e a tampa entram
+   por baixo, entre as guias das colunas. */
 const contornoTampaMec = (m, folga = 0) => [
-  -30.8 + folga, m.xP + 6.5 - folga, m.cy - 16.4 + folga, m.cy + 17.4 - folga,
+  m.xServo - 1 + folga, m.xP + 6.5 - folga,
+  m.yServo - SOBRA_ORELHA - 1 + folga, m.yServo + SERVO.comprimento + SOBRA_ORELHA + 1.5 - folga,
 ]
 
 function portico(p) {
@@ -377,25 +422,27 @@ function portico(p) {
   }
 
   // Coroa com chanfro de 45° em cima.
-  const contornoCoroa = retArredondado(PORTICO.coroaLargura, PORTICO.coroaProf, 3, [0, cy])
+  const cyCoroa = cy + PORTICO.coroaDy
+  const contornoCoroa = retArredondado(PORTICO.coroaLargura, PORTICO.coroaProf, 3, [0, cyCoroa])
   solidos.push(prisma(contornoCoroa, zC0, zC1))
   solidos.push(hull(prisma(contornoCoroa, zC1 - 0.01, zC1),
-    prisma(retArredondado(PORTICO.coroaLargura - 2 * PORTICO.chanfro, PORTICO.coroaProf - 6, 3, [0, cy]), zTopo - 0.01, zTopo)))
+    prisma(retArredondado(PORTICO.coroaLargura - 2 * PORTICO.chanfro, PORTICO.coroaProf - 6, 3, [0, cyCoroa]), zTopo - 0.01, zTopo)))
 
   // Mecanismo: tudo abre para baixo, para o servo e o pistão entrarem por baixo, e a tampa do mecanismo fecha.
+  // O vão do servo vai do fundo (batente) até o braço, com a maior medida de cada item + folga.
   const [tx0, tx1, ty0, ty1] = contornoTampaMec(m)
   const zM = zC0 + MEC.tampa - 0.01
-  const xs = m.xServo
-  vazios.push(caixaXYZ(tx0, tx1, ty0, ty1, zC0 - 1, zC0 + MEC.tampa))                                   // rebaixo da tampa
-  vazios.push(caixaXYZ(xs - 0.3, xs + SERVO.corpo + 0.3, yR - SERVO.eixoDaPonta - 0.3,
-    yR - SERVO.eixoDaPonta + SERVO.comprimento + 0.3, zM, zs + SERVO.largura / 2 + 0.2))               // corpo do servo
-  const xAba = xs + SERVO.abaAltura
-  vazios.push(caixaXYZ(xAba - 0.3, xAba + SERVO.abaEsp + 0.6, yR - SERVO.eixoDaPonta - 5.3,
-    yR - SERVO.eixoDaPonta - 5 + SERVO.abas + 0.3, zM, zs + SERVO.largura / 2 + 0.2))                  // abas do servo
-  vazios.push(caixaXYZ(xs + SERVO.corpo - 0.1, m.xBraco - MEC.braco + 0.2, yR - 6.3, yR + 10, zM, zs + 6.3)) // engrenagem e eixo
-  const folgaJugo = 3.1 + 0.8
-  vazios.push(caixaXYZ(m.xBraco - MEC.braco - 0.5, tx1 - 0.3, yR - 10.5, yR + 10.5, zM, m.zJugo + folgaJugo)) // braço e pistão
-  vazios.push(caixaXYZ(-44, xs, cy - 6, cy + 6, zM, zC0 + 10))                                          // cabo do servo até a coluna esquerda
+  const { xServo: xs, yServo: ys, zApoio } = m
+  const zTetoServo = zApoio + SERVO.largura + FOLGA_SERVO
+  vazios.push(caixaXYZ(tx0, tx1, ty0, ty1, zC0 - 1, zC0 + MEC.tampa))                                     // rebaixo da tampa
+  vazios.push(caixaXYZ(xs - FOLGA_SERVO, m.xBraco - MEC.braco - 0.5,
+    ys - 0.4, ys + SERVO.comprimento + FOLGA_SERVO + 0.1, zM, zTetoServo))                               // corpo do servo
+  vazios.push(caixaXYZ(xs + SG90.abaAltura - 0.4, xs + SERVO.abaAltura + SERVO.abaEsp + 0.6,
+    ys - SOBRA_ORELHA - 0.6, ys + SERVO.comprimento + SOBRA_ORELHA + 0.6, zM, zTetoServo))               // orelhas do servo
+  // Braço e pistão: o braço fica entre a posição do servo menor (catálogo) e a do maior (medido), e gira
+  // até 9,6 mm em volta do eixo (braço cortado logo depois do furo usado).
+  vazios.push(caixaXYZ(xs + SG90.ateBraco - MEC.braco - 0.5, tx1 - 0.3, yR - 12.5, yR + 12.5, zM, zs + 11))
+  vazios.push(caixaXYZ(m.colunasX[0] - 3.5, xs, cy - 6, cy + 6, zM, zC0 + 10))                           // cabo do servo até a coluna esquerda
 
   // Placa de identificação gravada no meio da frente da coroa (a torre de sinalização fica na caixa de comando).
   vazios.push(gravarFrente(union(
@@ -403,8 +450,8 @@ function portico(p) {
     texto('LockMachine', { largura: 48, altura: 10, traco: 1.5, x: 0, cy: ledZ }),
   ), yFrente, GRAVACAO_LADO))
 
-  // Furo do pino do cilindro (em cima).
-  vazios.push(cilindroZ(4.2, zTopo - 4, zTopo + 0.01, 0, cy))
+  // Furo do pino do cilindro (em cima): 3 mm de fundo, para sobrar 1,5 mm de teto sobre o pistão.
+  vazios.push(cilindroZ(4.2, zTopo - 3, zTopo + 0.01, 0, cy))
 
   return subtract(union(solidos), ...vazios)
 }
@@ -413,14 +460,14 @@ function portico(p) {
 
 function tampaMecanismo(p) {
   const m = medidas(p)
-  const { zC0, xP, yR, zs } = m
+  const { zC0, xP, yR } = m
   const [x0, x1, y0, y1] = contornoTampaMec(m, 0.2)
   const placa = caixaXYZ(x0, x1, y0, y1, zC0, zC0 + MEC.tampa)
   const lado = MEC.haste + 3
   const bucha = prisma(retArredondado(lado, lado, 1.5, [xP, yR]), zC0 + MEC.tampa - 0.01, zC0 + MEC.guiaAte)
-  // Calço que segura o servo por baixo (fica entre as abas).
-  const xs = m.xServo
-  const calco = caixaXYZ(xs + 2, xs + SERVO.abaAltura - 1.5, yR - 4, yR + 12, zC0 + MEC.tampa - 0.01, zs - SERVO.largura / 2 - 0.2)
+  // Calço que segura o servo por baixo (fica entre o fundo e as orelhas): é o batente de altura do servo.
+  const { xServo: xs, yServo: ys, zApoio } = m
+  const calco = caixaXYZ(xs + 2, xs + SG90.abaAltura - 1.5, ys + 1.5, ys + SG90.comprimento - 1.5, zC0 + MEC.tampa - 0.01, zApoio)
   const guia = caixaXYZ(xP - MEC.haste / 2 - 0.25, xP + MEC.haste / 2 + 0.25, yR - MEC.haste / 2 - 0.25, yR + MEC.haste / 2 + 0.25, zC0 - 1, zC0 + MEC.guiaAte + 1)
   return subtract(union(placa, bucha, calco), guia)
 }
@@ -434,8 +481,8 @@ function pistao(p) {
   const h = MEC.haste
   const rasgoAlt = p.pino + 0.6
   const meioJugo = rasgoAlt / 2 + 2.2
-  const jugo = caixaXYZ(xP - h / 2, xP + h / 2, yR - 10, yR + 10, zJugo - meioJugo, zJugo + meioJugo)
-  const rasgo = caixaXYZ(xP - h, xP + h, yR - (p.manivela + 1.4), yR + (p.manivela + 1.4), zJugo - rasgoAlt / 2, zJugo + rasgoAlt / 2)
+  const jugo = caixaXYZ(xP - h / 2, xP + h / 2, yR - 11, yR + 11, zJugo - meioJugo, zJugo + meioJugo)
+  const rasgo = caixaXYZ(xP - h, xP + h, yR - (p.manivela + RASGO_EXTRA), yR + (p.manivela + RASGO_EXTRA), zJugo - rasgoAlt / 2, zJugo + rasgoAlt / 2)
   const haste = caixaXYZ(xP - h / 2, xP + h / 2, yR - h / 2, yR + h / 2, zC0 - 9, zJugo - meioJugo + 0.01)
   return subtract(union(jugo, haste), rasgo)
 }
@@ -458,7 +505,7 @@ function martelo(p) {
 function cilindroHidraulico(p) {
   const m = medidas(p)
   const { cy, zTopo } = m
-  const pino = cilindroZ(4, zTopo - 3.5, zTopo + 0.01, 0, cy)
+  const pino = cilindroZ(4, zTopo - 2.5, zTopo + 0.01, 0, cy)
   const flangeBaixo = prisma(retArredondado(24, 24, 2.5, [0, cy]), zTopo, zTopo + 3)
   const corpo = cilindroZ(10, zTopo + 3 - 0.01, zTopo + 23 + 0.01, 0, cy)
   const flangeCima = prisma(retArredondado(23, 23, 2.5, [0, cy]), zTopo + 23, zTopo + 26)
@@ -527,7 +574,8 @@ function tampaComando(p) {
   )
   const parafusos = c.postes.map(([x, y]) => cilindroZ(1.7, z0 - 1, z1 + 1, x, y, 16))
   // Torre: rebaixo de 1 mm do tamanho do pé (centraliza), furo do meio para os fios e os 3 furos do pé.
-  const rebaixo = cilindroZ(p.torrePe / 2 + 0.4, z1 - 1, z1 + 1, c.cx, c.cy, 96)
+  // Folga de 1 mm no raio: o pé foi medido com régua (60 mm), então o rebaixo aceita até 62 mm.
+  const rebaixo = cilindroZ(p.torrePe / 2 + 1, z1 - 1, z1 + 1, c.cx, c.cy, 96)
   const fiosTorre = cilindroZ(p.torreFios / 2, z0 - 1, z1 + 1, c.cx, c.cy)
   const furosPe = [0, 1, 2].map((i) => {
     const a = Math.PI / 2 + (i * 2 * Math.PI) / 3
@@ -621,24 +669,33 @@ function placas(p) {
   lista.push(peca(TORRE.corpo / 2, TORRE.alturaBase, branco))
   TORRE.gomos.forEach((h, i) => lista.push(peca(TORRE.corpo / 2, h, coresTorre[i], { brilho: true, led: nomesTorre[i] })))
   lista.push(peca(TORRE.corpo / 2 - 3, TORRE.alturaTopo, branco))
-  // Servo SG90 (azul) deitado na coroa, com o eixo para a direita.
-  const xs = m.xServo
-  const y0 = m.yR - SERVO.eixoDaPonta
-  const azulServo = [0.16, 0.34, 0.85]
-  lista.push(marcar(colorize(azulServo, union(
-    caixaXYZ(xs, xs + SERVO.corpo, y0, y0 + SERVO.comprimento, m.zs - SERVO.largura / 2, m.zs + SERVO.largura / 2),
-    caixaXYZ(xs + SERVO.abaAltura, xs + SERVO.abaAltura + SERVO.abaEsp, y0 - 5, y0 - 5 + SERVO.abas, m.zs - SERVO.largura / 2, m.zs + SERVO.largura / 2),
-    cilindroX(5.6, 2.2, [xs + SERVO.corpo + 1.1, m.yR, m.zs], 32),
-  )), 'servo'))
-  lista.push(marcar(colorize([0.95, 0.95, 0.95], cilindroX(2.2, 1.9, [m.xBraco - MEC.braco - 0.95, m.yR, m.zs], 24)), 'servo')) // eixo
-  // Braço do servo (cortado logo depois do furo usado) e o pino de clipe, que giram juntos.
-  const xb0 = m.xBraco - MEC.braco
-  const bracoForma = hull(circle({ radius: 3.2, center: [0, 0], segments: 24 }), circle({ radius: 2, center: [p.manivela + 1.6, 0], segments: 24 }))
-  // rotateY(−90°) leva o braço (desenhado ao longo de +x) para +z e a espessura para −x.
-  const braco = translate([m.xBraco, m.yR, m.zs], rotateY(-Math.PI / 2, extrudeLinear({ height: MEC.braco }, bracoForma)))
-  lista.push(marcar(colorize([0.97, 0.97, 0.95], braco), 'manivela'))
-  lista.push(marcar(colorize([0.78, 0.8, 0.84], cilindroX(p.pino / 2, m.xP + MEC.haste / 2 + 1.5 - xb0, [(xb0 + m.xP + MEC.haste / 2 + 1.5) / 2, m.yR, m.zs + p.manivela], 12)), 'manivela'))
+  // Servo da equipe (azul, com as medidas arredondadas para cima) encostado nos batentes, eixo para a direita.
+  lista.push(...servoComBraco(p, m, SERVO).map((g, i) => marcar(g, i < 2 ? 'servo' : 'manivela')))
   return lista
+}
+
+/* Servo com as medidas s encostado nos batentes do vão, com o braço (cortado logo depois do furo usado) e o pino
+   de clipe com o pino no alto. Devolve [corpo, eixo, braço, pino]. Usado na prévia e na conferência de colisões. */
+function servoComBraco(p, m, s, angulo = 0) {
+  const e = m.eixo(s)
+  const xs = m.xServo
+  const z0 = m.zApoio
+  const sobra = (s.abas - s.comprimento) / 2
+  const corpo = colorize([0.16, 0.34, 0.85], union(
+    caixaXYZ(xs, xs + s.corpo, m.yServo, m.yServo + s.comprimento, z0, z0 + s.largura),
+    caixaXYZ(xs + s.abaAltura, xs + s.abaAltura + s.abaEsp, m.yServo - sobra, m.yServo - sobra + s.abas, z0, z0 + s.largura),
+    cilindroX(5.6, s.ateBraco - MEC.braco - 2.5 - s.corpo, [xs + (s.corpo + s.ateBraco - MEC.braco - 2.5) / 2, e.y, e.z], 32), // torre das engrenagens
+  ))
+  const xTopo = xs + s.ateBraco                     // topo do braço
+  const xb0 = xTopo - MEC.braco
+  const eixo = colorize([0.95, 0.95, 0.95], cilindroX(2.2, 2.5, [xb0 - 1.25, e.y, e.z], 24))
+  const bracoForma = hull(circle({ radius: 3.2, center: [0, 0], segments: 24 }), circle({ radius: 2, center: [p.manivela + 1.6, 0], segments: 24 }))
+  // rotateY(−90°) leva o braço (desenhado ao longo de +x) para +z e a espessura para −x; rotateX gira o braço.
+  const girar = (g) => translate([0, e.y, e.z], rotateX(angulo, translate([0, -e.y, -e.z], g)))
+  const braco = girar(translate([xTopo, e.y, e.z], rotateY(-Math.PI / 2, extrudeLinear({ height: MEC.braco }, bracoForma))))
+  const xPino = m.xP + MEC.haste / 2 + 1.5
+  const pino = girar(cilindroX(p.pino / 2, xPino - xb0, [(xb0 + xPino) / 2, e.y, e.z + p.manivela], 12))
+  return [corpo, eixo, colorize([0.97, 0.97, 0.95], braco), colorize([0.78, 0.8, 0.84], pino)]
 }
 
 /* Fios para a prévia: cada ponto é [x, y, z, grupo]. Na vista explodida, cada ponto anda junto com a
@@ -863,4 +920,5 @@ function padroes() {
 module.exports = {
   main, getParameterDefinitions, base, tampa, portico, tampaMecanismo, pistao, martelo, cilindroHidraulico,
   caixaComando, tampaComando, placas, fios, pecasMontadas, medidas, padroes, CORES, PALETA, EXPLOSAO, TORRE,
+  SERVO, SG90, servoComBraco,
 }

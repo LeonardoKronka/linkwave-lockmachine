@@ -139,7 +139,7 @@ async function principal() {
     },
     explosao: caixa.EXPLOSAO,
     // O braço do servo gira em torno do eixo (paralelo a x); o pistão e o martelo descem 2 × manivela.
-    mecanismo: { pivo: [m.xBraco, m.yR, m.zs].map((v) => +v.toFixed(2)), manivela: p.manivela, giram: ['manivela'], descem: ['pistao', 'martelo'] },
+    mecanismo: { pivo: [m.xBraco, m.yEixo, m.zEixo].map((v) => +v.toFixed(2)), manivela: p.manivela, giram: ['manivela'], descem: ['pistao', 'martelo'] },
     pecas: [...caixa.pecasMontadas(p), ...caixa.placas(p)].map(malha),
     fios: caixa.fios(p),
   }
