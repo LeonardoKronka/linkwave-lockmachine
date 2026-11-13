@@ -123,7 +123,7 @@
   .pecas li { display: grid; grid-template-columns: 12px 1fr auto; gap: 10px; align-items: baseline; }
   .pecas small { color: var(--texto-2); font-size: 12.5px; display: block; }
   .pecas .g { font-family: var(--mono); font-size: 11.5px; color: var(--texto-2); white-space: pre; text-align: right; }
-  .cor { width: 12px; height: 12px; border-radius: 4px; transform: translateY(1px); }
+  .cor { width: 12px; height: 12px; border-radius: 4px; transform: translateY(1px); box-shadow: 0 0 0 1px rgba(236, 238, 244, .35); }
   .mono { font-family: var(--mono); font-size: 12.5px; }
   .nota { color: var(--texto-2); font-size: 13.5px; margin: 10px 0 0; }
   .confere li strong { font-weight: 700; }
@@ -198,17 +198,17 @@
     <section class="cartao">
       <h2>As 9 peças para imprimir</h2>
       <ul class="pecas" id="lista-pecas">
-        <li><span class="cor" style="background:#3A3F4B"></span><span>1 · Base<small>Em pé, como na foto. Guarda o protoboard.</small></span><span class="g" data-peca="base"></span></li>
-        <li><span class="cor" style="background:#A8B0BD"></span><span>2 · Mesa (tampa)<small>De cabeça para baixo. Leva o leitor RFID.</small></span><span class="g" data-peca="tampa"></span></li>
+        <li><span class="cor" style="background:#1F1F24"></span><span>1 · Base<small>Em pé, como na foto. Guarda o protoboard.</small></span><span class="g" data-peca="base"></span></li>
+        <li><span class="cor" style="background:#F2F2F0"></span><span>2 · Mesa (tampa)<small>De cabeça para baixo. Leva o leitor RFID.</small></span><span class="g" data-peca="tampa"></span></li>
         <li><span class="cor" style="background:#FF3D2E"></span><span>3 · Pórtico<small>Com a coroa na mesa e as colunas para cima. O servo fica dentro da coroa.</small></span><span class="g" data-peca="portico"></span></li>
         <li><span class="cor" style="background:#FF3D2E"></span><span>4 · Tampa do mecanismo<small>Deitada. Fecha a coroa por baixo e guia o pistão.</small></span><span class="g" data-peca="tampaMec"></span></li>
-        <li><span class="cor" style="background:#80878F"></span><span>5 · Pistão<small>Deitado de lado: o rasgo do pino fica em pé.</small></span><span class="g" data-peca="pistao"></span></li>
-        <li><span class="cor" style="background:#FFD23F"></span><span>6 · Martelo<small>Em pé, com a parte larga na mesa.</small></span><span class="g" data-peca="martelo"></span></li>
-        <li><span class="cor" style="background:#80878F"></span><span>7 · Cilindro<small>De cabeça para baixo (os STL já vêm assim).</small></span><span class="g" data-peca="cilindro"></span></li>
-        <li><span class="cor" style="background:#3A3F4B"></span><span>8 · Caixa de comando<small>Em pé. Guarda o módulo de relés e o conector de 12 V.</small></span><span class="g" data-peca="comando"></span></li>
-        <li><span class="cor" style="background:#A8B0BD"></span><span>9 · Tampa da caixa<small>De cabeça para baixo. A torre é parafusada nela.</small></span><span class="g" data-peca="tampaComando"></span></li>
+        <li><span class="cor" style="background:#F2F2F0"></span><span>5 · Pistão<small>Deitado de lado: o rasgo do pino fica em pé.</small></span><span class="g" data-peca="pistao"></span></li>
+        <li><span class="cor" style="background:#2F45FF"></span><span>6 · Martelo<small>Em pé, com a parte larga na mesa.</small></span><span class="g" data-peca="martelo"></span></li>
+        <li><span class="cor" style="background:#F2F2F0"></span><span>7 · Cilindro<small>De cabeça para baixo (os STL já vêm assim).</small></span><span class="g" data-peca="cilindro"></span></li>
+        <li><span class="cor" style="background:#1F1F24"></span><span>8 · Caixa de comando<small>Em pé. Guarda o módulo de relés e o conector de 12 V.</small></span><span class="g" data-peca="comando"></span></li>
+        <li><span class="cor" style="background:#F2F2F0"></span><span>9 · Tampa da caixa<small>De cabeça para baixo. A torre é parafusada nela.</small></span><span class="g" data-peca="tampaComando"></span></li>
       </ul>
-      <p class="nota">PLA, camada de 0,2 mm, 3 paredes, 15% de preenchimento. O peso é o da peça maciça: com 15% de preenchimento sai menos. As cores são sugestão; dá para imprimir tudo numa cor só e pintar o martelo.</p>
+      <p class="nota">PLA, camada de 0,2 mm, 3 paredes, 15% de preenchimento. O peso é o da peça maciça: com 15% de preenchimento sai menos. Paleta em 4 cores: vermelho, branco, preto e azul. Dá para imprimir tudo numa cor só e pintar depois.</p>
       <p class="nota"><strong>Além das peças:</strong> a torre de sinalização, o módulo de 4 relés e o servo SG90 do kit, uma fonte de 12 V, um conector P4 fêmea de painel (furo de 11 mm), um capacitor de 470 µF (10 V ou mais), 3 parafusos M4 para o pé da torre, 2 parafusos M3 de 12 mm para a tampa da caixa e um pedaço de clipe de papel (o pino do braço).</p>
     </section>
 
@@ -252,7 +252,7 @@
       <ol>
         <li>Em tinkercad.com, clique em <strong>Criar → Design 3D</strong>.</li>
         <li>Clique em <strong>Importar</strong> e escolha um arquivo da pasta <span class="mono">stl/tinkercad</span>, com Unidades = milímetros e Escala = 100%.</li>
-        <li>Repita para os 14 arquivos, um de cada vez: as 9 peças e as 5 referências (protoboard, leitor, servo, relés e torre). Cada um cai no lugar dele, já montado.</li>
+        <li>Repita para os 13 arquivos, um de cada vez: as 9 peças e as 4 referências (protoboard, leitor, servo e relés). A torre não entra: o projeto só tem o encaixe dela, na tampa da caixa de comando. Cada um cai no lugar dele, já montado.</li>
       </ol>
       <p class="nota">Os 2 cubinhos de 1 mm nos cantos são marcadores de alinhamento. Para imprimir, use os arquivos <span class="mono">stl/prensa-*.stl</span>, que já vêm deitados na posição certa e sem os marcadores.</p>
     </section>

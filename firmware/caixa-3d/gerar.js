@@ -80,15 +80,16 @@ const NOMES_TK = {
 }
 for (const g of montadas) salvar(path.join(pastaTk, `${NOMES_TK[g.grupo]}.stl`), g, ...marcadores)
 // Peças compradas ou do kit, só como referência (não imprimir): ajudam a conferir se tudo cabe.
+// A torre de sinalização fica fora: ela é comprada pronta, e o projeto só tem o encaixe dela
+// (a tampa da caixa de comando). Ela aparece só na prévia 3D do navegador.
 const REFS = [
-  ['ref-a-protoboard-esp32', ['base']],
-  ['ref-b-leitor-rfid', ['tampa']],
-  ['ref-c-servo', ['servo', 'manivela']],
-  ['ref-d-modulo-reles', ['comando']],
-  ['ref-e-torre', ['torre']],
+  ['ref-a-protoboard-esp32', (g) => g.grupo === 'base'],
+  ['ref-b-leitor-rfid', (g) => g.grupo === 'tampa'],
+  ['ref-c-servo', (g) => g.grupo === 'servo' || g.grupo === 'manivela'],
+  ['ref-d-modulo-reles', (g) => g.grupo === 'comando'],
 ]
-for (const [nome, grupos] of REFS) {
-  const geoms = referencias.filter((g) => grupos.includes(g.grupo))
+for (const [nome, filtro] of REFS) {
+  const geoms = referencias.filter(filtro)
   if (geoms.length) salvar(path.join(pastaTk, `${nome}.stl`), ...geoms, ...marcadores)
 }
 console.log(`stl/tinkercad: ${montadas.length} peças + ${REFS.length} referências (conjunto de ${r1(gx1 - gx0)} x ${r1(gy1 - gy0)} mm)`)

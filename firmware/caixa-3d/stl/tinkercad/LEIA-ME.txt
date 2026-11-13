@@ -19,24 +19,26 @@ Cada peça cai no lugar dela, já montada. Isso funciona porque todo arquivo tem
 Se alguma peça cair fora do lugar, importe-a de novo sem mexer em nada antes.
 
 
-PEÇAS PARA IMPRIMIR (9)                         cor sugerida
-01-base ........... guarda o protoboard          cinza-escuro
-02-mesa ........... tampa da base, com o leitor  cinza-claro
-03-portico ........ colunas + coroa com o servo  vermelho
-04-tampa-mecanismo  fecha a coroa por baixo      vermelho
-05-pistao ......... sobe e desce com o servo     cinza
-06-martelo ........ ponta do pistão              amarelo
-07-cilindro ....... enfeite em cima da coroa     cinza
-08-caixa-comando .. módulo de relés + 12 V       cinza-escuro
-09-tampa-comando .. a torre é parafusada nela    cinza-claro
+PEÇAS PARA IMPRIMIR (9)                         cor (paleta vermelho, branco, preto e azul)
+01-base ........... guarda o protoboard          preto     #1F1F24
+02-mesa ........... tampa da base, com o leitor  branco    #F2F2F0
+03-portico ........ colunas + coroa com o servo  vermelho  #FF3D2E
+04-tampa-mecanismo  fecha a coroa por baixo      vermelho  #FF3D2E
+05-pistao ......... sobe e desce com o servo     branco    #F2F2F0
+06-martelo ........ ponta do pistão              azul      #2F45FF
+07-cilindro ....... enfeite em cima da coroa     branco    #F2F2F0
+08-caixa-comando .. módulo de relés + 12 V       preto     #1F1F24
+09-tampa-comando .. a torre é parafusada nela    branco    #F2F2F0
 
 REFERÊNCIAS (não imprimir: são as peças do kit, para conferir se tudo cabe)
-ref-a-protoboard-esp32   ref-b-leitor-rfid   ref-c-servo   ref-d-modulo-reles   ref-e-torre
+ref-a-protoboard-esp32   ref-b-leitor-rfid   ref-c-servo   ref-d-modulo-reles
+A torre de sinalização não entra: ela é comprada pronta. O encaixe dela é a 09-tampa-comando
+(rebaixo do pé, furo do meio para os 5 fios e 3 furos para parafusos M4).
 
 
 DICAS NO TINKERCAD
 ------------------
-- Mudar a cor: selecione a peça e escolha a cor no painel "Forma" (Shape).
+- Mudar a cor: selecione a peça, clique na cor do painel "Forma" e digite o código (ex.: FF3D2E).
 - Ver uma peça sozinha: selecione as outras e use "Ocultar" (o ícone da lâmpada);
   "Mostrar tudo" traz de volta.
 - Medidas: com a peça selecionada, as alças mostram largura, profundidade e altura.

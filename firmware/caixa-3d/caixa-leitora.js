@@ -333,14 +333,14 @@ function tampa(p) {
   const gravacoes = union(
     moldura(66, 37, 4, 0.8, [m.px(50), ly]),
     iconeCartao(ax, ly + 3),
-    texto('APROXIME AQUI', { largura: 42, altura: 5, traco: 0.8, x: ax, cy: ly - 12.5 }),
+    texto('APROXIME AQUI', { largura: 54, altura: 6.5, traco: 1.2, x: ax, cy: ly - 13.5 }),
     // chapa sendo prensada + dois rasgos em T da mesa
     moldura(44, 30, 2, 0.8, [m.xP, m.yR]),
     traco([[m.xP - 28, m.yR - 19], [m.xP + 28, m.yR - 19]], 0.8),
     traco([[m.xP - 28, m.yR + 19], [m.xP + 28, m.yR + 19]], 0.8),
     iconeCadeado(mx - 36, my - 0.7),
-    texto('LockMachine', { largura: 66, altura: 9, traco: 1.2, x: mx - 23.5, cy: my + 4.5, alinhar: 'esquerda' }),
-    texto('por LinkWave', { largura: 44, altura: 8, traco: 0.8, x: mx - 23.5, cy: my - 7.5, alinhar: 'esquerda' }),
+    texto('LockMachine', { largura: 66, altura: 9.5, traco: 1.5, x: mx - 23.5, cy: my + 4.5, alinhar: 'esquerda' }),
+    texto('por LinkWave', { largura: 48, altura: 8, traco: 1.1, x: mx - 23.5, cy: my - 7.5, alinhar: 'esquerda' }),
     parafuso(-ex, -ey), parafuso(ex, -ey), parafuso(-ex, ey), parafuso(ex, ey),
   )
   const gravado = prisma(gravacoes, z1 - GRAVACAO, z1 + 1)
@@ -400,7 +400,7 @@ function portico(p) {
   // Placa de identificação gravada no meio da frente da coroa (a torre de sinalização fica na caixa de comando).
   vazios.push(gravarFrente(union(
     moldura(54, 15, 2.5, 0.8, [0, ledZ]),
-    texto('LockMachine', { largura: 46, altura: 8.5, traco: 1.1, x: 0, cy: ledZ }),
+    texto('LockMachine', { largura: 48, altura: 10, traco: 1.5, x: 0, cy: ledZ }),
   ), yFrente, GRAVACAO_LADO))
 
   // Furo do pino do cilindro (em cima).
@@ -535,8 +535,8 @@ function tampaComando(p) {
   })
   // Gravações: identificação na frente e "12 V" perto do conector.
   const gravacoes = union(
-    texto('P-01 COMANDO', { largura: 58, altura: 6, traco: 0.9, x: c.cx, cy: c.y0 + 10 }),
-    texto('12 V', { largura: 16, altura: 6, traco: 0.9, x: c.x1 - 13, cy: c.y1 - 22 }),
+    texto('P-01 COMANDO', { largura: 70, altura: 8, traco: 1.2, x: c.cx, cy: c.y0 + 10 }),
+    texto('12 V', { largura: 22, altura: 8, traco: 1.2, x: c.x1 - 13, cy: c.y1 - 22 }),
   )
   const gravado = prisma(gravacoes, z1 - GRAVACAO, z1 + 1)
   return subtract(union(placa, saia), parafusos, rebaixo, fiosTorre, ...furosPe, gravado)
@@ -788,16 +788,23 @@ function fios(p) {
 
 /* ======================= Principal ======================= */
 
+/* Paleta de 4 cores: vermelho LockMachine, azul LinkWave, branco e preto. */
+const PALETA = {
+  vermelho: [1, 0.24, 0.18],        // #FF3D2E
+  azul: [0.18, 0.27, 1],            // #2F45FF
+  branco: [0.95, 0.95, 0.94],       // #F2F2F0
+  preto: [0.12, 0.12, 0.14],        // #1F1F24
+}
 const CORES = {
-  base: [0.2, 0.22, 0.28],          // grafite (o corpo da P-01)
-  tampa: [0.66, 0.69, 0.74],        // cinza-aço (a mesa)
-  portico: [1, 0.24, 0.18],         // vermelho LockMachine
-  tampaMec: [1, 0.24, 0.18],        // mesma cor do pórtico
-  pistao: [0.5, 0.53, 0.58],        // cinza (a haste)
-  martelo: [1, 0.82, 0.25],         // amarelo do martelo, como na P-01
-  cilindro: [0.5, 0.53, 0.58],      // cinza
-  comando: [0.2, 0.22, 0.28],       // grafite, igual à base
-  tampaComando: [0.66, 0.69, 0.74], // cinza-aço, igual à mesa
+  base: PALETA.preto,               // corpo da prensa
+  tampa: PALETA.branco,             // mesa
+  portico: PALETA.vermelho,         // colunas e coroa
+  tampaMec: PALETA.vermelho,        // some embaixo da coroa
+  pistao: PALETA.branco,            // a haste que aparece entre a coroa e o martelo
+  martelo: PALETA.azul,
+  cilindro: PALETA.branco,
+  comando: PALETA.preto,            // igual à base
+  tampaComando: PALETA.branco,      // igual à mesa
 }
 
 /* Quanto cada peça sobe na vista explodida (mm). */
@@ -855,5 +862,5 @@ function padroes() {
 
 module.exports = {
   main, getParameterDefinitions, base, tampa, portico, tampaMecanismo, pistao, martelo, cilindroHidraulico,
-  caixaComando, tampaComando, placas, fios, pecasMontadas, medidas, padroes, CORES, EXPLOSAO, TORRE,
+  caixaComando, tampaComando, placas, fios, pecasMontadas, medidas, padroes, CORES, PALETA, EXPLOSAO, TORRE,
 }
