@@ -8,11 +8,15 @@ api/storage/limites/
 # Configuração do Claude Code com caminhos desta máquina
 .claude/
 
-# APK e chave de assinatura do PWABuilder (a chave NUNCA vai para o Git)
+# APK e pacote do PWABuilder. Do pacote, só o APK (em downloads/) e o assetlinks.json (em .well-known/)
+# vão para o site. A chave de assinatura e as senhas NUNCA vão para o Git: ficam guardadas fora desta pasta.
 downloads/*.apk
+*.aab
+*.idsig
 *.keystore
 *.jks
 signing-key-info.txt
+*Google Play package*
 
 # Dependências do gerador da caixa 3D (npm install em firmware/caixa-3d)
 node_modules/

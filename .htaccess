@@ -7,13 +7,20 @@ DirectoryIndex index.html index.php
 # linhas depois que https:// já estiver funcionando lá.
 <IfModule mod_rewrite.c>
   RewriteEngine On
+  # www.dominio vai para o endereço sem www, para o login valer num endereço só.
+  # /.well-known/ fica de fora: a renovação do certificado confere o www por ali.
+  RewriteCond %{REQUEST_URI} !^/\.well-known/
+  RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
+  RewriteRule ^ https://%1%{REQUEST_URI} [L,R=301]
   RewriteCond %{HTTPS} !=on
   RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 </IfModule>
 
-# Tipos de arquivo usados pelo app e pelo download do APK
+# Tipos de arquivo usados pelo app, pelo download do APK e pelo assetlinks.json
+# (a pasta /.well-known/ fica aberta: o certificado HTTPS e o app Android dependem dela)
 AddType application/manifest+json .webmanifest
 AddType application/vnd.android.package-archive .apk
+AddType application/json .json
 AddType font/woff2 .woff2
 
 # Arquivos de desenvolvimento nunca são servidos
@@ -35,7 +42,8 @@ AddType font/woff2 .woff2
   Header always set Cross-Origin-Opener-Policy "same-origin"
   # Navegador lembra de usar sempre HTTPS (só é enviado quando a página já veio por HTTPS)
   Header always set Strict-Transport-Security "max-age=31536000" env=HTTPS
-  <FilesMatch "^(sw\.js|manifest\.webmanifest)$">
+  # Sempre confere se há versão nova (o APK é trocado mantendo o mesmo nome)
+  <FilesMatch "^(sw\.js|manifest\.webmanifest|lockmachine\.apk|assetlinks\.json)$">
     Header set Cache-Control "no-cache"
   </FilesMatch>
 </IfModule>

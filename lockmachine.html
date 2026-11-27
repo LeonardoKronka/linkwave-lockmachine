@@ -50,6 +50,7 @@
     <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3.5 2.8 19.5h18.4z"/><path d="M12 10v4.5M12 17h.01"/></symbol>
     <symbol id="i-files" viewBox="0 0 24 24"><path d="M8 3.5h7l4 4V17a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V5.5a2 2 0 0 1 2-2z"/><path d="M15 3.5v4h4M9.5 12h6M9.5 15h4"/></symbol>
     <symbol id="i-grip" viewBox="0 0 24 24"><path d="M9 6h.01M15 6h.01M9 12h.01M15 12h.01M9 18h.01M15 18h.01"/></symbol>
+    <symbol id="i-press" viewBox="0 0 24 24"><path d="M3.5 20.5h17M6 20.5v-17h12v17M12 3.5V9M8.5 17h7"/><rect x="8.5" y="9" width="7" height="3.5" rx="1"/></symbol>
     <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 2.5v19M3.8 7.25l16.4 9.5M3.8 16.75l16.4-9.5"/></symbol>
   </svg>
 
@@ -506,7 +507,7 @@
               </div>
 
               <div class="tables">
-                <h3 class="h-md api__h">Sete tabelas relacionais</h3>
+                <h3 class="h-md api__h">Oito tabelas relacionais</h3>
                 <ul class="tables__list">
                   <li><code>usuarios</code><span>Contas administrativas e perfis de acesso.</span></li>
                   <li><code>operadores</code><span>Funcionários, matrícula, setor e UID RFID.</span></li>
@@ -514,6 +515,7 @@
                   <li><code>treinamentos</code><span>Capacitações e períodos de validade.</span></li>
                   <li><code>operador_treinamento</code><span>Conclusão e validade por operador.</span></li>
                   <li><code>maquina_treinamento</code><span>Capacitações exigidas por máquina.</span></li>
+                  <li><code>dispositivos</code><span>Leitoras RFID, máquina de cada uma e token guardado como hash.</span></li>
                   <li><code>acessos</code><span>Solicitações, resultados, motivos e horários.</span></li>
                 </ul>
               </div>
@@ -526,14 +528,14 @@
           <div class="wrap">
             <div class="hw__head">
               <h2 class="h-lg" data-split>Bancada de referência</h2>
-              <p class="lede">Configuração proposta para o protótipo. A lista será confirmada com os componentes disponíveis e nenhum item é apresentado como instalado antes da montagem e do registro fotográfico.</p>
+              <p class="lede">Componentes da bancada de demonstração. Nenhum item é apresentado como instalado antes da montagem e do registro fotográfico.</p>
             </div>
             <ul class="bom" data-bom>
               <li class="part" style="--tone: var(--red)">
                 <span class="part__icon"><svg aria-hidden="true"><use href="#i-chip"/></svg></span>
                 <h3 class="part__name">ESP32 DevKit</h3>
                 <p class="part__does">Lê o cartão, comunica-se por Wi-Fi e controla as saídas.</p>
-                <p class="part__note">GPIO, SPI e Wi-Fi. Modelo exato a confirmar.</p>
+                <p class="part__note">GPIO, SPI e Wi-Fi. Gravado pela Arduino IDE como ESP32 Dev Module.</p>
               </li>
               <li class="part" style="--tone: var(--yellow)">
                 <span class="part__icon"><svg aria-hidden="true"><use href="#i-waves"/></svg></span>
@@ -549,21 +551,27 @@
               </li>
               <li class="part" style="--tone: var(--cobalt); --tone-fg: #fff">
                 <span class="part__icon"><svg aria-hidden="true"><use href="#i-lock"/></svg></span>
-                <h3 class="part__name">Módulo relé de bancada</h3>
-                <p class="part__does">Representa a saída de liberar ou manter bloqueado.</p>
-                <p class="part__note">Sem ligação a máquina real. Saída padrão desenergizada.</p>
+                <h3 class="part__name">Módulo de 4 relés</h3>
+                <p class="part__does">Liga as luzes e o buzzer da torre, separando os 12 V do ESP32.</p>
+                <p class="part__note">Sem ligação a máquina real. Saídas começam desligadas.</p>
               </li>
               <li class="part" style="--tone: var(--paper)">
                 <span class="part__icon"><svg aria-hidden="true"><use href="#i-alert"/></svg></span>
-                <h3 class="part__name">LEDs e buzzer</h3>
-                <p class="part__does">Indicam leitura, autorização, bloqueio ou erro.</p>
-                <p class="part__note">Feedback local, sem substituir a resposta do sistema.</p>
+                <h3 class="part__name">Torre de sinalização</h3>
+                <p class="part__does">Amarelo espera o cartão, verde libera, vermelho nega. O buzzer avisa.</p>
+                <p class="part__note">HDL-T50L-3C-J, 12/24 V. Nos testes de bancada, três LEDs fazem esse papel.</p>
+              </li>
+              <li class="part" style="--tone: var(--red)">
+                <span class="part__icon"><svg aria-hidden="true"><use href="#i-press"/></svg></span>
+                <h3 class="part__name">Prensa em miniatura</h3>
+                <p class="part__does">Um servo SG90 desce o martelo só quando o servidor libera.</p>
+                <p class="part__note">Peças impressas em 3D. Representa a máquina: não é uma prensa real.</p>
               </li>
               <li class="part" style="--tone: var(--steel)">
                 <span class="part__icon"><svg aria-hidden="true"><use href="#i-grip"/></svg></span>
                 <h3 class="part__name">Fonte, protoboard e cabos</h3>
                 <p class="part__does">Alimentam e interligam o conjunto.</p>
-                <p class="part__note">Tensões e corrente verificadas antes da montagem.</p>
+                <p class="part__note">Fonte de 12 V só nos contatos dos relés; ESP32 e servo usam o USB.</p>
               </li>
             </ul>
           </div>
@@ -697,7 +705,7 @@
           <div class="wrap">
             <div class="status__head">
               <h2 class="h-lg" data-split>Onde estamos</h2>
-              <p class="lede">Banco, API, login, cadastros, validação e app já funcionam juntos. Enquanto os casos de teste não forem executados e as evidências registradas, o nome certo continua sendo “MVP em desenvolvimento”.</p>
+              <p class="lede">Banco, API, login, cadastros, validação e app já funcionam juntos e estão no ar. Enquanto os casos de teste não forem executados e as evidências registradas, o nome certo continua sendo “MVP em desenvolvimento”.</p>
             </div>
 
             <div class="status__grid">
@@ -710,8 +718,9 @@
                   <li><span class="modules__name">API em PHP</span><span class="tag tag--done">Implementado</span><span class="modules__next">Login com sessão, cadastros, validação e histórico.</span></li>
                   <li><span class="modules__name">App do administrador</span><span class="tag tag--done">Implementado</span><span class="modules__next">Painel, funcionários, máquinas, treinamentos e leitoras.</span></li>
                   <li><span class="modules__name">App do funcionário</span><span class="tag tag--done">Implementado</span><span class="modules__next">Capacitações, máquinas liberadas e histórico.</span></li>
-                  <li><span class="modules__name">APK Android</span><span class="tag tag--demo">Em preparação</span><span class="modules__next">Gerado a partir do app publicado no servidor.</span></li>
-                  <li><span class="modules__name">Leitora ESP32 + MFRC522</span><span class="tag tag--demo">Firmware escrito</span><span class="modules__next">Montar a bancada e testar com cartões reais.</span></li>
+                  <li><span class="modules__name">Publicação</span><span class="tag tag--done">No ar</span><span class="modules__next">Site, API e banco em somoslinkwave.com.br, com HTTPS.</span></li>
+                  <li><span class="modules__name">APK Android</span><span class="tag tag--done">Disponível</span><span class="modules__next">Gerado pelo PWABuilder: abre o mesmo app publicado no servidor.</span></li>
+                  <li><span class="modules__name">Leitora ESP32 + MFRC522</span><span class="tag tag--demo">Em bancada</span><span class="modules__next">Lê o cartão e mostra a decisão do servidor em LEDs, buzzer e servo. Falta ligar relés e torre.</span></li>
                   <li><span class="modules__name">Testes e evidências</span><span class="tag tag--plan">Pendente</span><span class="modules__next">Executar os casos CT e TNF e registrar EV-XX.</span></li>
                 </ul>
               </div>
@@ -719,12 +728,10 @@
               <div class="road" data-road>
                 <h3 class="h-md modules__h">Próximas etapas</h3>
                 <ol class="road__list">
-                  <li class="road__stop"><span class="road__n">1</span><div><h4 class="road__name">Publicar no servidor</h4><p>Site, API e banco no cPanel da escola, com HTTPS.</p></div></li>
-                  <li class="road__stop"><span class="road__n">2</span><div><h4 class="road__name">Gerar o APK</h4><p>Empacotar o app publicado e liberar o download nesta página.</p></div></li>
-                  <li class="road__stop"><span class="road__n">3</span><div><h4 class="road__name">Montar a bancada</h4><p>ESP32, MFRC522, relé e LEDs com o firmware do projeto.</p></div></li>
-                  <li class="road__stop"><span class="road__n">4</span><div><h4 class="road__name">Executar os testes</h4><p>Casos funcionais e de falha com a massa de teste.</p></div></li>
-                  <li class="road__stop"><span class="road__n">5</span><div><h4 class="road__name">Registrar evidências</h4><p>Capturas, consultas e fotos identificadas como EV-XX.</p></div></li>
-                  <li class="road__stop"><span class="road__n">6</span><div><h4 class="road__name">Revisão e apresentação</h4><p>Documentação final e demonstração para a banca.</p></div></li>
+                  <li class="road__stop"><span class="road__n">1</span><div><h4 class="road__name">Ligar a torre de sinalização</h4><p>Relés e torre de 12 V no lugar dos LEDs de teste, quando a fonte chegar.</p></div></li>
+                  <li class="road__stop"><span class="road__n">2</span><div><h4 class="road__name">Executar os testes</h4><p>Casos funcionais e de falha com a massa de teste.</p></div></li>
+                  <li class="road__stop"><span class="road__n">3</span><div><h4 class="road__name">Registrar evidências</h4><p>Capturas, consultas e fotos identificadas como EV-XX.</p></div></li>
+                  <li class="road__stop"><span class="road__n">4</span><div><h4 class="road__name">Revisão e apresentação</h4><p>Documentação final e demonstração para a banca.</p></div></li>
                 </ol>
               </div>
             </div>
