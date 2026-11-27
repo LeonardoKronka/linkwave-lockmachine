@@ -1,0 +1,17 @@
+{
+  "name": "lockmachine-banner",
+  "private": true,
+  "description": "Banner 70 x 90 cm da apresentação do TCC (gera o PDF da gráfica e a prévia em PNG).",
+  "scripts": {
+    "gerar": "node gerar.mjs"
+  },
+  "dependencies": {
+    "fontkit": "2.0.4",
+    "jsqr": "1.4.0",
+    "pdf-lib": "1.17.1",
+    "pdfjs-dist": "6.4.299",
+    "puppeteer-core": "25.16.0",
+    "qrcode": "1.5.4",
+    "wawoff2": "2.0.1"
+  }
+}
