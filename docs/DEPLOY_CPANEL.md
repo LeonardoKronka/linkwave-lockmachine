@@ -45,7 +45,8 @@ no começo dela no `.htaccess` da raiz e no de `api/`, pelo Gerenciador de Arqui
 | `assets/` | CSS, JavaScript, fontes e GSAP (tudo local, sem depender de CDN) |
 | `app/` | O aplicativo (administrador e funcionário). É o mesmo app do APK |
 | `api/` | API em PHP que conversa com o MySQL |
-| `downloads/` | Onde o `lockmachine.apk` vai ficar |
+| `downloads/` | Onde o `lockmachine.apk` fica (ele não está no Git nem no zip: sobe à mão, seção 7) |
+| `.well-known/assetlinks.json` | Prova que o app Android é deste domínio (seção 7) |
 | `.htaccess` | Configurações do Apache |
 
 Ficam **fora** do servidor: `database/` (scripts SQL, importados pelo phpMyAdmin), `firmware/` (vai para o ESP32) e `docs/`.
@@ -197,27 +198,85 @@ Para conferir os cabeçalhos: abra o site, **F12 > Network**, clique em `index.h
 
 ## 7. Gerar o APK (Android)
 
-O APK é gerado a partir do app publicado, pelo **PWABuilder** (ferramenta gratuita da Microsoft).
-Não precisa instalar Android Studio.
+O APK é gerado a partir do app publicado, pelo **PWABuilder** (ferramenta gratuita da Microsoft), sem Android Studio.
+Ele empacota o `app/` como *Trusted Web Activity*: o APK abre o mesmo app do site, em tela cheia, e o que muda no
+site chega ao app sem reinstalar.
 
-1. Acesse **https://www.pwabuilder.com**, cole `https://SEU-DOMINIO/app/` e clique em **Start**.
-2. Clique em **Package For Stores** > **Android** > **Generate Package**.
-   - Package ID: algo como `br.senai.linkwave.lockmachine`
-   - App name: `LockMachine`
-   - Mantenha **Signing key: New** (o PWABuilder cria a chave de assinatura).
-3. Baixe o zip. Dentro dele você encontra:
-   - `LockMachine.apk` (ou `app-release-signed.apk`): o instalador;
-   - `assetlinks.json`: prova que o app pertence ao seu domínio;
-   - `signing.keystore` e `signing-key-info.txt`: **guarde em local seguro**. Sem eles não dá para atualizar o app depois.
-4. No File Manager:
-   - crie a pasta `.well-known` dentro de `public_html` e envie o `assetlinks.json` para ela;
-   - renomeie o APK para **`lockmachine.apk`** e envie para a pasta `downloads/`.
-5. Abra `https://SEU-DOMINIO/lockmachine.html#app`: o botão **Baixar APK para Android** se ativa sozinho
-   quando o arquivo existe.
+### Gerar o pacote
 
-No celular, o Android pergunta se pode instalar apps desta fonte: autorize para o navegador usado.
-Com o `assetlinks.json` no lugar, o app abre em tela cheia, sem barra de endereço.
+1. Acesse **https://www.pwabuilder.com**, cole `https://SEU-DOMINIO/app/` e clique em **Start**. O relatório não pode
+   ter item vermelho; o aviso amarelo de *screenshots* só importa para a Play Store.
+2. **Package For Stores** > cartão **Google Play** > **Generate Package**. Use a aba **Google Play**, não "Other Android".
+3. Mude só estes campos (o resto vem do manifesto do app):
+
+   | Campo | Valor |
+   |---|---|
+   | Package ID | `br.com.somoslinkwave.lockmachine` |
+   | All Settings > Notification delegation | desmarcado (o app não manda notificações) |
+   | Signing key | **New**; alias `lockmachine`, nome e organização `LinkWave`, unidade `SENAI Mococa`, país `BR` |
+
+4. **Download Package**. Vem `LockMachine - Google Play package.zip` (cerca de 2 MB) com `LockMachine.apk`,
+   `assetlinks.json`, `LockMachine.aab` (só para a Play Store), `Readme.html` e a chave: `signing.keystore` e
+   `signing-key-info.txt`, com as senhas. **Guarde o zip inteiro fora da pasta do projeto** (pen drive e Drive
+   pessoal). Sem essa chave não dá para lançar versão nova nem registrar o app no Google: o celular só aceita
+   atualização assinada com a mesma chave.
+
+### Colocar no site
+
+1. No projeto, o `LockMachine.apk` vira `downloads/lockmachine.apk` (fica fora do Git) e o `assetlinks.json` vai para
+   `.well-known/assetlinks.json` (fica no Git e entra no zip de `deploy/`). Tire do zip só esses dois arquivos.
+2. No **Gerenciador de arquivos**, em `public_html`:
+   - **Configurações** (canto superior direito) > marque **Mostrar arquivos ocultos (dotfiles)** > **Save**;
+   - entre em `.well-known` > **Carregar** > `assetlinks.json`. A pasta já existe por causa do certificado (tem
+     `acme-challenge` dentro, que não deve ser mexida); se não existir, crie com **+ Pasta**;
+   - entre em `downloads` > **Carregar** > `lockmachine.apk`.
+
+   Na janela do Windows, dá para colar o caminho completo do arquivo no campo **Nome**. Para trocar um arquivo que
+   já existe, marque **Substitua os arquivos existentes** antes de escolher. Arquivos enviados um a um pelo
+   Gerenciador já chegam com permissão 644: não precisa da Tarefa Cron.
+3. Confira: `https://SEU-DOMINIO/.well-known/assetlinks.json` mostra o JSON, e em
+   `https://SEU-DOMINIO/lockmachine.html#app` o botão **Baixar APK para Android** fica ativo sozinho
+   (sem o arquivo, ele mostra "APK em breve"). Para ver se o Google reconhece a ligação (é o que o celular consulta),
+   abra o endereço abaixo trocando o domínio: a resposta precisa trazer o pacote e a mesma impressão digital.
+   `https://digitalassetlinks.googleapis.com/v1/statements:list?source.web.site=https://SEU-DOMINIO&relation=delegate_permission/common.handle_all_urls`
+
+### Instalar no celular
+
+1. No Chrome do Android, abra `https://SEU-DOMINIO/lockmachine.html#app` e toque em **Baixar APK para Android**.
+2. Abra o arquivo baixado. Na primeira vez, o Android pede para permitir que o Chrome instale apps: permita.
+3. Se o Play Protect perguntar, toque em **Mais detalhes > Instalar mesmo assim** (o app não está na Play Store).
+4. Abra o LockMachine: com o `assetlinks.json` no ar, ele abre em tela cheia, sem barra de endereço.
+
+**Pelo notebook, com cabo USB** (foi assim no tablet do SENAI em 27/11):
+
+1. No tablet: **Configurações > Sobre o tablet > Informações do software**, toque 7 vezes em **Número de compilação**;
+   depois **Opções do desenvolvedor > Depuração USB** ligada.
+2. Ligue o cabo e, com a tela desbloqueada, aceite **Permitir depuração USB?** (marque "Sempre permitir").
+3. No notebook, na pasta do projeto:
+
+   ```powershell
+   & "$env:LOCALAPPDATA\Android\sdk\platform-tools\adb.exe" install downloads\lockmachine.apk
+   ```
+
+   A resposta esperada é `Success`. Se o aparelho aparecer como `unauthorized` em `adb devices`, falta aceitar o
+   passo 2.
+
+Se o celular tiver o app de teste do Flutter (LockMachine de 04/11), desinstale antes: os dois usam o mesmo Package ID.
 No iPhone, use a versão web (`/app/`) e toque em **Compartilhar > Adicionar à Tela de Início**.
+
+**Regra nova do Google.** Desde 30/09/2026, no Brasil, apps instalados por lojas participantes (Play Store, Galaxy
+Store, Xiaomi GetApps e outras) precisam vir de desenvolvedor verificado. APK baixado direto do site ainda está fora
+dessa fase, mas o Google anunciou a regra para todos os países a partir de 2027. Se o Android passar a recusar o APK,
+registre o pacote `br.com.somoslinkwave.lockmachine` e a chave no Android Developer Console (conta gratuita de
+distribuição limitada, para poucos aparelhos, ou conta completa, US$ 25) ou instale pelo cabo com `adb install`,
+que não passa por essa verificação.
+
+### Versão nova do APK
+
+Só é preciso gerar outro APK se mudar o nome, o ícone, as cores ou o endereço do app: o conteúdo vem do site.
+No PWABuilder, escolha **Signing key > Use mine**, envie o mesmo `signing.keystore` com as senhas do
+`signing-key-info.txt` (quem digita é você) e aumente o **Version code** (2, 3...). Com outra chave, o celular recusa
+a atualização e o `assetlinks.json` deixa de valer.
 
 ---
 

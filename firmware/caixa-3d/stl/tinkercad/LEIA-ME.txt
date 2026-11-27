@@ -1,0 +1,65 @@
+PRENSA P-01 NO TINKERCAD
+========================
+
+Estes arquivos são a prensa do LockMachine peça por peça, cada uma na posição de montagem,
+com as medidas reais em milímetros. Servem para VER e MEDIR. Para IMPRIMIR, use os arquivos
+da pasta de cima (stl/prensa-1-base.stl ... prensa-9-tampa-comando.stl), que já vêm deitados
+na posição certa para a impressora.
+
+
+COMO IMPORTAR
+-------------
+1. Entre em https://www.tinkercad.com, clique em "Criar" e escolha "Design 3D".
+2. Clique em "Importar" (canto de cima, à direita) e escolha um arquivo desta pasta.
+3. Na janela que abre, confira: Unidades = Milímetros e Escala = 100%. Clique em "Importar".
+4. Repita para os outros arquivos, um de cada vez. Comece pelo 01-base.stl.
+
+Cada peça cai no lugar dela, já montada. Isso funciona porque todo arquivo tem 2 cubinhos de
+1 mm no chão, nos cantos do conjunto: são marcadores de alinhamento, pode ignorar.
+Se alguma peça cair fora do lugar, importe-a de novo sem mexer em nada antes.
+
+
+PEÇAS PARA IMPRIMIR (9)                         cor (paleta vermelho, branco, preto e azul)
+01-base ........... guarda o protoboard          preto     #1F1F24
+02-mesa ........... tampa da base, com o leitor  branco    #F2F2F0
+03-portico ........ colunas + coroa com o servo  vermelho  #FF3D2E
+04-tampa-mecanismo  fecha a coroa por baixo      vermelho  #FF3D2E
+05-pistao ......... sobe e desce com o servo     branco    #F2F2F0
+06-martelo ........ ponta do pistão              azul      #2F45FF
+07-cilindro ....... enfeite em cima da coroa     branco    #F2F2F0
+08-caixa-comando .. módulo de relés + 12 V       preto     #1F1F24
+09-tampa-comando .. a torre é parafusada nela    branco    #F2F2F0
+
+REFERÊNCIAS (não imprimir: são as peças do kit, para conferir se tudo cabe)
+ref-a-protoboard-esp32   ref-b-leitor-rfid   ref-c-servo   ref-d-modulo-reles
+A torre de sinalização não entra: ela é comprada pronta. O encaixe dela é a 09-tampa-comando
+(rebaixo do pé, furo do meio para os 5 fios e 3 furos para parafusos M4).
+
+
+DICAS NO TINKERCAD
+------------------
+- Mudar a cor: selecione a peça, clique na cor do painel "Forma" e digite o código (ex.: FF3D2E).
+- Ver uma peça sozinha: selecione as outras e use "Ocultar" (o ícone da lâmpada);
+  "Mostrar tudo" traz de volta.
+- Medidas: com a peça selecionada, as alças mostram largura, profundidade e altura.
+  A "Régua" (Ruler) mede a distância entre dois pontos.
+- Se mudar alguma medida no Tinkercad, avise: o desenho original fica no código
+  (firmware/caixa-3d/caixa-leitora.js) e é ele que gera os arquivos de impressão.
+
+
+MEDIDAS DO DESENHO (medidas pela equipe em 13/11/2026, com régua)
+- Protoboard: 100 x 165 mm; o ESP32 não passa da borda de trás
+- Porta USB do ESP32: de 45 a 50 mm da borda esquerda, centro a ~20 mm do fundo
+  (o furo na parede tem 14 x 15 mm, então sobra folga)
+- Leitor RC522: 60 mm medido; a outra medida (39,5 mm) é a da placa padrão
+- Módulo de 4 relés: 55 x 75 mm, bornes dentro da placa
+- Pé da torre: 60 mm (o rebaixo da tampa aceita até 62), 3 furos ovais a 23 mm do centro
+  (na tampa: furos redondos de 4,5 mm para parafuso M4), tubo dos fios de 17 mm
+  (furo do meio de 18,5 mm)
+- Servo: medido com régua e arredondado para cima (corpo 25 x 15 x 30, orelhas 35,
+  fundo até as orelhas 17, orelhas de 3, eixo a 7 da ponta, topo do braço a 37).
+  O vão na coroa é feito para essas medidas + 0,5 mm e também serve para o SG90 do
+  catálogo (menor). Na montagem, encoste o servo no fundo do vão e na parede da frente
+  (o lado do eixo); a tampa do mecanismo apoia ele por baixo. Se ficar folgado, prenda
+  com cola quente. O pino é um pedaço de clipe de uns 25 mm: passa pelo furo do braço
+  (a 6 mm do centro) e atravessa o rasgo do pistão.

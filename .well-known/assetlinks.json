@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "br.com.somoslinkwave.lockmachine",
+        "sha256_cert_fingerprints": ["7F:65:0E:E6:43:08:D4:E4:FF:4F:4D:E3:49:6F:2F:1D:DA:64:E9:7B:3B:AC:F0:CC:70:D8:D0:BA:41:7A:6B:63"]
+      }
+    }]

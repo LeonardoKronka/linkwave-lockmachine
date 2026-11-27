@@ -15,7 +15,9 @@ da equipe LinkWave (TCC do Técnico em Desenvolvimento de Sistemas, SENAI Mococa
 | Pasta | Conteúdo |
 |---|---|
 | `index.html`, `lockmachine.html`, `assets/` | Site (HTML/CSS/JS puro, GSAP 3.14 e fontes hospedados em `assets/`) |
-| `app/` | App PWA: administrador e funcionário. É o mesmo app que vira APK pelo PWABuilder |
+| `app/` | App PWA: administrador e funcionário. É o mesmo app que o APK abre (PWABuilder, desde 27/11) |
+| `downloads/`, `.well-known/` | `lockmachine.apk` (fora do Git, sobe à mão) e `assetlinks.json` (no Git) |
+| `mobile/` | App Flutter de 04/11, fora do Git (2,2 GB, quase tudo `build/`). Deixado de lado em 27/11 |
 | `api/` | PHP 7.4+ com PDO, sessão em cookie HttpOnly, JSON no formato do Apêndice B do TCC |
 | `database/` | `schema.sql` (8 tabelas) e `seed.sql` (admin + dados fictícios) |
 | `firmware/` | Sketch do ESP32 + MFRC522 (Arduino IDE) |
@@ -23,7 +25,7 @@ da equipe LinkWave (TCC do Técnico em Desenvolvimento de Sistemas, SENAI Mococa
 | `deploy/` | `linkwave-site.zip` pronto para o cPanel e `gerar-zip.ps1` para refazer o zip |
 | `.github/workflows/` | `publicar-cpanel.yml`: publica o site no cPanel a cada push na `main` |
 
-## Situação em 25/10/2026
+## Situação em 27/11/2026
 
 Pronto e testado localmente (PHP 8.2 + MariaDB 10.11): site, simulador do site, banco, todas as rotas da API
 (login com troca obrigatória de senha, bloqueio após 5 tentativas, cadastros, capacitações, validação com os
@@ -36,6 +38,14 @@ publicado (https://claude.ai/artifact/Xj7upFJDECzTw9jEn7M6Yd) e roteiro de entre
 À noite: passada de desempenho (travas no carregamento e na rolagem medidas e reduzidas), reflexo da logo visível em
 1920×1080 e cena do LockMachine refeita (prensa hidráulica P-01 com posto bimanual, leitora e torre de sinalização).
 Regras visuais detalhadas: `DESIGN.md` (leia antes de mexer no visual). Uma sessão separada faz o vídeo em `video/`.
+Em 27/11: APK publicado (PWABuilder, Trusted Web Activity). Pacote `br.com.somoslinkwave.lockmachine`, versão
+1.0.0.0 (code 1), Android 7+, abre `https://somoslinkwave.com.br/app/`; certificado CN=LinkWave, OU=SENAI Mococa,
+O=LinkWave, C=BR, SHA-256 `7F:65:0E:E6:43:08:D4:E4:FF:4F:4D:E3:49:6F:2F:1D:DA:64:E9:7B:3B:AC:F0:CC:70:D8:D0:BA:41:7A:6B:63`.
+`downloads/lockmachine.apk` e `.well-known/assetlinks.json` estão no servidor (644) e o Digital Asset Links do Google
+responde `"linked": true`. O zip do PWABuilder (chave `signing.keystore` + senhas) ficou com o usuário, fora do projeto.
+No mesmo dia: `www` redireciona para o domínio sem `www` (menos `/.well-known/`), o site passou a dizer "oito tabelas"
+(com `dispositivos`), o andamento mostra Publicação "No ar", APK "Disponível" e leitora "Em bancada", e a bancada
+lista módulo de 4 relés, torre de sinalização e prensa em miniatura (servo).
 
 Falta:
 0. Trocar `[e-mail da equipe]` em `privacidade.html` e `termos.html` pelo e-mail real da LinkWave.
@@ -49,15 +59,52 @@ Falta:
    depois de extrair um zip no servidor, rode essa correção de novo.
    Falta a atualização automática: conta FTP do site e, no GitHub, as variáveis `FTP_SERVIDOR`/`FTP_USUARIO`/`SITE_URL`
    e o segredo `FTP_SENHA` (seção "Atualização automática" do guia); `.github/workflows/publicar-cpanel.yml` já está
-   pronto e só publica quando elas existem. Até lá, atualizações vão pelo zip. Depois de cada envio automático,
+   pronto e só publica quando elas existem. Até lá, atualizações vão pelo zip ou arquivo a arquivo no Gerenciador de
+   arquivos (enviado assim, já chega com 644 e dispensa a Tarefa Cron). Depois de cada envio automático,
    confira o resumo com `gh run view`. Guie o usuário um passo de cada vez, dizendo como chegar em cada tela, e peça
    print do que aparece. Senhas e credenciais quem digita é sempre o usuário (no cPanel e no GitHub), nunca o Claude.
    A apresentação de andamento (30/10) está em `docs/apresentacao/`.
-2. **Gerar o APK** no PWABuilder (o HTTPS já funciona) e subir `downloads/lockmachine.apk`
-   e `.well-known/assetlinks.json`. O botão de download do site se ativa sozinho quando o APK existe.
-3. Compilar e testar o firmware (não foi compilado: a máquina original não tinha Arduino IDE).
+2. **APK**: gerado e publicado em 27/11 (ver "Situação"); o botão do site já baixa. Instalado em 27/11 pelo cabo
+   (`adb install`) no tablet do SENAI Samsung Galaxy Tab S9 FE (SM-X510, Android 16, Chrome 154): abre a tela de
+   login em tela cheia, sem barra de endereço (assetlinks verificado). Falta instalar pelo botão do site num aparelho
+   (o servidor já entrega o APK certo). O app só muda de versão para trocar nome, ícone, cores ou endereço: o
+   conteúdo vem do site. Versão nova = PWABuilder com **Signing key > Use mine** e o mesmo `signing.keystore`
+   (senhas digitadas pelo usuário) e Version code maior; outra chave invalida o `assetlinks.json` e o celular recusa
+   a atualização. Verificação de desenvolvedor do Google: no Brasil desde 30/09/2026 só para lojas participantes;
+   APK baixado do site está fora dessa fase, mas a regra vira global em 2027 (saídas em `docs/DEPLOY_CPANEL.md`, seção 7).
+3. Testar o firmware na placa. Em 11/11 a resposta passou para a torre de sinalização HDL-T50L-3C-J (12/24 V, com
+   buzzer) por um módulo de 4 relés: IN1 verde GPIO 27, IN2 amarelo 26, IN3 vermelho 25, IN4 buzzer 33 (pinos dos
+   LEDs do teste do Caue); servo do martelo no GPIO 13; leitor como no teste do Caue (SPI 18/19/23/5, RST 22).
+   Wi-Fi e token ficam em `firmware/lockmachine_esp32/segredos.h` (no `.gitignore`; modelo em `segredos.exemplo.h`).
+   Leitora "Leitora da prensa P-01 (bancada)" cadastrada no app em 11/11. O sketch compila no notebook do SENAI
+   (Arduino IDE, esp32 3.3.12, MFRC522, ArduinoJson, ESP32Servo; ESP32 na COM5); a versão anterior foi gravada e o
+   autoteste acusou o leitor desligado: o RC522 da maleta está sem a barra de pinos soldada (catálogo da maleta).
+   A maleta não tem capacitor e só tem 10 jumpers macho-fêmea. Até a fonte de 12 V chegar, a turma testa com LEDs nos
+   pinos 27/26/25: o sketch está com `SAIDAS_ATIVAS_EM_ALTO = true` (voltar para `false` ao ligar os relés) e
+   `firmware/teste_servo_leds/` testa LEDs e servo sem leitor nem Wi-Fi. Em 11/11 esse teste foi gravado e
+   funcionou na bancada (3 LEDs com resistor + servo SG90 no VIN, sem capacitor, sem reiniciar o ESP32); montagem
+   em `firmware/ligacoes/teste-leds.html`. Ainda em 11/11 o sketch principal funcionou de ponta a ponta com o
+   leitor soldado: cartão 00 52 C2 80 negado como CARTAO_DESCONHECIDO (acessos #15 e #16), depois vinculado ao
+   funcionário de teste "Leonardo" (matrícula 399, capacitações de NR-12 e prensa registradas só para a demonstração)
+   e liberado (acesso #22), com LEDs, servo e buzzer. O buzzer da maleta é passivo: ligado direto no pino, o sketch
+   manda uma onda de ~2,7 kHz. Falta ligar relés e torre conforme `firmware/ligacoes/ligacoes.html` quando a fonte
+   de 12 V chegar.
+   A caixa 3D (prensa P-01 em miniatura + caixa de comando com a torre) fica em `firmware/caixa-3d/`:
+   `npm run gerar` refaz os STL e a prévia; versões anteriores em `versao-1-simples/`, `versao-2-fixa/` e `versao-3-leds/`.
+   `stl/prensa-*.stl` são para imprimir (já na posição de impressão); `stl/tinkercad/` traz as mesmas peças na posição
+   de montagem + peças de referência do kit, cada arquivo com 2 cubinhos de 1 mm nos cantos do conjunto para o
+   Tinkercad (que recentraliza cada importação) montar tudo no lugar. Guia em `stl/tinkercad/LEIA-ME.txt`.
+   As booleanas rodam no Manifold (`booleanas-manifold.js`): as do JSCAD deixavam emendas que o Tinkercad desenhava
+   como riscos. Em 13/11 a equipe mediu as peças reais com régua (não há paquímetro): protoboard, USB, relés e torre
+   entraram no desenho; o servo foi arredondado para cima e o vão na coroa aceita o medido e o SG90 do catálogo
+   (batentes + rasgo do pistão mais comprido, conferido em 8 posições do braço). Impressora menor: ~22 × 22 cm.
 4. Fotos e contatos dos integrantes: o usuário vai enviar. Hoje os crachás mostram iniciais.
-5. Executar os casos de teste (CT/TNF) e registrar evidências EV-XX.
+5. Executar os casos de teste (CT/TNF) e registrar evidências EV-XX. Os casos estão no documento do TCC, não no repositório.
+6. Contas fictícias do seed no servidor: `OP-1042` e `OP-1077` estão ativas com a senha padrão do README. O usuário
+   decide se gera senhas provisórias novas no app (admin) ou desativa as contas.
+7. A branch `feat/app-flutter` tem commits (caixa 3D, CLAUDE.md de 11 e 13/11, APK de 27/11) fora da `main`:
+   abrir PR quando o usuário pedir. `mobile/` (Flutter) e a mudança em `publicar-cpanel.yml` que ignora `mobile/**`
+   não são versionados: o usuário decide se guarda só o código do Flutter, apaga `mobile/build` ou deixa como está.
 
 ## Regras que valem para qualquer alteração
 
@@ -103,6 +150,10 @@ Falta:
   `onclick=` ou CDN; script novo vai em arquivo dentro de `assets/` ou `app/`. Rotas sensíveis usam
   `limitar()`/`bloqueado_por_erros()` de `api/lib/bootstrap.php` (contadores em `api/storage/limites`).
 - `api/config.local.php` tem a senha do banco: nunca versionar (já está no `.gitignore`).
+- **App Android**: o APK abre `https://somoslinkwave.com.br/app/` em tela cheia porque `/.well-known/assetlinks.json`
+  responde com o pacote e a impressão digital da chave. Não bloqueie nem redirecione `/.well-known/`, não troque o
+  domínio nem o caminho `/app/` sem gerar APK e `assetlinks.json` novos. A chave (`signing.keystore`,
+  `signing-key-info.txt`) fica só com o usuário: nunca no repositório, no zip de `deploy/` ou no servidor.
 
 ## Rodar localmente
 

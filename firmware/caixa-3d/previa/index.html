@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prensa da leitora RFID</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100,500;100,700;106,800&family=Martian+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  /* Mundo do site do LockMachine: chão de fábrica à noite, painéis foscos com linha de 1px, vermelho da marca.
+     Layout: a prensa em 3D ocupa o palco; a ficha técnica e as ligações ficam ao lado (embaixo no celular). */
+  :root {
+    --fundo: #06070A;
+    --painel: #0F1219;
+    --painel-2: #151923;
+    --linha: rgba(230, 234, 245, .12);
+    --texto: #ECEEF4;
+    --texto-2: #A6ACC0;
+    --vermelho: #FF3D2E;
+    --amarelo: #FFD23F;
+    --verde: #22D07B;
+    --display: "Archivo", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --mono: "Martian Mono", ui-monospace, Consolas, monospace;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--fundo);
+    color: var(--texto);
+    font-family: var(--display);
+    font-size: 15px;
+    line-height: 1.5;
+  }
+  .topo {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 22px clamp(16px, 4vw, 36px) 6px;
+  }
+  .marca { width: 40px; height: 40px; flex: none; }
+  h1 {
+    margin: 0;
+    font-weight: 800;
+    font-stretch: 106%;
+    font-size: clamp(1.5rem, 1.1rem + 1.6vw, 2.2rem);
+    line-height: 1.05;
+    letter-spacing: -.02em;
+    text-wrap: balance;
+  }
+  .sub { margin: 4px 0 0; color: var(--texto-2); max-width: 74ch; }
+  .grade {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 400px);
+    gap: 18px;
+    padding: 16px clamp(16px, 4vw, 36px) 32px;
+  }
+  @media (max-width: 900px) { .grade { grid-template-columns: 1fr; } }
+
+  .palco {
+    position: sticky;
+    top: 16px;
+    align-self: start;
+    height: clamp(460px, calc(100vh - 150px), 820px);
+    background: radial-gradient(90% 70% at 50% 0%, rgba(47, 69, 255, .10), transparent 70%), var(--painel);
+    border: 1px solid var(--linha);
+    border-radius: 22px;
+    overflow: hidden;
+  }
+  @media (max-width: 900px) { .palco { position: relative; top: auto; height: clamp(380px, 68vh, 600px); } }
+  #cena { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+  .aviso-carga {
+    position: absolute; inset: 0; display: grid; place-items: center;
+    color: var(--texto-2); font-family: var(--mono); font-size: 13px;
+  }
+  .controles {
+    position: absolute; left: 14px; right: 14px; top: 14px;
+    display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+  }
+  .segmentos { display: inline-flex; padding: 3px; gap: 2px; background: rgba(6, 7, 10, .7); border: 1px solid var(--linha); border-radius: 999px; }
+  .segmentos button, .alternar {
+    font: 700 13px var(--display);
+    color: var(--texto-2);
+    background: transparent;
+    border: 0;
+    padding: 8px 14px;
+    border-radius: 999px;
+    cursor: pointer;
+  }
+  .segmentos button[aria-pressed="true"] { background: var(--vermelho); color: #1C0503; }
+  .simular #cartao-ok { color: var(--verde); }
+  .simular #cartao-nao { color: #FF8A80; }
+  .simular button[aria-pressed="true"]#cartao-ok { background: var(--verde); color: #04170D; }
+  .simular button[aria-pressed="true"]#cartao-nao { background: var(--vermelho); color: #1C0503; }
+  .simular button:disabled { cursor: default; }
+  .alternar { background: rgba(6, 7, 10, .7); border: 1px solid var(--linha); color: var(--texto-2); }
+  .alternar[aria-pressed="true"] { color: var(--texto); border-color: rgba(255, 210, 63, .55); }
+  .alternar[aria-pressed="true"]::before { content: "● "; color: var(--amarelo); }
+  button:focus-visible { outline: 2px solid var(--amarelo); outline-offset: 3px; }
+  .rodape-palco {
+    position: absolute; left: 14px; right: 14px; bottom: 12px;
+    display: grid; gap: 3px; pointer-events: none;
+  }
+  .rodape-palco p { margin: 0; max-width: 64ch; font-size: 13.5px; text-shadow: 0 1px 8px rgba(6, 7, 10, .9); }
+  .rodape-palco .dica { font-size: 12px; color: var(--texto-2); }
+
+  .ficha { display: grid; gap: 14px; align-content: start; min-width: 0; }
+  .cartao {
+    background: var(--painel);
+    border: 1px solid var(--linha);
+    border-radius: 18px;
+    padding: 16px 18px;
+    min-width: 0;
+  }
+  h2 { margin: 0 0 10px; font-size: 1.02rem; font-weight: 800; font-stretch: 104%; letter-spacing: -.01em; }
+  dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; }
+  dt { color: var(--texto-2); }
+  dd { margin: 0; font-family: var(--mono); font-size: 13px; font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+  ul, ol { margin: 0; padding-left: 18px; display: grid; gap: 7px; }
+  li::marker { color: var(--texto-2); }
+  .pecas { list-style: none; padding: 0; }
+  .pecas li { display: grid; grid-template-columns: 12px 1fr auto; gap: 10px; align-items: baseline; }
+  .pecas small { color: var(--texto-2); font-size: 12.5px; display: block; }
+  .pecas .g { font-family: var(--mono); font-size: 11.5px; color: var(--texto-2); white-space: pre; text-align: right; }
+  .cor { width: 12px; height: 12px; border-radius: 4px; transform: translateY(1px); box-shadow: 0 0 0 1px rgba(236, 238, 244, .35); }
+  .mono { font-family: var(--mono); font-size: 12.5px; }
+  .nota { color: var(--texto-2); font-size: 13.5px; margin: 10px 0 0; }
+  .confere li strong { font-weight: 700; }
+
+  .ligacoes { list-style: none; padding: 0; gap: 2px; }
+  .ligacoes li {
+    display: grid; grid-template-columns: 14px 1fr; gap: 10px; align-items: start;
+    padding: 6px 8px; margin: 0 -8px; border-radius: 10px; cursor: default;
+  }
+  .ligacoes li:hover, .ligacoes li:focus-visible, .ligacoes li.ativo { background: var(--painel-2); outline: none; }
+  .ligacoes .fio { width: 14px; height: 5px; border-radius: 3px; margin-top: 8px; box-shadow: 0 0 0 1px rgba(255, 255, 255, .14); }
+  .ligacoes .de { font-weight: 700; font-size: 14px; }
+  .ligacoes .para { color: var(--texto-2); font-size: 13px; }
+  .ligacoes .grupo-fios { display: block; margin: 10px 0 2px; color: var(--texto-2); font: 600 11px var(--mono); letter-spacing: .06em; text-transform: uppercase; cursor: auto; padding: 0; }
+  .ligacoes .grupo-fios:first-child { margin-top: 0; }
+  .ligacoes .grupo-fios:hover { background: none; }
+</style>
+</head>
+<body>
+<header class="topo">
+  <svg class="marca" viewBox="0 0 48 48" aria-hidden="true">
+    <rect x="1.5" y="1.5" width="45" height="45" rx="13" fill="#FF3D2E" stroke="#11131F" stroke-width="3"/>
+    <path d="M17 22v-4.5a7 7 0 0 1 14 0V22" fill="none" stroke="#11131F" stroke-width="3.2" stroke-linecap="round"/>
+    <rect x="12" y="21" width="24" height="17" rx="5" fill="#fff" stroke="#11131F" stroke-width="3"/>
+    <circle cx="24" cy="28.5" r="2.6" fill="#11131F"/><path d="M24 30v3.5" stroke="#11131F" stroke-width="2.6" stroke-linecap="round"/>
+  </svg>
+  <div>
+    <h1>Prensa da leitora RFID</h1>
+    <p class="sub">Versão 4: a resposta aparece numa torre de sinalização de verdade, ligada por relés numa caixa de comando ao lado da prensa. O cartão é lido no posto da frente; se o servidor liberar, a torre fica verde e o servo desce o martelo. São 9 peças, todas sem suporte.</p>
+  </div>
+</header>
+
+<main class="grade">
+  <section class="palco" aria-label="Prévia 3D da prensa">
+    <canvas id="cena"></canvas>
+    <div class="aviso-carga" id="carga">Carregando o modelo…</div>
+    <div class="controles">
+      <div class="segmentos" role="group" aria-label="Vista">
+        <button type="button" id="vista-montada" aria-pressed="true">Montada</button>
+        <button type="button" id="vista-explodida" aria-pressed="false">Explodida</button>
+      </div>
+      <button type="button" class="alternar" id="raiox" aria-pressed="false">Raio-X</button>
+      <button type="button" class="alternar" id="fios" aria-pressed="true">Fios</button>
+      <button type="button" class="alternar" id="placas" aria-pressed="true">Placas</button>
+      <div class="segmentos simular" role="group" aria-label="Simular um cartão">
+        <button type="button" id="cartao-ok" aria-pressed="false">Cartão liberado</button>
+        <button type="button" id="cartao-nao" aria-pressed="false">Cartão bloqueado</button>
+      </div>
+    </div>
+    <div class="rodape-palco">
+      <p id="legenda"></p>
+      <p class="dica">Arraste para girar · role ou pince para aproximar · passe o mouse nas ligações para achar o fio</p>
+    </div>
+  </section>
+
+  <aside class="ficha">
+    <section class="cartao">
+      <h2>Medidas</h2>
+      <dl>
+        <dt>Base (com a sapata)</dt><dd id="m-base">113,4 × 182,4 mm</dd>
+        <dt>Prensa + caixa de comando</dt><dd id="m-conjunto">211 mm de largura</dd>
+        <dt>Altura até a mesa</dt><dd id="m-mesa">52,4 mm</dd>
+        <dt>Altura da prensa</dt><dd id="m-altura">172 mm</dd>
+        <dt>Altura com a torre</dt><dd id="m-torre">≈ 380 mm</dd>
+        <dt>Vão embaixo do martelo</dt><dd id="m-vao">38 mm</dd>
+        <dt>Curso do martelo</dt><dd id="m-curso">12 mm</dd>
+        <dt>Plástico sobre o leitor</dt><dd>1,2 mm</dd>
+      </dl>
+      <p class="nota">A maior peça é a base: precisa de uma mesa de impressão de pelo menos 200 × 200 mm.</p>
+    </section>
+
+    <section class="cartao">
+      <h2>As 9 peças para imprimir</h2>
+      <ul class="pecas" id="lista-pecas">
+        <li><span class="cor" style="background:#1F1F24"></span><span>1 · Base<small>Em pé, como na foto. Guarda o protoboard.</small></span><span class="g" data-peca="base"></span></li>
+        <li><span class="cor" style="background:#F2F2F0"></span><span>2 · Mesa (tampa)<small>De cabeça para baixo. Leva o leitor RFID.</small></span><span class="g" data-peca="tampa"></span></li>
+        <li><span class="cor" style="background:#FF3D2E"></span><span>3 · Pórtico<small>Com a coroa na mesa e as colunas para cima. O servo fica dentro da coroa.</small></span><span class="g" data-peca="portico"></span></li>
+        <li><span class="cor" style="background:#FF3D2E"></span><span>4 · Tampa do mecanismo<small>Deitada. Fecha a coroa por baixo e guia o pistão.</small></span><span class="g" data-peca="tampaMec"></span></li>
+        <li><span class="cor" style="background:#F2F2F0"></span><span>5 · Pistão<small>Deitado de lado: o rasgo do pino fica em pé.</small></span><span class="g" data-peca="pistao"></span></li>
+        <li><span class="cor" style="background:#2F45FF"></span><span>6 · Martelo<small>Em pé, com a parte larga na mesa.</small></span><span class="g" data-peca="martelo"></span></li>
+        <li><span class="cor" style="background:#F2F2F0"></span><span>7 · Cilindro<small>De cabeça para baixo (os STL já vêm assim).</small></span><span class="g" data-peca="cilindro"></span></li>
+        <li><span class="cor" style="background:#1F1F24"></span><span>8 · Caixa de comando<small>Em pé. Guarda o módulo de relés e o conector de 12 V.</small></span><span class="g" data-peca="comando"></span></li>
+        <li><span class="cor" style="background:#F2F2F0"></span><span>9 · Tampa da caixa<small>De cabeça para baixo. A torre é parafusada nela.</small></span><span class="g" data-peca="tampaComando"></span></li>
+      </ul>
+      <p class="nota">PLA, camada de 0,2 mm, 3 paredes, 15% de preenchimento. O peso é o da peça maciça: com 15% de preenchimento sai menos. Paleta em 4 cores: vermelho, branco, preto e azul. Dá para imprimir tudo numa cor só e pintar depois.</p>
+      <p class="nota"><strong>Além das peças:</strong> a torre de sinalização, o módulo de 4 relés e o servo SG90 do kit, uma fonte de 12 V, um conector P4 fêmea de painel (furo de 11 mm), um capacitor de 470 µF (10 V ou mais), 3 parafusos M4 para o pé da torre, 2 parafusos M3 de 12 mm para a tampa da caixa e um pedaço de clipe de papel (o pino do braço).</p>
+    </section>
+
+    <section class="cartao">
+      <h2>Ligações</h2>
+      <ul class="ligacoes" id="ligacoes"></ul>
+      <p class="nota">Os 12 V da fonte só passam pelos bornes dos relés e pela torre: nunca encostam no ESP32. Os COM dos 4 relés são emendados entre si (pontes vermelhas). O pino IRQ do leitor fica sem ligar. O capacitor fica entre os trilhos + e − (perna longa no +): segura o pico de corrente do servo.</p>
+    </section>
+
+    <section class="cartao">
+      <h2>Como montar</h2>
+      <ol>
+        <li>Prenda o leitor no berço da frente, embaixo da mesa, com uma gota de cola quente.</li>
+        <li>Na caixa de comando: encaixe o módulo de relés no berço, prenda o conector de 12 V na parede de trás e parafuse a torre na tampa, com os 5 fios descendo pelo furo do meio.</li>
+        <li>Ligue os fios da torre nos bornes: verde no NO1, amarelo no NO2, vermelho no NO3, roxo no NO4 e preto no − do conector. O + do conector vai no COM1, e o COM1 se emenda no COM2, COM3 e COM4.</li>
+        <li>Grave o sketch e ligue o ESP32 uma vez: o servo vai para a posição de cima. Encaixe o braço simples apontando para cima e corte o que sobrar depois do furo a 6 mm do centro.</li>
+        <li>Passe o cabo do servo pela coluna esquerda e empurre o servo para dentro da coroa, por baixo, até as abas entrarem no rasgo.</li>
+        <li>Coloque o pistão por baixo, com o rasgo atrás do braço, e passe o pino de clipe pelo furo do braço até atravessar o rasgo (uma gota de cola no braço segura o pino).</li>
+        <li>Encaixe a tampa do mecanismo com o pistão passando pela guia, e o martelo na ponta do pistão (cola). Gire o braço à mão: o martelo tem que descer e subir sem raspar.</li>
+        <li>Encaixe o pórtico na mesa e o cilindro na coroa. Encoste a caixa de comando na direita da base e passe os 6 fios do módulo de relés pela abertura lateral. Ligue o resto conforme a lista, feche a mesa e parafuse a tampa da caixa.</li>
+      </ol>
+    </section>
+
+    <section class="cartao confere">
+      <h2>Antes de imprimir, confira</h2>
+      <ol>
+        <li><strong>Protoboard:</strong> largura e comprimento do conjunto emendado (hoje: 100 × 165 mm).</li>
+        <li><strong>USB do ESP32:</strong> a distância do centro do conector até a borda esquerda do protoboard (hoje: 50 mm).</li>
+        <li><strong>Leitor RFID:</strong> o tamanho da placa azul (hoje: 39,5 × 60 mm).</li>
+        <li><strong>Altura:</strong> do fundo do protoboard até o fio mais alto (cabe até 38 mm embaixo do leitor).</li>
+        <li><strong>Pé da torre:</strong> o diâmetro do pé e a distância entre os 3 furos (o desenho supõe pé de 60 mm e furos a 23 mm do centro).</li>
+        <li><strong>Módulo de relés:</strong> o tamanho da placa azul (o berço supõe 56 × 76 mm).</li>
+        <li><strong>Braço do servo:</strong> a distância do centro até o furo usado (hoje: 6 mm; o desenho aceita de 4 a 7). O curso do martelo é o dobro disso.</li>
+      </ol>
+      <p class="nota">Teste o servo no protoboard antes de imprimir: se o ESP32 reiniciar quando ele mexe, alimente o servo por uma fonte de 5 V separada (com o GND junto).</p>
+      <p class="nota mono">prensa-1-base · 2-mesa · 3-portico · 4-tampa-mecanismo · 5-pistao · 6-martelo · 7-cilindro · 8-caixa-comando · 9-tampa-comando (.stl)</p>
+    </section>
+
+    <section class="cartao">
+      <h2>Ver no Tinkercad</h2>
+      <ol>
+        <li>Em tinkercad.com, clique em <strong>Criar → Design 3D</strong>.</li>
+        <li>Clique em <strong>Importar</strong> e escolha um arquivo da pasta <span class="mono">stl/tinkercad</span>, com Unidades = milímetros e Escala = 100%.</li>
+        <li>Repita para os 13 arquivos, um de cada vez: as 9 peças e as 4 referências (protoboard, leitor, servo e relés). A torre não entra: o projeto só tem o encaixe dela, na tampa da caixa de comando. Cada um cai no lugar dele, já montado.</li>
+      </ol>
+      <p class="nota">Os 2 cubinhos de 1 mm nos cantos são marcadores de alinhamento. Para imprimir, use os arquivos <span class="mono">stl/prensa-*.stl</span>, que já vêm deitados na posição certa e sem os marcadores.</p>
+    </section>
+  </aside>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+(function () {
+  const canvas = document.getElementById('cena');
+  const palco = canvas.parentElement;
+  const aviso = document.getElementById('carga');
+
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  const cena = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(34, 1, 1, 5000);
+  camera.up.set(0, 0, 1);
+  const controles = new THREE.OrbitControls(camera, canvas);
+  controles.enableDamping = true;
+  controles.dampingFactor = 0.08;
+  controles.minDistance = 60;
+  controles.maxDistance = 2000;
+
+  cena.add(new THREE.HemisphereLight(0xffffff, 0x1a1d27, 0.8));
+  const sol = new THREE.DirectionalLight(0xffffff, 0.9);
+  sol.position.set(180, -260, 360);
+  cena.add(sol);
+  const contra = new THREE.DirectionalLight(0x8c9bff, 0.35);
+  contra.position.set(-240, 220, 160);
+  cena.add(contra);
+
+  const grade = new THREE.GridHelper(800, 40, 0x2a2e38, 0x161a22);
+  grade.rotation.x = Math.PI / 2;
+  grade.position.z = -0.2;
+  cena.add(grade);
+
+  // Cores da prévia: o grafite da base fica um pouco mais claro para aparecer no fundo noturno.
+  function corDa(c, ehCaixa) {
+    const [r, g, b] = c;
+    if (ehCaixa && r < 0.25 && g < 0.25 && b < 0.3) return new THREE.Color(0.27, 0.29, 0.35);
+    return new THREE.Color(r, g, b);
+  }
+
+  // Contorno só das quinas (faces vizinhas com mais de 28° entre si). Diferente do EdgesGeometry,
+  // ignora arestas sem vizinha exata, que na malha do JSCAD viram riscos no meio das faces.
+  function quinas(geo) {
+    const pos = geo.attributes.position.array;
+    const limite = Math.cos(THREE.MathUtils.degToRad(28));
+    const abertas = new Map();
+    const linhas = [];
+    const a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3();
+    const chave = (i) => Math.round(pos[i] * 100) + ',' + Math.round(pos[i + 1] * 100) + ',' + Math.round(pos[i + 2] * 100);
+    for (let t = 0; t < pos.length; t += 9) {
+      a.fromArray(pos, t); b.fromArray(pos, t + 3); c.fromArray(pos, t + 6);
+      const normal = new THREE.Vector3().subVectors(c, b).cross(new THREE.Vector3().subVectors(a, b));
+      if (normal.lengthSq() < 1e-12) continue;
+      normal.normalize();
+      const k = [chave(t), chave(t + 3), chave(t + 6)];
+      for (let j = 0; j < 3; j++) {
+        const i0 = t + j * 3, i1 = t + ((j + 1) % 3) * 3;
+        const vizinha = abertas.get(k[(j + 1) % 3] + '|' + k[j]);
+        if (vizinha) {
+          if (normal.dot(vizinha) <= limite) linhas.push(pos[i0], pos[i0 + 1], pos[i0 + 2], pos[i1], pos[i1 + 1], pos[i1 + 2]);
+          abertas.delete(k[(j + 1) % 3] + '|' + k[j]);
+        } else {
+          abertas.set(k[j] + '|' + k[(j + 1) % 3], normal);
+        }
+      }
+    }
+    const resultado = new THREE.BufferGeometry();
+    resultado.setAttribute('position', new THREE.Float32BufferAttribute(linhas, 3));
+    return resultado;
+  }
+
+  /* ---------- Peças: cada uma num grupo que sobe na vista explodida ---------- */
+  const grupos = {};          // base, tampa, portico, tampaMec, pistao, martelo, servo, manivela, cilindro
+  const cascas = [];          // materiais das peças impressas (ficam transparentes no raio-X)
+  const placas = [];
+  const leds = {};            // materiais dos LEDs da coroa, por cor
+  let explosao = {};
+  let mecanismo = null;
+  const deslocamento = {};    // posição atual de cada grupo (animada)
+  const alvo = {};
+  const giro = {};            // grupos que giram em torno do eixo do servo
+
+  function grupo(nome) {
+    if (!grupos[nome]) {
+      grupos[nome] = new THREE.Group();
+      deslocamento[nome] = 0;
+      alvo[nome] = 0;
+      cena.add(grupos[nome]);
+      if (mecanismo && mecanismo.giram.includes(nome)) {
+        const pivo = new THREE.Group();
+        pivo.position.fromArray(mecanismo.pivo);
+        grupos[nome].add(pivo);
+        giro[nome] = pivo;
+      }
+    }
+    return giro[nome] || grupos[nome];
+  }
+
+  function montarPecas(pecas) {
+    pecas.forEach((p) => {
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.Float32BufferAttribute(p.pos, 3));
+      if (giro[p.grupo] || (mecanismo && mecanismo.giram.includes(p.grupo))) {
+        const [x, y, z] = mecanismo.pivo;
+        geo.translate(-x, -y, -z);   // a malha fica em volta do eixo do servo, para girar no lugar
+      }
+      geo.computeVertexNormals();
+      const ehCaixa = p.caixa === true;
+      const cor = corDa(p.cor, ehCaixa);
+      const mat = new THREE.MeshStandardMaterial({
+        color: cor, roughness: ehCaixa ? 0.55 : 0.45, metalness: 0.05, flatShading: true,
+        emissive: p.brilho ? cor : 0x000000, emissiveIntensity: p.brilho ? 0.12 : 0,
+      });
+      if (p.led) { mat.userData.cor = cor.clone(); leds[p.led] = mat; }
+      const malha = new THREE.Mesh(geo, mat);
+      if (ehCaixa) {
+        const arestas = new THREE.LineSegments(quinas(geo), new THREE.LineBasicMaterial({ color: 0x0b0c10, transparent: true, opacity: 0.55 }));
+        malha.add(arestas);
+        cascas.push({ malha, mat, arestas });
+      } else {
+        placas.push(malha);
+      }
+      grupo(p.grupo).add(malha);
+    });
+  }
+
+  /* ---------- Fios: tubos que seguem os pontos e acompanham as peças ---------- */
+  const grupoFios = new THREE.Group();
+  cena.add(grupoFios);
+  let fios = [];
+  let destaque = null;
+
+  function deslocDoPonto(ponto, fio) {
+    const g = ponto[3];
+    if (g !== 'meio') return deslocamento[g] || 0;
+    const ini = fio.pontos[0][3], fim = fio.pontos[fio.pontos.length - 1][3];
+    return ((deslocamento[ini] || 0) + (deslocamento[fim] || 0)) / 2;
+  }
+
+  function desenharFios() {
+    fios.forEach((f) => {
+      const pts = f.pontos.map((q) => new THREE.Vector3(q[0], q[1], q[2] + deslocDoPonto(q, f)));
+      const curva = new THREE.CatmullRomCurve3(pts, false, 'centripetal');
+      const geo = new THREE.TubeGeometry(curva, Math.max(24, pts.length * 14), f.raio, 7, false);
+      if (f.malha.geometry) f.malha.geometry.dispose();
+      f.malha.geometry = geo;
+      // Pontas de jumper (capinha preta) nos dois lados.
+      [[0, 1], [pts.length - 1, pts.length - 2]].forEach(([i, j], k) => {
+        const ponta = f.pontas[k];
+        ponta.position.copy(pts[i]);
+        ponta.lookAt(pts[j]);
+      });
+    });
+  }
+
+  function montarFios(lista) {
+    const geoPonta = new THREE.BoxGeometry(2.5, 2.5, 7);
+    geoPonta.translate(0, 0, 3.5);
+    const matPonta = new THREE.MeshStandardMaterial({ color: 0x15161a, roughness: 0.6 });
+    fios = lista.map((f) => {
+      const mat = new THREE.MeshStandardMaterial({ color: new THREE.Color(f.cor), roughness: 0.42, metalness: 0.02, transparent: true, opacity: 1 });
+      const malha = new THREE.Mesh(new THREE.BufferGeometry(), mat);
+      const pontas = f.raio > 1 ? [new THREE.Object3D(), new THREE.Object3D()] : [new THREE.Mesh(geoPonta, matPonta.clone()), new THREE.Mesh(geoPonta, matPonta.clone())];
+      grupoFios.add(malha, ...pontas);
+      return Object.assign({}, f, { malha, mat, pontas });
+    });
+    desenharFios();
+  }
+
+  /* ---------- Raio-X ---------- */
+  let raioX = false;
+  function aplicarTransparencia() {
+    const ver = raioX || destaque !== null;
+    cascas.forEach(({ mat, arestas }) => {
+      mat.transparent = ver;
+      mat.opacity = ver ? 0.2 : 1;
+      mat.depthWrite = !ver;
+      mat.needsUpdate = true;
+      arestas.material.opacity = ver ? 0.35 : 0.55;
+    });
+    fios.forEach((f) => {
+      const apagado = destaque !== null && f.id !== destaque;
+      f.mat.opacity = apagado ? 0.12 : 1;
+      f.mat.depthWrite = !apagado;
+      f.mat.emissive = new THREE.Color(f.id === destaque ? f.cor : 0x000000);
+      f.mat.emissiveIntensity = f.id === destaque ? 0.45 : 0;
+      f.pontas.forEach((p) => { if (p.material) { p.material.transparent = apagado; p.material.opacity = apagado ? 0.12 : 1; } });
+    });
+  }
+
+  /* ---------- Vistas ---------- */
+  let vistaAtual = 'montada';
+  let mexeu = false;   // depois que a pessoa gira a peça, redimensionar não reenquadra
+  controles.addEventListener('start', () => { mexeu = true; });
+
+  const LEGENDAS = {
+    montada: 'Prensa montada: o cartão encosta no posto da frente, e a torre na caixa de comando mostra a resposta. Use os botões de cartão para ver tudo funcionar, e o Raio-X para ver os fios.',
+    explodida: 'As 9 peças separadas, com os fios no lugar: o cabo do servo desce pela coluna esquerda, e os fios dos relés passam pela abertura entre as duas caixas.',
+  };
+  const DIRECAO = new THREE.Vector3(0.62, -0.92, 0.5).normalize();
+
+  // Afasta a câmera o bastante para a vista inteira caber no palco, na largura e na altura.
+  function enquadrar(vista) {
+    const caixa = new THREE.Box3();
+    Object.entries(grupos).forEach(([nome, g]) => {
+      const b = new THREE.Box3().setFromObject(g);
+      if (b.isEmpty()) return;
+      const sobe = (vista === 'explodida' ? explosao[nome] || 0 : 0) - deslocamento[nome];
+      b.min.z += sobe; b.max.z += sobe;
+      caixa.union(b);
+    });
+    if (caixa.isEmpty()) return;
+    const centro = caixa.getCenter(new THREE.Vector3());
+    const raio = caixa.getSize(new THREE.Vector3()).length() / 2;
+    const meioV = THREE.MathUtils.degToRad(camera.fov / 2);
+    const meioH = Math.atan(Math.tan(meioV) * camera.aspect);
+    const distancia = (raio / Math.sin(Math.min(meioV, meioH))) * 0.95;
+    centro.z -= raio * 0.04;   // sobe a peça na tela, para a legenda de baixo não cobrir a base
+    controles.target.copy(centro);
+    camera.position.copy(centro).addScaledVector(DIRECAO, distancia);
+    camera.far = distancia * 10;
+    camera.updateProjectionMatrix();
+    controles.update();
+    mexeu = false;
+  }
+
+  function mostrar(vista) {
+    vistaAtual = vista;
+    Object.keys(grupos).forEach((nome) => { alvo[nome] = vista === 'explodida' ? explosao[nome] || 0 : 0; });
+    document.getElementById('vista-montada').setAttribute('aria-pressed', String(vista === 'montada'));
+    document.getElementById('vista-explodida').setAttribute('aria-pressed', String(vista === 'explodida'));
+    document.getElementById('legenda').textContent = LEGENDAS[vista];
+    enquadrar(vista);
+  }
+
+  function redimensionar() {
+    const w = palco.clientWidth, h = palco.clientHeight;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / Math.max(1, h);
+    camera.updateProjectionMatrix();
+    if (!mexeu) enquadrar(vistaAtual);
+  }
+  new ResizeObserver(redimensionar).observe(palco);
+
+  /* ---------- Ficha e lista de ligações ---------- */
+  const fmt = (n) => n.toLocaleString('pt-BR', { maximumFractionDigits: 1 });
+  const escrever = (id, texto) => { document.getElementById(id).textContent = texto; };
+
+  const SECOES = [
+    ['Leitor RFID → ESP32', (f) => f.de.startsWith('Leitor')],
+    ['Módulo de relés (caixa de comando)', (f) => f.id.startsWith('rele-')],
+    ['Torre e fonte de 12 V', (f) => f.id.startsWith('torre-') || f.id.startsWith('fonte') || f.id.startsWith('ponte')],
+    ['Servo do martelo', (f) => f.id.startsWith('servo') || f.id === 'vin-trilho'],
+    ['Alimentação do ESP32', () => true],
+  ];
+
+  function montarLista(lista) {
+    const ul = document.getElementById('ligacoes');
+    const usados = new Set();
+    SECOES.forEach(([titulo, filtro]) => {
+      const itens = lista.filter((f) => !usados.has(f.id) && filtro(f));
+      if (!itens.length) return;
+      const cab = document.createElement('li');
+      cab.className = 'grupo-fios';
+      cab.textContent = titulo;
+      ul.appendChild(cab);
+      itens.forEach((f) => {
+        usados.add(f.id);
+        const li = document.createElement('li');
+        li.tabIndex = 0;
+        li.dataset.fio = f.id;
+        li.innerHTML = '<span class="fio"></span><span><span class="de"></span><br><span class="para"></span></span>';
+        li.querySelector('.fio').style.background = f.cor;
+        li.querySelector('.de').textContent = f.de;
+        li.querySelector('.para').textContent = '→ ' + f.para;
+        const ligar = () => { destaque = f.id; li.classList.add('ativo'); aplicarTransparencia(); };
+        const desligar = () => { if (destaque === f.id) destaque = null; li.classList.remove('ativo'); aplicarTransparencia(); };
+        li.addEventListener('mouseenter', ligar);
+        li.addEventListener('mouseleave', desligar);
+        li.addEventListener('focus', ligar);
+        li.addEventListener('blur', desligar);
+        ul.appendChild(li);
+      });
+    });
+  }
+
+  fetch('modelo.json').then((r) => r.json()).then((d) => {
+    explosao = d.explosao;
+    mecanismo = d.mecanismo;
+    montarPecas(d.pecas);
+    montarFios(d.fios);
+    montarLista(d.fios);
+    const m = d.medidas;
+    escrever('m-base', `${fmt(m.largura)} × ${fmt(m.comprimento)} mm`);
+    escrever('m-mesa', `${fmt(m.alturaMesa)} mm`);
+    escrever('m-altura', `${fmt(m.alturaTotal)} mm`);
+    escrever('m-conjunto', `${fmt(m.larguraConjunto)} mm de largura`);
+    escrever('m-torre', `≈ ${fmt(m.alturaTorre)} mm`);
+    escrever('m-vao', `${fmt(m.vaoMartelo)} mm`);
+    escrever('m-curso', `${fmt(m.curso)} mm`);
+    document.querySelectorAll('[data-peca]').forEach((el) => {
+      const g = m.gramas[el.dataset.peca];
+      const d = m.dimensoes && m.dimensoes[el.dataset.peca];
+      if (d) el.textContent = `${d.map(fmt).join(' × ')} mm`;
+      if (g) el.textContent += `${d ? '\n' : ''}≈ ${g} g`;
+    });
+    aviso.remove();
+    acender(false, true, false);   // pronto, esperando um cartão
+    redimensionar();
+    mostrar('montada');
+  }).catch(() => { aviso.textContent = 'Não foi possível carregar o modelo 3D.'; });
+
+  document.getElementById('vista-montada').addEventListener('click', () => mostrar('montada'));
+  document.getElementById('vista-explodida').addEventListener('click', () => mostrar('explodida'));
+  function alternar(id, aoMudar) {
+    document.getElementById(id).addEventListener('click', (e) => {
+      const ligado = e.currentTarget.getAttribute('aria-pressed') !== 'true';
+      e.currentTarget.setAttribute('aria-pressed', String(ligado));
+      aoMudar(ligado);
+    });
+  }
+  alternar('raiox', (v) => { raioX = v; aplicarTransparencia(); });
+  alternar('fios', (v) => { grupoFios.visible = v; });
+  alternar('placas', (v) => { placas.forEach((p) => { p.visible = v; }); });
+
+  /* ---------- Simulação do cartão: a mesma sequência do sketch do ESP32 ---------- */
+  // angulo: posição do pino do braço (90° = em cima, −90° = embaixo). O martelo desce r·(1 − sen θ).
+  let angulo = 90;
+  let simulacao = null;
+  const LED_APAGADO = 0, LED_ACESO = 0.9;
+  const suave = (t) => t * t * (3 - 2 * t);
+
+  function acender(verde, amarelo, vermelho) {
+    const pares = [['verde', verde], ['amarelo', amarelo], ['vermelho', vermelho]];
+    // Luz apagada: a cor escurece (como o plástico colorido sem LED atrás); acesa: brilha.
+    pares.forEach(([nome, aceso]) => {
+      const mat = leds[nome];
+      if (!mat) return;
+      mat.color.copy(mat.userData.cor).multiplyScalar(aceso ? 1 : 0.38);
+      mat.emissiveIntensity = aceso ? LED_ACESO : LED_APAGADO;
+    });
+  }
+
+  // Cada passo: [duração em s, função(t de 0 a 1)].
+  const SEQUENCIAS = {
+    liberado: [
+      [0.45, () => acender(false, true, false)],                       // lendo / perguntando ao servidor
+      [0.25, () => acender(true, false, false)],                       // autorizado
+      [0.8, (t) => { angulo = 90 - 180 * suave(t); }],                 // o servo desce o martelo
+      [0.5, () => {}],
+      [0.8, (t) => { angulo = -90 + 180 * suave(t); }],                // e sobe de novo
+      [0.6, () => {}],
+      [0.01, () => acender(false, true, false)],                       // volta a esperar (amarelo aceso)
+    ],
+    bloqueado: [
+      [0.45, () => acender(false, true, false)],
+      [2, () => acender(false, false, true)],                          // vermelho aceso; o martelo não se move
+      [0.01, () => acender(false, true, false)],
+    ],
+  };
+
+  function simular(nome) {
+    if (simulacao) return;
+    simulacao = { passos: SEQUENCIAS[nome], i: 0, inicio: performance.now() };
+    const botoes = { liberado: 'cartao-ok', bloqueado: 'cartao-nao' };
+    Object.entries(botoes).forEach(([n, id]) => {
+      const b = document.getElementById(id);
+      b.setAttribute('aria-pressed', String(n === nome));
+      b.disabled = true;
+    });
+  }
+
+  function avancarSimulacao(agora) {
+    if (!simulacao) return;
+    let passo = simulacao.passos[simulacao.i];
+    let t = (agora - simulacao.inicio) / 1000 / passo[0];
+    while (t >= 1) {
+      passo[1](1);
+      simulacao.i += 1;
+      simulacao.inicio += passo[0] * 1000;
+      if (simulacao.i >= simulacao.passos.length) {
+        simulacao = null;
+        angulo = 90;
+        ['cartao-ok', 'cartao-nao'].forEach((id) => {
+          const b = document.getElementById(id);
+          b.setAttribute('aria-pressed', 'false');
+          b.disabled = false;
+        });
+        return;
+      }
+      passo = simulacao.passos[simulacao.i];
+      t = (agora - simulacao.inicio) / 1000 / passo[0];
+    }
+    passo[1](Math.max(0, t));
+  }
+
+  document.getElementById('cartao-ok').addEventListener('click', () => simular('liberado'));
+  document.getElementById('cartao-nao').addEventListener('click', () => simular('bloqueado'));
+
+  (function quadro(agora) {
+    let mudou = false;
+    avancarSimulacao(agora || performance.now());
+    const rad = THREE.MathUtils.degToRad(angulo);
+    const desce = mecanismo ? mecanismo.manivela * (Math.sin(rad) - 1) : 0;
+    Object.keys(grupos).forEach((nome) => {
+      const falta = alvo[nome] - deslocamento[nome];
+      if (Math.abs(falta) > 0.05) {
+        deslocamento[nome] += falta * 0.14;
+        mudou = true;
+      } else if (falta !== 0) {
+        deslocamento[nome] = alvo[nome];
+        mudou = true;
+      }
+      const anima = mecanismo && mecanismo.descem.includes(nome) ? desce : 0;
+      grupos[nome].position.z = deslocamento[nome] + anima;
+      if (giro[nome]) giro[nome].rotation.x = rad - Math.PI / 2;
+    });
+    if (mudou) desenharFios();
+    controles.update();
+    renderer.render(cena, camera);
+    requestAnimationFrame(quadro);
+  })();
+})();
+</script>
+</body>
+</html>
